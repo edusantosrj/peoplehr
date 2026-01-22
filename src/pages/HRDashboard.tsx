@@ -3,10 +3,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CandidateList } from "@/components/hr/CandidateList";
 import { CandidateProfile } from "@/components/hr/CandidateProfile";
 import { VacancyModule } from "@/components/vacancy/VacancyModule";
+import { StaffDashboard } from "@/components/hr/StaffDashboard";
 import { VacancyProvider } from "@/contexts/VacancyContext";
 import type { Candidate } from "@/types/candidate";
 import type { CandidateHRData } from "@/types/hr";
-import { Users, Briefcase } from "lucide-react";
+import { Users, Briefcase, UserCheck } from "lucide-react";
 
 // Mock data for demonstration
 const MOCK_CANDIDATES: Candidate[] = [
@@ -107,21 +108,49 @@ const MOCK_CANDIDATES: Candidate[] = [
   },
 ];
 
-const createInitialHRData = (candidateId: string): CandidateHRData => ({
-  candidateId,
-  annotations: [],
-  evaluation: {
-    fichaValidation: "Em Análise",
-    managementValidation: "Em Análise",
-    directorValidation: "Em Análise",
-    proposalPresented: "Em Análise",
-    proposalAccepted: "Em Análise",
-    documentationDelivered: "Em Análise",
-    candidateHired: "Em Análise",
-  },
-  admission: {},
-  termination: {},
-});
+const createInitialHRData = (candidateId: string): CandidateHRData => {
+  // Set first candidate as "Contratado" to demonstrate StaffDashboard
+  if (candidateId === "1") {
+    return {
+      candidateId,
+      annotations: [],
+      evaluation: {
+        fichaValidation: "Sim",
+        managementValidation: "Sim",
+        directorValidation: "Sim",
+        proposalPresented: "Sim",
+        proposalAccepted: "Sim",
+        documentationDelivered: "Sim",
+        candidateHired: "Sim",
+      },
+      admission: {
+        vacancyId: "1",
+        vacancyDisplay: "Operador de Caixa - Manhã - Loja Centro",
+        admissionStatus: "Contratado",
+        definedSalary: "R$ 1.800,00",
+        storeUnit: "Loja Centro",
+        expectedStartDate: "2024-02-01",
+      },
+      termination: {},
+    };
+  }
+  
+  return {
+    candidateId,
+    annotations: [],
+    evaluation: {
+      fichaValidation: "Em Análise",
+      managementValidation: "Em Análise",
+      directorValidation: "Em Análise",
+      proposalPresented: "Em Análise",
+      proposalAccepted: "Em Análise",
+      documentationDelivered: "Em Análise",
+      candidateHired: "Em Análise",
+    },
+    admission: {},
+    termination: {},
+  };
+};
 
 const HRDashboardContent = () => {
   const [candidates] = useState<Candidate[]>(MOCK_CANDIDATES);
@@ -164,7 +193,7 @@ const HRDashboardContent = () => {
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-      <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
+      <TabsList className="grid w-full max-w-xl grid-cols-3 mb-6">
         <TabsTrigger value="candidatos" className="flex items-center gap-2">
           <Users className="h-4 w-4" />
           Candidatos
@@ -172,6 +201,10 @@ const HRDashboardContent = () => {
         <TabsTrigger value="vagas" className="flex items-center gap-2">
           <Briefcase className="h-4 w-4" />
           Vagas
+        </TabsTrigger>
+        <TabsTrigger value="efetivo" className="flex items-center gap-2">
+          <UserCheck className="h-4 w-4" />
+          Efetivo
         </TabsTrigger>
       </TabsList>
 
@@ -184,6 +217,13 @@ const HRDashboardContent = () => {
 
       <TabsContent value="vagas">
         <VacancyModule />
+      </TabsContent>
+
+      <TabsContent value="efetivo">
+        <StaffDashboard
+          candidates={candidates}
+          hrDataMap={hrDataMap}
+        />
       </TabsContent>
     </Tabs>
   );
