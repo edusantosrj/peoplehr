@@ -4,10 +4,11 @@ import { CandidateList } from "@/components/hr/CandidateList";
 import { CandidateProfile } from "@/components/hr/CandidateProfile";
 import { VacancyModule } from "@/components/vacancy/VacancyModule";
 import { StaffDashboard } from "@/components/hr/StaffDashboard";
+import { ReportsModule } from "@/components/hr/reports/ReportsModule";
 import { VacancyProvider } from "@/contexts/VacancyContext";
 import type { Candidate } from "@/types/candidate";
 import type { CandidateHRData } from "@/types/hr";
-import { Users, Briefcase, UserCheck } from "lucide-react";
+import { Users, Briefcase, UserCheck, BarChart3 } from "lucide-react";
 
 // Mock data for demonstration
 const MOCK_CANDIDATES: Candidate[] = [
@@ -193,7 +194,7 @@ const HRDashboardContent = () => {
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-      <TabsList className="grid w-full max-w-xl grid-cols-3 mb-6">
+      <TabsList className="grid w-full max-w-2xl grid-cols-4 mb-6">
         <TabsTrigger value="candidatos" className="flex items-center gap-2">
           <Users className="h-4 w-4" />
           Candidatos
@@ -205,6 +206,10 @@ const HRDashboardContent = () => {
         <TabsTrigger value="efetivo" className="flex items-center gap-2">
           <UserCheck className="h-4 w-4" />
           Efetivo
+        </TabsTrigger>
+        <TabsTrigger value="relatorios" className="flex items-center gap-2">
+          <BarChart3 className="h-4 w-4" />
+          Relatórios
         </TabsTrigger>
       </TabsList>
 
@@ -221,6 +226,13 @@ const HRDashboardContent = () => {
 
       <TabsContent value="efetivo">
         <StaffDashboard
+          candidates={candidates}
+          hrDataMap={hrDataMap}
+        />
+      </TabsContent>
+
+      <TabsContent value="relatorios">
+        <ReportsModule
           candidates={candidates}
           hrDataMap={hrDataMap}
         />
