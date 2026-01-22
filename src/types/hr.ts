@@ -54,11 +54,4 @@ export const ADMISSION_STATUS_OPTIONS = [
   'Cancelado'
 ];
 
-// Mock vacancies for display
-export const MOCK_VACANCIES = [
-  { id: '1', name: 'Operador de Caixa', shift: 'Manhã', unit: 'Loja Centro' },
-  { id: '2', name: 'Repositor', shift: 'Tarde', unit: 'Loja Centro' },
-  { id: '3', name: 'Açougueiro', shift: 'Manhã', unit: 'Loja Norte' },
-  { id: '4', name: 'Padeiro', shift: 'Noite', unit: 'Loja Sul' },
-  { id: '5', name: 'Auxiliar de Limpeza', shift: 'Integral', unit: 'Loja Centro' },
-];
+// Vacancies are now managed via VacancyContext

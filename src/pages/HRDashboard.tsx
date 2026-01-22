@@ -1,8 +1,12 @@
 import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CandidateList } from "@/components/hr/CandidateList";
 import { CandidateProfile } from "@/components/hr/CandidateProfile";
+import { VacancyModule } from "@/components/vacancy/VacancyModule";
+import { VacancyProvider } from "@/contexts/VacancyContext";
 import type { Candidate } from "@/types/candidate";
 import type { CandidateHRData } from "@/types/hr";
+import { Users, Briefcase } from "lucide-react";
 
 // Mock data for demonstration
 const MOCK_CANDIDATES: Candidate[] = [
@@ -119,7 +123,7 @@ const createInitialHRData = (candidateId: string): CandidateHRData => ({
   termination: {},
 });
 
-const HRDashboard = () => {
+const HRDashboardContent = () => {
   const [candidates] = useState<Candidate[]>(MOCK_CANDIDATES);
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
   const [hrDataMap, setHRDataMap] = useState<Record<string, CandidateHRData>>(() => {
@@ -129,6 +133,7 @@ const HRDashboard = () => {
     });
     return initial;
   });
+  const [activeTab, setActiveTab] = useState("candidatos");
 
   const handleSelectCandidate = (candidate: Candidate) => {
     setSelectedCandidate(candidate);
@@ -145,45 +150,75 @@ const HRDashboard = () => {
     }));
   };
 
+  // If viewing a candidate profile, show it full screen
+  if (selectedCandidate) {
+    return (
+      <CandidateProfile
+        candidate={selectedCandidate}
+        hrData={hrDataMap[selectedCandidate.id]}
+        onBack={handleBack}
+        onUpdateHRData={handleUpdateHRData}
+      />
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-primary text-primary-foreground py-6 shadow-md">
-        <div className="container mx-auto px-4">
-          <h1 className="text-2xl sm:text-3xl font-bold text-center">
-            Supermercados Marinho
-          </h1>
-          <p className="text-center text-primary-foreground/80 mt-1">
-            Sistema de Recursos Humanos - Painel RH
-          </p>
-        </div>
-      </header>
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
+        <TabsTrigger value="candidatos" className="flex items-center gap-2">
+          <Users className="h-4 w-4" />
+          Candidatos
+        </TabsTrigger>
+        <TabsTrigger value="vagas" className="flex items-center gap-2">
+          <Briefcase className="h-4 w-4" />
+          Vagas
+        </TabsTrigger>
+      </TabsList>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        {selectedCandidate ? (
-          <CandidateProfile
-            candidate={selectedCandidate}
-            hrData={hrDataMap[selectedCandidate.id]}
-            onBack={handleBack}
-            onUpdateHRData={handleUpdateHRData}
-          />
-        ) : (
-          <CandidateList
-            candidates={candidates}
-            onSelectCandidate={handleSelectCandidate}
-          />
-        )}
-      </main>
+      <TabsContent value="candidatos">
+        <CandidateList
+          candidates={candidates}
+          onSelectCandidate={handleSelectCandidate}
+        />
+      </TabsContent>
 
-      {/* Footer */}
-      <footer className="bg-muted py-4 mt-auto">
-        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} Supermercados Marinho - Todos os direitos reservados</p>
-          <p className="mt-1">Sistema de RH - Painel Administrativo</p>
-        </div>
-      </footer>
-    </div>
+      <TabsContent value="vagas">
+        <VacancyModule />
+      </TabsContent>
+    </Tabs>
+  );
+};
+
+const HRDashboard = () => {
+  return (
+    <VacancyProvider>
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <header className="bg-primary text-primary-foreground py-6 shadow-md">
+          <div className="container mx-auto px-4">
+            <h1 className="text-2xl sm:text-3xl font-bold text-center">
+              Supermercados Marinho
+            </h1>
+            <p className="text-center text-primary-foreground/80 mt-1">
+              Sistema de Recursos Humanos - Painel RH
+            </p>
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <main className="container mx-auto px-4 py-8">
+          <HRDashboardContent />
+        </main>
+
+        {/* Footer */}
+        <footer className="bg-muted py-4 mt-auto">
+          <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
+            <p>© {new Date().getFullYear()} Supermercados Marinho - Todos os direitos reservados</p>
+            <p className="mt-1">Sistema de RH - Painel Administrativo</p>
+          </div>
+        </footer>
+      </div>
+    </VacancyProvider>
   );
 };
 

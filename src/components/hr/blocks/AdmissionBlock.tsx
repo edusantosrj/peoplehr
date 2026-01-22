@@ -12,7 +12,9 @@ import {
 import { Label } from "@/components/ui/label";
 import { UserPlus, Save } from "lucide-react";
 import type { Admission } from "@/types/hr";
-import { MOCK_VACANCIES, ADMISSION_STATUS_OPTIONS } from "@/types/hr";
+import { ADMISSION_STATUS_OPTIONS } from "@/types/hr";
+import { useVacancies } from "@/contexts/VacancyContext";
+import { formatVacancyDisplay, formatSalary } from "@/types/vacancy";
 
 interface AdmissionBlockProps {
   admission: Admission;
@@ -25,11 +27,23 @@ export const AdmissionBlock = ({
   onUpdate,
   onSave,
 }: AdmissionBlockProps) => {
-  const getVacancyDisplay = (vacancyId: string) => {
-    const vacancy = MOCK_VACANCIES.find((v) => v.id === vacancyId);
-    if (!vacancy) return '';
-    return `${vacancy.name} - ${vacancy.shift} - ${vacancy.unit}`;
+  const { vacancies } = useVacancies();
+
+  const handleVacancyChange = (vacancyId: string) => {
+    const vacancy = vacancies.find((v) => v.id === vacancyId);
+    if (vacancy) {
+      onUpdate('vacancyId', vacancyId);
+      onUpdate('vacancyDisplay', formatVacancyDisplay(vacancy));
+      onUpdate('storeUnit', vacancy.unit);
+      // Auto-fill salary from vacancy (editable)
+      onUpdate('definedSalary', formatSalary(vacancy.grossSalary));
+    }
   };
+
+  // Include all vacancies - even inactive ones if already linked to candidate
+  const availableVacancies = vacancies.filter(
+    (v) => v.status === 'Ativa' || v.id === admission.vacancyId
+  );
 
   return (
     <Card>
@@ -45,18 +59,16 @@ export const AdmissionBlock = ({
             <Label>Vaga</Label>
             <Select
               value={admission.vacancyId || ''}
-              onValueChange={(value) => {
-                onUpdate('vacancyId', value);
-                onUpdate('vacancyDisplay', getVacancyDisplay(value));
-              }}
+              onValueChange={handleVacancyChange}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione uma vaga" />
               </SelectTrigger>
               <SelectContent>
-                {MOCK_VACANCIES.map((vacancy) => (
+                {availableVacancies.map((vacancy) => (
                   <SelectItem key={vacancy.id} value={vacancy.id}>
-                    {vacancy.name} - {vacancy.shift} - {vacancy.unit}
+                    {formatVacancyDisplay(vacancy)}
+                    {vacancy.status === 'Inativa' && ' (Inativa)'}
                   </SelectItem>
                 ))}
               </SelectContent>
