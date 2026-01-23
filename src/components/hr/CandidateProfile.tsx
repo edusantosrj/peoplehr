@@ -12,8 +12,9 @@ import { AnnotationsBlock } from "./blocks/AnnotationsBlock";
 import { EvaluationBlock } from "./blocks/EvaluationBlock";
 import { AdmissionBlock } from "./blocks/AdmissionBlock";
 import { TerminationBlock } from "./blocks/TerminationBlock";
+import { DocumentationBlock } from "./blocks/DocumentationBlock";
 import type { Candidate } from "@/types/candidate";
-import type { CandidateHRData, HRAnnotation, ProcessEvaluation, Admission, Termination } from "@/types/hr";
+import type { CandidateHRData, HRAnnotation, ProcessEvaluation, Admission, Termination, CandidateDocumentation } from "@/types/hr";
 import { useToast } from "@/hooks/use-toast";
 
 interface CandidateProfileProps {
@@ -101,6 +102,25 @@ export const CandidateProfile = ({
     });
   };
 
+  const handleUpdateDocumentation = (
+    field: keyof CandidateDocumentation,
+    key: 'checked' | 'expirationDate',
+    value: boolean | string
+  ) => {
+    const updated = {
+      ...localHRData,
+      documentation: {
+        ...localHRData.documentation,
+        [field]: {
+          ...localHRData.documentation[field],
+          [key]: value,
+        },
+      },
+    };
+    setLocalHRData(updated);
+    onUpdateHRData(updated);
+  };
+
   return (
     <div className="space-y-6">
       <Button variant="ghost" onClick={onBack} className="mb-4">
@@ -146,14 +166,20 @@ export const CandidateProfile = ({
           onUpdate={handleUpdateEvaluation}
         />
 
-        {/* Bloco 8 - Admissão do Candidato */}
+        {/* Bloco 8 - Documentação do Candidato */}
+        <DocumentationBlock
+          documentation={localHRData.documentation}
+          onUpdate={handleUpdateDocumentation}
+        />
+
+        {/* Bloco 9 - Admissão do Candidato */}
         <AdmissionBlock
           admission={localHRData.admission}
           onUpdate={handleUpdateAdmission}
           onSave={handleSaveAdmission}
         />
 
-        {/* Bloco 9 - Desligamento do Funcionário */}
+        {/* Bloco 10 - Desligamento do Funcionário */}
         <TerminationBlock
           termination={localHRData.termination}
           onUpdate={handleUpdateTermination}

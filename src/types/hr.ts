@@ -35,6 +35,29 @@ export interface Termination {
   confirmed?: boolean;
 }
 
+export interface DocumentItem {
+  checked: boolean;
+  expirationDate?: string;
+}
+
+export interface CandidateDocumentation {
+  basicDocumentation: DocumentItem;
+  experienceContract: DocumentItem;
+  experienceExtension: DocumentItem;
+  priorNotice: DocumentItem;
+  terminationContract: DocumentItem;
+}
+
+export type DocumentStatus = 'valid' | 'expiring' | 'expired';
+
+export const DOCUMENT_LABELS: Record<keyof CandidateDocumentation, string> = {
+  basicDocumentation: 'Documentação básica para contratação',
+  experienceContract: 'Contrato de experiência',
+  experienceExtension: 'Contrato de prorrogação do período de experiência',
+  priorNotice: 'Aviso prévio',
+  terminationContract: 'Contrato de rescisão de trabalho',
+};
+
 export interface CandidateHRData {
   candidateId: string;
   photoUrl?: string;
@@ -42,6 +65,7 @@ export interface CandidateHRData {
   evaluation: ProcessEvaluation;
   admission: Admission;
   termination: Termination;
+  documentation: CandidateDocumentation;
 }
 
 export const EVALUATION_STATUS_OPTIONS = ['Em Análise', 'Sim', 'Não'] as const;
@@ -53,5 +77,13 @@ export const ADMISSION_STATUS_OPTIONS = [
   'Contratado',
   'Cancelado'
 ];
+
+export const createDefaultDocumentation = (): CandidateDocumentation => ({
+  basicDocumentation: { checked: false },
+  experienceContract: { checked: false },
+  experienceExtension: { checked: false },
+  priorNotice: { checked: false },
+  terminationContract: { checked: false },
+});
 
 // Vacancies are now managed via VacancyContext

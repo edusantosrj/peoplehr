@@ -8,7 +8,9 @@ import { ReportsModule } from "@/components/hr/reports/ReportsModule";
 import { VacancyProvider } from "@/contexts/VacancyContext";
 import type { Candidate } from "@/types/candidate";
 import type { CandidateHRData } from "@/types/hr";
-import { Users, Briefcase, UserCheck, BarChart3 } from "lucide-react";
+import { createDefaultDocumentation } from "@/types/hr";
+import { Users, Briefcase, UserCheck, BarChart3, FileText } from "lucide-react";
+import { DocumentsControlPanel } from "@/components/hr/reports/DocumentsControlPanel";
 
 // Mock data for demonstration
 const MOCK_CANDIDATES: Candidate[] = [
@@ -133,6 +135,13 @@ const createInitialHRData = (candidateId: string): CandidateHRData => {
         expectedStartDate: "2024-02-01",
       },
       termination: {},
+      documentation: {
+        basicDocumentation: { checked: true },
+        experienceContract: { checked: true, expirationDate: "2024-05-01" },
+        experienceExtension: { checked: false },
+        priorNotice: { checked: false },
+        terminationContract: { checked: false },
+      },
     };
   }
   
@@ -150,6 +159,7 @@ const createInitialHRData = (candidateId: string): CandidateHRData => {
     },
     admission: {},
     termination: {},
+    documentation: createDefaultDocumentation(),
   };
 };
 
@@ -194,7 +204,7 @@ const HRDashboardContent = () => {
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-      <TabsList className="grid w-full max-w-2xl grid-cols-4 mb-6">
+      <TabsList className="grid w-full max-w-3xl grid-cols-5 mb-6">
         <TabsTrigger value="candidatos" className="flex items-center gap-2">
           <Users className="h-4 w-4" />
           Candidatos
@@ -206,6 +216,10 @@ const HRDashboardContent = () => {
         <TabsTrigger value="efetivo" className="flex items-center gap-2">
           <UserCheck className="h-4 w-4" />
           Efetivo
+        </TabsTrigger>
+        <TabsTrigger value="documentos" className="flex items-center gap-2">
+          <FileText className="h-4 w-4" />
+          Documentos
         </TabsTrigger>
         <TabsTrigger value="relatorios" className="flex items-center gap-2">
           <BarChart3 className="h-4 w-4" />
@@ -226,6 +240,13 @@ const HRDashboardContent = () => {
 
       <TabsContent value="efetivo">
         <StaffDashboard
+          candidates={candidates}
+          hrDataMap={hrDataMap}
+        />
+      </TabsContent>
+
+      <TabsContent value="documentos">
+        <DocumentsControlPanel
           candidates={candidates}
           hrDataMap={hrDataMap}
         />
