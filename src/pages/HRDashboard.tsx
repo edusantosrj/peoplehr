@@ -5,13 +5,13 @@ import { CandidateProfile } from "@/components/hr/CandidateProfile";
 import { VacancyModule } from "@/components/vacancy/VacancyModule";
 import { StaffDashboard } from "@/components/hr/StaffDashboard";
 import { ReportsModule } from "@/components/hr/reports/ReportsModule";
-import { VacancyProvider } from "@/contexts/VacancyContext";
+import { VacancyProvider, useVacancies } from "@/contexts/VacancyContext";
 import type { Candidate } from "@/types/candidate";
 import type { CandidateHRData } from "@/types/hr";
 import { createDefaultDocumentation } from "@/types/hr";
-import { Users, Briefcase, UserCheck, BarChart3, FileText } from "lucide-react";
+import { Users, Briefcase, UserCheck, BarChart3, FileText, AlertTriangle } from "lucide-react";
 import { DocumentsControlPanel } from "@/components/hr/reports/DocumentsControlPanel";
-
+import { ManagementAlerts } from "@/components/hr/alerts/ManagementAlerts";
 // Mock data for demonstration
 const MOCK_CANDIDATES: Candidate[] = [
   {
@@ -164,6 +164,7 @@ const createInitialHRData = (candidateId: string): CandidateHRData => {
 };
 
 const HRDashboardContent = () => {
+  const { vacancies } = useVacancies();
   const [candidates] = useState<Candidate[]>(MOCK_CANDIDATES);
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
   const [hrDataMap, setHRDataMap] = useState<Record<string, CandidateHRData>>(() => {
@@ -173,14 +174,25 @@ const HRDashboardContent = () => {
     });
     return initial;
   });
-  const [activeTab, setActiveTab] = useState("candidatos");
+  const [activeTab, setActiveTab] = useState("alertas");
 
   const handleSelectCandidate = (candidate: Candidate) => {
     setSelectedCandidate(candidate);
   };
 
+  const handleSelectCandidateById = (candidateId: string) => {
+    const candidate = candidates.find((c) => c.id === candidateId);
+    if (candidate) {
+      setSelectedCandidate(candidate);
+    }
+  };
+
   const handleBack = () => {
     setSelectedCandidate(null);
+  };
+
+  const handleNavigateToPanel = (panel: string) => {
+    setActiveTab(panel);
   };
 
   const handleUpdateHRData = (data: CandidateHRData) => {
@@ -204,7 +216,11 @@ const HRDashboardContent = () => {
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-      <TabsList className="grid w-full max-w-3xl grid-cols-5 mb-6">
+      <TabsList className="grid w-full max-w-4xl grid-cols-6 mb-6">
+        <TabsTrigger value="alertas" className="flex items-center gap-2">
+          <AlertTriangle className="h-4 w-4" />
+          Alertas
+        </TabsTrigger>
         <TabsTrigger value="candidatos" className="flex items-center gap-2">
           <Users className="h-4 w-4" />
           Candidatos
@@ -226,6 +242,16 @@ const HRDashboardContent = () => {
           Relatórios
         </TabsTrigger>
       </TabsList>
+
+      <TabsContent value="alertas">
+        <ManagementAlerts
+          candidates={candidates}
+          hrDataMap={hrDataMap}
+          vacancies={vacancies}
+          onNavigateToCandidate={handleSelectCandidateById}
+          onNavigateToPanel={handleNavigateToPanel}
+        />
+      </TabsContent>
 
       <TabsContent value="candidatos">
         <CandidateList
