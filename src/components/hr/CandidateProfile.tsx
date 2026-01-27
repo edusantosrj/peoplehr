@@ -13,6 +13,7 @@ import { EvaluationBlock } from "./blocks/EvaluationBlock";
 import { AdmissionBlock } from "./blocks/AdmissionBlock";
 import { TerminationBlock } from "./blocks/TerminationBlock";
 import { DocumentationBlock } from "./blocks/DocumentationBlock";
+import { HistoryBlock } from "./blocks/HistoryBlock";
 import type { Candidate } from "@/types/candidate";
 import type { CandidateHRData, HRAnnotation, ProcessEvaluation, Admission, Termination, CandidateDocumentation } from "@/types/hr";
 import { useToast } from "@/hooks/use-toast";
@@ -184,6 +185,12 @@ export const CandidateProfile = ({
           termination={localHRData.termination}
           onUpdate={handleUpdateTermination}
           onSave={handleSaveTermination}
+        />
+
+        {/* Bloco 11 - Histórico de Movimentações */}
+        <HistoryBlock
+          candidate={candidate}
+          hrData={localHRData}
         />
       </div>
     </div>
