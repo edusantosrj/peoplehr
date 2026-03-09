@@ -52,7 +52,7 @@ export const CandidateProfile = ({
     });
   };
 
-  const handleUpdateEvaluation = (field: keyof ProcessEvaluation, value: string) => {
+  const handleUpdateEvaluation = (field: keyof ProcessEvaluation, value: string | boolean) => {
     const updated = {
       ...localHRData,
       evaluation: {
