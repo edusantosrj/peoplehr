@@ -17,6 +17,7 @@ export interface ProcessEvaluation {
   interviewScheduled: boolean;
   interviewDate?: string;
   interviewTime?: string;
+  interviewAttended?: boolean;
 }
 
 export interface Admission {

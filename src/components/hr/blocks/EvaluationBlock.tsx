@@ -128,6 +128,14 @@ export const EvaluationBlock = ({
                   onChange={(e) => onUpdate('interviewTime', e.target.value)}
                 />
               </div>
+              <div className="flex items-center justify-between rounded-lg border p-3 bg-background">
+                <Label htmlFor="interviewAttended" className="text-sm font-medium">Compareceu</Label>
+                <Switch
+                  id="interviewAttended"
+                  checked={evaluation.interviewAttended || false}
+                  onCheckedChange={(checked) => onUpdate('interviewAttended', checked)}
+                />
+              </div>
             </div>
           )}
         </div>
