@@ -34,45 +34,30 @@ export const FunnelReport = ({ candidates, hrDataMap }: FunnelReportProps) => {
       }
 
       const { evaluation, admission } = hrData;
+
+      // Count interview scheduled from actual field
+      if (evaluation.interviewScheduled) {
+        entrevistaAgendada++;
+      }
+
+      // Count attended from actual field
+      if (evaluation.interviewAttended) {
+        compareceu++;
+      }
       
       // Check if hired
       if (admission?.admissionStatus === "Contratado") {
         contratados++;
-        compareceu++;
         return;
       }
 
       // Check evaluation status to determine funnel position
       if (evaluation.fichaValidation === "Não" || 
           evaluation.managementValidation === "Não" || 
-          evaluation.directorValidation === "Não") {
-        naoContratados++;
-        compareceu++;
-        return;
-      }
-
-      if (evaluation.proposalPresented === "Não" || 
+          evaluation.directorValidation === "Não" ||
+          evaluation.proposalPresented === "Não" || 
           evaluation.proposalAccepted === "Não") {
         naoContratados++;
-        compareceu++;
-        return;
-      }
-
-      // If all validations are "Sim" but not yet hired
-      if (evaluation.fichaValidation === "Sim" && 
-          evaluation.managementValidation === "Sim") {
-        if (evaluation.directorValidation === "Em Análise") {
-          compareceu++;
-          entrevistaAgendada++;
-        } else {
-          compareceu++;
-        }
-        return;
-      }
-
-      // If ficha validation is "Sim" but waiting for management
-      if (evaluation.fichaValidation === "Sim") {
-        entrevistaAgendada++;
         return;
       }
 
