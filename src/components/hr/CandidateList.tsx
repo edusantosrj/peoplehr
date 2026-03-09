@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,19 +11,27 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search, Eye, Users } from "lucide-react";
+import { Search, Eye, Users, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import type { Candidate } from "@/types/candidate";
+import type { CandidateHRData } from "@/types/hr";
 
 interface CandidateListProps {
   candidates: Candidate[];
   onSelectCandidate: (candidate: Candidate) => void;
+  hrDataMap?: Record<string, CandidateHRData>;
 }
+
+type SortField = 'fullName' | 'cpf' | 'desiredPosition1' | 'registrationDate' | 'hired' | 'pcd' | 'ns' | 'interviewScheduled';
+type SortDirection = 'asc' | 'desc' | null;
 
 export const CandidateList = ({
   candidates,
   onSelectCandidate,
+  hrDataMap = {},
 }: CandidateListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
 
   const formatCpf = (cpf: string) => {
     const numbers = cpf.replace(/\D/g, '');
@@ -35,14 +43,69 @@ export const CandidateList = ({
     return date.toLocaleDateString('pt-BR');
   };
 
-  const filteredCandidates = candidates.filter((candidate) => {
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      if (sortDirection === 'asc') setSortDirection('desc');
+      else if (sortDirection === 'desc') { setSortField(null); setSortDirection(null); }
+      else setSortDirection('asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
+    if (sortDirection === 'asc') return <ArrowUp className="h-3 w-3 ml-1" />;
+    return <ArrowDown className="h-3 w-3 ml-1" />;
+  };
+
+  const isHired = (candidateId: string) => hrDataMap[candidateId]?.admission?.admissionStatus === 'Contratado';
+  const isPCD = (_candidateId: string) => false; // PCD field not in candidate type yet, default false
+  const isNS = (candidateId: string) => hrDataMap[candidateId]?.evaluation?.ns || false;
+  const hasInterview = (candidateId: string) => hrDataMap[candidateId]?.evaluation?.interviewScheduled || false;
+
+  const filteredAndSortedCandidates = useMemo(() => {
     const search = searchTerm.toLowerCase();
-    return (
+    let filtered = candidates.filter((candidate) =>
       candidate.fullName.toLowerCase().includes(search) ||
       candidate.cpf.includes(search.replace(/\D/g, '')) ||
       candidate.desiredPosition1.toLowerCase().includes(search)
     );
-  });
+
+    if (sortField && sortDirection) {
+      filtered = [...filtered].sort((a, b) => {
+        let valA: string | boolean | number = '';
+        let valB: string | boolean | number = '';
+
+        switch (sortField) {
+          case 'fullName': valA = a.fullName; valB = b.fullName; break;
+          case 'cpf': valA = a.cpf; valB = b.cpf; break;
+          case 'desiredPosition1': valA = a.desiredPosition1; valB = b.desiredPosition1; break;
+          case 'registrationDate': valA = a.registrationDate; valB = b.registrationDate; break;
+          case 'hired': valA = isHired(a.id) ? 1 : 0; valB = isHired(b.id) ? 1 : 0; break;
+          case 'pcd': valA = isPCD(a.id) ? 1 : 0; valB = isPCD(b.id) ? 1 : 0; break;
+          case 'ns': valA = isNS(a.id) ? 1 : 0; valB = isNS(b.id) ? 1 : 0; break;
+          case 'interviewScheduled': valA = hasInterview(a.id) ? 1 : 0; valB = hasInterview(b.id) ? 1 : 0; break;
+        }
+
+        if (typeof valA === 'string' && typeof valB === 'string') {
+          const cmp = valA.localeCompare(valB, 'pt-BR');
+          return sortDirection === 'asc' ? cmp : -cmp;
+        }
+        const cmp = (valA as number) - (valB as number);
+        return sortDirection === 'asc' ? cmp : -cmp;
+      });
+    }
+
+    return filtered;
+  }, [candidates, searchTerm, sortField, sortDirection, hrDataMap]);
+
+  const BoolBadge = ({ value, yesLabel = "Sim", noLabel = "Não" }: { value: boolean; yesLabel?: string; noLabel?: string }) => (
+    <Badge variant={value ? "default" : "outline"} className={value ? "bg-green-100 text-green-800 hover:bg-green-100" : ""}>
+      {value ? yesLabel : noLabel}
+    </Badge>
+  );
 
   return (
     <Card>
@@ -65,7 +128,7 @@ export const CandidateList = ({
           </div>
         </div>
 
-        {filteredCandidates.length === 0 ? (
+        {filteredAndSortedCandidates.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             {candidates.length === 0
               ? "Nenhum candidato cadastrado ainda."
@@ -76,15 +139,35 @@ export const CandidateList = ({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>CPF</TableHead>
-                  <TableHead>Vaga Desejada</TableHead>
-                  <TableHead>Data Cadastro</TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort('fullName')}>
+                    <span className="flex items-center">Nome <SortIcon field="fullName" /></span>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort('cpf')}>
+                    <span className="flex items-center">CPF <SortIcon field="cpf" /></span>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort('desiredPosition1')}>
+                    <span className="flex items-center">Vaga Desejada <SortIcon field="desiredPosition1" /></span>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort('registrationDate')}>
+                    <span className="flex items-center">Data Cadastro <SortIcon field="registrationDate" /></span>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort('hired')}>
+                    <span className="flex items-center">Contratado <SortIcon field="hired" /></span>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort('pcd')}>
+                    <span className="flex items-center">PCD <SortIcon field="pcd" /></span>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort('ns')}>
+                    <span className="flex items-center">N/S <SortIcon field="ns" /></span>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort('interviewScheduled')}>
+                    <span className="flex items-center">Entrevista <SortIcon field="interviewScheduled" /></span>
+                  </TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredCandidates.map((candidate) => (
+                {filteredAndSortedCandidates.map((candidate) => (
                   <TableRow key={candidate.id}>
                     <TableCell className="font-medium">
                       {candidate.fullName}
@@ -96,6 +179,10 @@ export const CandidateList = ({
                       </Badge>
                     </TableCell>
                     <TableCell>{formatDate(candidate.registrationDate)}</TableCell>
+                    <TableCell><BoolBadge value={isHired(candidate.id)} /></TableCell>
+                    <TableCell><BoolBadge value={isPCD(candidate.id)} /></TableCell>
+                    <TableCell><BoolBadge value={isNS(candidate.id)} /></TableCell>
+                    <TableCell><BoolBadge value={hasInterview(candidate.id)} /></TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="ghost"

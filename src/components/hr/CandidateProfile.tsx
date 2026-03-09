@@ -52,7 +52,7 @@ export const CandidateProfile = ({
     });
   };
 
-  const handleUpdateEvaluation = (field: keyof ProcessEvaluation, value: string) => {
+  const handleUpdateEvaluation = (field: keyof ProcessEvaluation, value: string | boolean) => {
     const updated = {
       ...localHRData,
       evaluation: {
@@ -105,7 +105,7 @@ export const CandidateProfile = ({
 
   const handleUpdateDocumentation = (
     field: keyof CandidateDocumentation,
-    key: 'checked' | 'expirationDate',
+    key: 'checked' | 'expirationDate' | 'completed',
     value: boolean | string
   ) => {
     const updated = {

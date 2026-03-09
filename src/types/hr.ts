@@ -12,6 +12,11 @@ export interface ProcessEvaluation {
   proposalAccepted: 'Em Análise' | 'Sim' | 'Não';
   documentationDelivered: 'Em Análise' | 'Sim' | 'Não';
   candidateHired: 'Em Análise' | 'Sim' | 'Não';
+  talentBank: boolean;
+  ns: boolean;
+  interviewScheduled: boolean;
+  interviewDate?: string;
+  interviewTime?: string;
 }
 
 export interface Admission {
@@ -38,6 +43,7 @@ export interface Termination {
 export interface DocumentItem {
   checked: boolean;
   expirationDate?: string;
+  completed?: boolean;
 }
 
 export interface CandidateDocumentation {

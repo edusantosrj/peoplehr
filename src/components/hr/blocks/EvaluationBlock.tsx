@@ -6,13 +6,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ClipboardCheck } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { ClipboardCheck, Calendar, Clock } from "lucide-react";
 import type { ProcessEvaluation } from "@/types/hr";
 import { EVALUATION_STATUS_OPTIONS } from "@/types/hr";
 
 interface EvaluationBlockProps {
   evaluation: ProcessEvaluation;
-  onUpdate: (field: keyof ProcessEvaluation, value: string) => void;
+  onUpdate: (field: keyof ProcessEvaluation, value: string | boolean) => void;
 }
 
 const evaluationFields: { key: keyof ProcessEvaluation; label: string }[] = [
@@ -48,16 +51,16 @@ export const EvaluationBlock = ({
           Avaliação do Processo Seletivo
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {evaluationFields.map(({ key, label }) => (
             <div key={key} className="space-y-1">
               <label className="text-sm text-muted-foreground">{label}</label>
               <Select
-                value={evaluation[key]}
+                value={evaluation[key] as string}
                 onValueChange={(value) => onUpdate(key, value)}
               >
-                <SelectTrigger className={getStatusColor(evaluation[key])}>
+                <SelectTrigger className={getStatusColor(evaluation[key] as string)}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -70,6 +73,63 @@ export const EvaluationBlock = ({
               </Select>
             </div>
           ))}
+        </div>
+
+        {/* New toggle fields */}
+        <div className="border-t pt-4 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <Label htmlFor="talentBank" className="text-sm font-medium">Banco de Talentos</Label>
+              <Switch
+                id="talentBank"
+                checked={evaluation.talentBank}
+                onCheckedChange={(checked) => onUpdate('talentBank', checked)}
+              />
+            </div>
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <Label htmlFor="ns" className="text-sm font-medium">N/S</Label>
+              <Switch
+                id="ns"
+                checked={evaluation.ns}
+                onCheckedChange={(checked) => onUpdate('ns', checked)}
+              />
+            </div>
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <Label htmlFor="interviewScheduled" className="text-sm font-medium">Entrevista Agendada</Label>
+              <Switch
+                id="interviewScheduled"
+                checked={evaluation.interviewScheduled}
+                onCheckedChange={(checked) => onUpdate('interviewScheduled', checked)}
+              />
+            </div>
+          </div>
+
+          {evaluation.interviewScheduled && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg border bg-muted/30">
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2 text-sm">
+                  <Calendar className="h-4 w-4" />
+                  Data da Entrevista
+                </Label>
+                <Input
+                  type="date"
+                  value={evaluation.interviewDate || ''}
+                  onChange={(e) => onUpdate('interviewDate', e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2 text-sm">
+                  <Clock className="h-4 w-4" />
+                  Horário da Entrevista
+                </Label>
+                <Input
+                  type="time"
+                  value={evaluation.interviewTime || ''}
+                  onChange={(e) => onUpdate('interviewTime', e.target.value)}
+                />
+              </div>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

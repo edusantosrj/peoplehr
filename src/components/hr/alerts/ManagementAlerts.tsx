@@ -88,7 +88,7 @@ export const ManagementAlerts = ({
         const doc = hrData.documentation[key];
         if (!doc.expirationDate) return;
 
-        const status = getDocumentStatus(doc.expirationDate);
+        const status = getDocumentStatus(doc.expirationDate, doc.completed);
         if (status === "expired") {
           expiredDocsCount++;
           alerts.push({

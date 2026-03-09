@@ -125,6 +125,9 @@ const createInitialHRData = (candidateId: string): CandidateHRData => {
         proposalAccepted: "Sim",
         documentationDelivered: "Sim",
         candidateHired: "Sim",
+        talentBank: false,
+        ns: false,
+        interviewScheduled: false,
       },
       admission: {
         vacancyId: "1",
@@ -156,6 +159,9 @@ const createInitialHRData = (candidateId: string): CandidateHRData => {
       proposalAccepted: "Em Análise",
       documentationDelivered: "Em Análise",
       candidateHired: "Em Análise",
+      talentBank: false,
+      ns: false,
+      interviewScheduled: false,
     },
     admission: {},
     termination: {},
@@ -257,6 +263,7 @@ const HRDashboardContent = () => {
         <CandidateList
           candidates={candidates}
           onSelectCandidate={handleSelectCandidate}
+          hrDataMap={hrDataMap}
         />
       </TabsContent>
 

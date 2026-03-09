@@ -91,7 +91,7 @@ export const DocumentsControlPanel = ({ candidates, hrDataMap }: DocumentsContro
         const doc = hrData.documentation[key];
         if (!doc.expirationDate) return;
         
-        const status = getDocumentStatus(doc.expirationDate);
+        const status = getDocumentStatus(doc.expirationDate, doc.completed);
         if (!status) return;
 
         alerts.push({
