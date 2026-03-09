@@ -2,16 +2,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { FileText, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
-import type { CandidateDocumentation, DocumentStatus } from "@/types/hr";
+import type { CandidateDocumentation, DocumentItem, DocumentStatus } from "@/types/hr";
 import { DOCUMENT_LABELS } from "@/types/hr";
 
 interface DocumentationBlockProps {
   documentation: CandidateDocumentation;
-  onUpdate: (field: keyof CandidateDocumentation, key: 'checked' | 'expirationDate', value: boolean | string) => void;
+  onUpdate: (field: keyof CandidateDocumentation, key: 'checked' | 'expirationDate' | 'completed', value: boolean | string) => void;
 }
 
-export const getDocumentStatus = (expirationDate?: string): DocumentStatus | null => {
+export const getDocumentStatus = (expirationDate?: string, completed?: boolean): DocumentStatus | null => {
+  if (completed) return 'valid';
   if (!expirationDate) return null;
   
   const today = new Date();
@@ -77,7 +79,7 @@ export const DocumentationBlock = ({ documentation, onUpdate }: DocumentationBlo
       <CardContent className="space-y-4">
         {documentKeys.map((key) => {
           const doc = documentation[key];
-          const status = hasDateField(key) ? getDocumentStatus(doc.expirationDate) : null;
+          const status = hasDateField(key) ? getDocumentStatus(doc.expirationDate, doc.completed) : null;
           
           return (
             <div key={key} className="border rounded-lg p-4 space-y-3">
@@ -93,7 +95,19 @@ export const DocumentationBlock = ({ documentation, onUpdate }: DocumentationBlo
                   </Label>
                   {status && <StatusIcon status={status} />}
                 </div>
-                {status && <StatusBadge status={status} />}
+                <div className="flex items-center gap-3">
+                  {status && <StatusBadge status={status} />}
+                  <div className="flex items-center gap-2 border-l pl-3">
+                    <Label htmlFor={`completed-${key}`} className="text-sm text-muted-foreground">
+                      Concluído
+                    </Label>
+                    <Switch
+                      id={`completed-${key}`}
+                      checked={doc.completed || false}
+                      onCheckedChange={(checked) => onUpdate(key, 'completed', checked)}
+                    />
+                  </div>
+                </div>
               </div>
               
               {hasDateField(key) && (
