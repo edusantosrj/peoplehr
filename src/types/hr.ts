@@ -38,6 +38,7 @@ export interface Termination {
 export interface DocumentItem {
   checked: boolean;
   expirationDate?: string;
+  completed?: boolean;
 }
 
 export interface CandidateDocumentation {
