@@ -105,7 +105,7 @@ export const CandidateProfile = ({
 
   const handleUpdateDocumentation = (
     field: keyof CandidateDocumentation,
-    key: 'checked' | 'expirationDate',
+    key: 'checked' | 'expirationDate' | 'completed',
     value: boolean | string
   ) => {
     const updated = {

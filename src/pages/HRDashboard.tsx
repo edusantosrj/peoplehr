@@ -263,6 +263,7 @@ const HRDashboardContent = () => {
         <CandidateList
           candidates={candidates}
           onSelectCandidate={handleSelectCandidate}
+          hrDataMap={hrDataMap}
         />
       </TabsContent>
 
