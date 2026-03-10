@@ -1,14 +1,21 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import type { Vacancy } from '@/types/vacancy';
-import { INITIAL_SECTORS } from '@/types/vacancy';
+import { INITIAL_SECTORS, UNITS, SHIFTS } from '@/types/vacancy';
 
 interface VacancyContextType {
   vacancies: Vacancy[];
   sectors: string[];
+  units: string[];
+  shifts: string[];
   addVacancy: (vacancy: Vacancy) => void;
   updateVacancy: (id: string, vacancy: Partial<Vacancy>) => void;
   deleteVacancy: (id: string) => void;
   addSector: (sector: string) => void;
+  removeSector: (sector: string) => void;
+  addUnit: (unit: string) => void;
+  removeUnit: (unit: string) => void;
+  addShift: (shift: string) => void;
+  removeShift: (shift: string) => void;
 }
 
 const VacancyContext = createContext<VacancyContextType | undefined>(undefined);
