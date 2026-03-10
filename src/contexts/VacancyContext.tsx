@@ -111,10 +111,11 @@ const INITIAL_VACANCIES: Vacancy[] = [
 export const VacancyProvider = ({ children }: { children: ReactNode }) => {
   const [vacancies, setVacancies] = useState<Vacancy[]>(INITIAL_VACANCIES);
   const [sectors, setSectors] = useState<string[]>(INITIAL_SECTORS);
+  const [units, setUnits] = useState<string[]>([...UNITS]);
+  const [shifts, setShifts] = useState<string[]>([...SHIFTS]);
 
   const addVacancy = (vacancy: Vacancy) => {
     setVacancies((prev) => [...prev, vacancy]);
-    // Add sector if it's new
     if (vacancy.sector && !sectors.includes(vacancy.sector)) {
       setSectors((prev) => [...prev, vacancy.sector].sort());
     }
@@ -124,7 +125,6 @@ export const VacancyProvider = ({ children }: { children: ReactNode }) => {
     setVacancies((prev) =>
       prev.map((v) => (v.id === id ? { ...v, ...updates } : v))
     );
-    // Add sector if it's new
     if (updates.sector && !sectors.includes(updates.sector)) {
       setSectors((prev) => [...prev, updates.sector!].sort());
     }
@@ -140,15 +140,46 @@ export const VacancyProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const removeSector = (sector: string) => {
+    setSectors((prev) => prev.filter((s) => s !== sector));
+  };
+
+  const addUnit = (unit: string) => {
+    if (!units.includes(unit)) {
+      setUnits((prev) => [...prev, unit].sort());
+    }
+  };
+
+  const removeUnit = (unit: string) => {
+    setUnits((prev) => prev.filter((u) => u !== unit));
+  };
+
+  const addShift = (shift: string) => {
+    if (!shifts.includes(shift)) {
+      setShifts((prev) => [...prev, shift].sort());
+    }
+  };
+
+  const removeShift = (shift: string) => {
+    setShifts((prev) => prev.filter((s) => s !== shift));
+  };
+
   return (
     <VacancyContext.Provider
       value={{
         vacancies,
         sectors,
+        units,
+        shifts,
         addVacancy,
         updateVacancy,
         deleteVacancy,
         addSector,
+        removeSector,
+        addUnit,
+        removeUnit,
+        addShift,
+        removeShift,
       }}
     >
       {children}
