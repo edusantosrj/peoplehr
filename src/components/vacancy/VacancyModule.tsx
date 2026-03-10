@@ -59,7 +59,7 @@ export const VacancyModule = () => {
         <VacancyList onEdit={handleEditVacancy} onNew={handleNewVacancy} />
       </TabsContent>
 
-      <TabsContent value="map">
+      <TabsContent value="map" forceMount className={viewMode !== 'map' ? 'hidden' : ''}>
         <VacancyMap />
       </TabsContent>
     </Tabs>
