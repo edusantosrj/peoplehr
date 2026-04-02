@@ -2,7 +2,6 @@ import { useState } from "react";
 import { CpfPreCheck } from "@/components/candidate/CpfPreCheck";
 import { CandidateForm } from "@/components/candidate/CandidateForm";
 import { VacancyProvider } from "@/contexts/VacancyContext";
-import { CandidateForm } from "@/components/candidate/CandidateForm";
 
 // Simulated existing CPFs (in production, this would come from a database)
 const existingCpfs: string[] = [];
