@@ -145,6 +145,7 @@ const createInitialHRData = (candidateId: string): CandidateHRData => {
         priorNotice: { checked: false },
         terminationContract: { checked: false },
       },
+      emergencyContacts: [],
     };
   }
   
