@@ -127,7 +127,7 @@ const createInitialHRData = (candidateId: string): CandidateHRData => {
         candidateHired: "Sim",
         talentBank: false,
         ns: false,
-        interviewScheduled: false,
+        interviewStatus: 'Não',
       },
       admission: {
         vacancyId: "1",
