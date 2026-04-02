@@ -10,6 +10,7 @@ interface VacancyContextType {
   addVacancy: (vacancy: Vacancy) => void;
   updateVacancy: (id: string, vacancy: Partial<Vacancy>) => void;
   deleteVacancy: (id: string) => void;
+  debitVacancy: (id: string) => boolean;
   addSector: (sector: string) => void;
   removeSector: (sector: string) => void;
   addUnit: (unit: string) => void;
