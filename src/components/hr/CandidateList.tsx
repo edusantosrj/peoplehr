@@ -21,7 +21,7 @@ interface CandidateListProps {
   hrDataMap?: Record<string, CandidateHRData>;
 }
 
-type SortField = 'fullName' | 'cpf' | 'desiredPosition1' | 'registrationDate' | 'hired' | 'pcd' | 'ns' | 'interviewScheduled';
+type SortField = 'fullName' | 'cpf' | 'interviewStatus' | 'desiredPosition1' | 'hired' | 'pcd' | 'ns' | 'registrationDate';
 type SortDirection = 'asc' | 'desc' | null;
 
 export const CandidateList = ({
@@ -61,9 +61,9 @@ export const CandidateList = ({
   };
 
   const isHired = (candidateId: string) => hrDataMap[candidateId]?.admission?.admissionStatus === 'Contratado';
-  const isPCD = (_candidateId: string) => false; // PCD field not in candidate type yet, default false
+  const isPCD = (_candidateId: string) => false;
   const isNS = (candidateId: string) => hrDataMap[candidateId]?.evaluation?.ns || false;
-  const hasInterview = (candidateId: string) => hrDataMap[candidateId]?.evaluation?.interviewScheduled || false;
+  const getInterviewStatus = (candidateId: string) => hrDataMap[candidateId]?.evaluation?.interviewStatus || 'Não';
 
   const filteredAndSortedCandidates = useMemo(() => {
     const search = searchTerm.toLowerCase();
@@ -81,12 +81,12 @@ export const CandidateList = ({
         switch (sortField) {
           case 'fullName': valA = a.fullName; valB = b.fullName; break;
           case 'cpf': valA = a.cpf; valB = b.cpf; break;
+          case 'interviewStatus': valA = getInterviewStatus(a.id); valB = getInterviewStatus(b.id); break;
           case 'desiredPosition1': valA = a.desiredPosition1; valB = b.desiredPosition1; break;
           case 'registrationDate': valA = a.registrationDate; valB = b.registrationDate; break;
           case 'hired': valA = isHired(a.id) ? 1 : 0; valB = isHired(b.id) ? 1 : 0; break;
           case 'pcd': valA = isPCD(a.id) ? 1 : 0; valB = isPCD(b.id) ? 1 : 0; break;
           case 'ns': valA = isNS(a.id) ? 1 : 0; valB = isNS(b.id) ? 1 : 0; break;
-          case 'interviewScheduled': valA = hasInterview(a.id) ? 1 : 0; valB = hasInterview(b.id) ? 1 : 0; break;
         }
 
         if (typeof valA === 'string' && typeof valB === 'string') {
@@ -106,6 +106,21 @@ export const CandidateList = ({
       {value ? yesLabel : noLabel}
     </Badge>
   );
+
+  const InterviewBadge = ({ status }: { status: string }) => {
+    const config: Record<string, { className: string }> = {
+      'Não': { className: '' },
+      'Sim': { className: 'bg-blue-100 text-blue-800 hover:bg-blue-100' },
+      'Compareceu': { className: 'bg-green-100 text-green-800 hover:bg-green-100' },
+      'Não Compareceu': { className: 'bg-red-100 text-red-800 hover:bg-red-100' },
+    };
+    const c = config[status] || config['Não'];
+    return (
+      <Badge variant={status === 'Não' ? 'outline' : 'default'} className={c.className}>
+        {status}
+      </Badge>
+    );
+  };
 
   return (
     <Card>
@@ -145,11 +160,11 @@ export const CandidateList = ({
                   <TableHead className="cursor-pointer select-none" onClick={() => handleSort('cpf')}>
                     <span className="flex items-center">CPF <SortIcon field="cpf" /></span>
                   </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort('interviewStatus')}>
+                    <span className="flex items-center">Entrevista <SortIcon field="interviewStatus" /></span>
+                  </TableHead>
                   <TableHead className="cursor-pointer select-none" onClick={() => handleSort('desiredPosition1')}>
                     <span className="flex items-center">Vaga Desejada <SortIcon field="desiredPosition1" /></span>
-                  </TableHead>
-                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort('registrationDate')}>
-                    <span className="flex items-center">Data Cadastro <SortIcon field="registrationDate" /></span>
                   </TableHead>
                   <TableHead className="cursor-pointer select-none" onClick={() => handleSort('hired')}>
                     <span className="flex items-center">Contratado <SortIcon field="hired" /></span>
@@ -160,8 +175,8 @@ export const CandidateList = ({
                   <TableHead className="cursor-pointer select-none" onClick={() => handleSort('ns')}>
                     <span className="flex items-center">N/S <SortIcon field="ns" /></span>
                   </TableHead>
-                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort('interviewScheduled')}>
-                    <span className="flex items-center">Entrevista <SortIcon field="interviewScheduled" /></span>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort('registrationDate')}>
+                    <span className="flex items-center">Data Cadastro <SortIcon field="registrationDate" /></span>
                   </TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
@@ -173,16 +188,16 @@ export const CandidateList = ({
                       {candidate.fullName}
                     </TableCell>
                     <TableCell>{formatCpf(candidate.cpf)}</TableCell>
+                    <TableCell><InterviewBadge status={getInterviewStatus(candidate.id)} /></TableCell>
                     <TableCell>
                       <Badge variant="secondary">
                         {candidate.desiredPosition1}
                       </Badge>
                     </TableCell>
-                    <TableCell>{formatDate(candidate.registrationDate)}</TableCell>
                     <TableCell><BoolBadge value={isHired(candidate.id)} /></TableCell>
                     <TableCell><BoolBadge value={isPCD(candidate.id)} /></TableCell>
                     <TableCell><BoolBadge value={isNS(candidate.id)} /></TableCell>
-                    <TableCell><BoolBadge value={hasInterview(candidate.id)} /></TableCell>
+                    <TableCell>{formatDate(candidate.registrationDate)}</TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="ghost"

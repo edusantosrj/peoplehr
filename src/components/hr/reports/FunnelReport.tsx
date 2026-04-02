@@ -36,12 +36,12 @@ export const FunnelReport = ({ candidates, hrDataMap }: FunnelReportProps) => {
       const { evaluation, admission } = hrData;
 
       // Count interview scheduled from actual field
-      if (evaluation.interviewScheduled) {
+      if (evaluation.interviewStatus && evaluation.interviewStatus !== 'Não') {
         entrevistaAgendada++;
       }
 
       // Count attended from actual field
-      if (evaluation.interviewAttended) {
+      if (evaluation.interviewStatus === 'Compareceu') {
         compareceu++;
       }
       

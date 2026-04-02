@@ -161,11 +161,12 @@ const createInitialHRData = (candidateId: string): CandidateHRData => {
       candidateHired: "Em Análise",
       talentBank: false,
       ns: false,
-      interviewScheduled: false,
+      interviewStatus: 'Não',
     },
     admission: {},
     termination: {},
     documentation: createDefaultDocumentation(),
+    emergencyContacts: [],
   };
 };
 
