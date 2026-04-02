@@ -121,8 +121,18 @@ export function CandidateForm({ cpf, onSubmit }: CandidateFormProps) {
         if (!formData.fullName.trim()) newErrors.fullName = "Nome é obrigatório";
         if (!formData.birthDate) {
           newErrors.birthDate = "Data de nascimento é obrigatória";
-        } else if (!parseDate(formData.birthDate)) {
-          newErrors.birthDate = "Data inválida";
+        } else {
+          const parsed = parseDate(formData.birthDate);
+          if (!parsed) {
+            newErrors.birthDate = "Data inválida";
+          } else {
+            const today = new Date();
+            if (parsed > today) {
+              newErrors.birthDate = "Data de nascimento não pode ser futura";
+            } else if (parsed.getFullYear() < 1900) {
+              newErrors.birthDate = "Data de nascimento inválida";
+            }
+          }
         }
         if (!formData.maritalStatus) newErrors.maritalStatus = "Estado civil é obrigatório";
         if (!formData.motherName.trim()) newErrors.motherName = "Nome da mãe é obrigatório";

@@ -10,34 +10,64 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { UserPlus, Save } from "lucide-react";
+import { UserPlus, Save, Clock } from "lucide-react";
 import type { Admission } from "@/types/hr";
 import { ADMISSION_STATUS_OPTIONS } from "@/types/hr";
 import { useVacancies } from "@/contexts/VacancyContext";
-import { formatVacancyDisplay, formatSalary } from "@/types/vacancy";
+import { formatVacancyDisplay, formatSalary, formatWorkHours } from "@/types/vacancy";
+import { useToast } from "@/hooks/use-toast";
 
 interface AdmissionBlockProps {
   admission: Admission;
   onUpdate: (field: keyof Admission, value: string) => void;
   onSave: () => void;
+  onDebitVacancy?: (vacancyId: string) => void;
 }
 
 export const AdmissionBlock = ({
   admission,
   onUpdate,
   onSave,
+  onDebitVacancy,
 }: AdmissionBlockProps) => {
   const { vacancies } = useVacancies();
+  const { toast } = useToast();
 
   const handleVacancyChange = (vacancyId: string) => {
     const vacancy = vacancies.find((v) => v.id === vacancyId);
     if (vacancy) {
+      if (vacancy.quantity <= 0) {
+        toast({
+          title: "Vaga indisponível",
+          description: "Esta vaga não possui mais vagas disponíveis.",
+          variant: "destructive",
+        });
+        return;
+      }
       onUpdate('vacancyId', vacancyId);
       onUpdate('vacancyDisplay', formatVacancyDisplay(vacancy));
       onUpdate('storeUnit', vacancy.unit);
-      // Auto-fill salary from vacancy (editable)
       onUpdate('definedSalary', formatSalary(vacancy.grossSalary));
+      onUpdate('workHours', formatWorkHours(vacancy.workHoursStart, vacancy.workHoursEnd));
     }
+  };
+
+  const handleStatusChange = (value: string) => {
+    if (value === 'Contratado' && admission.vacancyId) {
+      const vacancy = vacancies.find((v) => v.id === admission.vacancyId);
+      if (vacancy && vacancy.quantity <= 0) {
+        toast({
+          title: "Vaga indisponível",
+          description: "Esta vaga não possui mais vagas disponíveis. Não é possível contratar.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (onDebitVacancy && admission.vacancyId) {
+        onDebitVacancy(admission.vacancyId);
+      }
+    }
+    onUpdate('admissionStatus', value);
   };
 
   // Include all vacancies - even inactive ones if already linked to candidate
@@ -66,9 +96,15 @@ export const AdmissionBlock = ({
               </SelectTrigger>
               <SelectContent>
                 {availableVacancies.map((vacancy) => (
-                  <SelectItem key={vacancy.id} value={vacancy.id}>
+                  <SelectItem
+                    key={vacancy.id}
+                    value={vacancy.id}
+                    disabled={vacancy.quantity <= 0 && vacancy.id !== admission.vacancyId}
+                  >
                     {formatVacancyDisplay(vacancy)}
                     {vacancy.status === 'Inativa' && ' (Inativa)'}
+                    {vacancy.quantity <= 0 && ' (Sem vagas)'}
+                    {vacancy.quantity > 0 && ` (${vacancy.quantity} vaga${vacancy.quantity !== 1 ? 's' : ''})`}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -79,7 +115,7 @@ export const AdmissionBlock = ({
             <Label>Status da Admissão</Label>
             <Select
               value={admission.admissionStatus || ''}
-              onValueChange={(value) => onUpdate('admissionStatus', value)}
+              onValueChange={handleStatusChange}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione o status" />
@@ -111,6 +147,20 @@ export const AdmissionBlock = ({
               placeholder="Nome da unidade"
               value={admission.storeUnit || ''}
               onChange={(e) => onUpdate('storeUnit', e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              Horário de Trabalho
+            </Label>
+            <Input
+              type="text"
+              placeholder="Das 00:00 às 00:00"
+              value={admission.workHours || ''}
+              readOnly
+              className="bg-muted"
             />
           </div>
 

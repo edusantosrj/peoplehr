@@ -2,7 +2,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { AVAILABLE_POSITIONS } from "@/types/candidate";
+import { useVacancies } from "@/contexts/VacancyContext";
 
 interface Step5Props {
   data: {
@@ -19,6 +19,8 @@ interface Step5Props {
 }
 
 export function Step5Aspirations({ data, onChange, errors }: Step5Props) {
+  const { vacancies } = useVacancies();
+
   const formatCurrency = (value: string) => {
     const numbers = value.replace(/\D/g, '');
     const amount = parseInt(numbers) / 100;
@@ -30,10 +32,17 @@ export function Step5Aspirations({ data, onChange, errors }: Step5Props) {
     onChange("salaryExpectation", formatted);
   };
 
-  const availablePositions = AVAILABLE_POSITIONS.filter(pos => 
-    pos !== data.desiredPosition1 && 
-    pos !== data.desiredPosition2 && 
-    pos !== data.desiredPosition3
+  // Use vacancy names from the context
+  const vacancyNames = [...new Set(vacancies.map((v) => v.name))].sort();
+
+  const availableForPosition1 = vacancyNames.filter(
+    (name) => name !== data.desiredPosition2 && name !== data.desiredPosition3
+  );
+  const availableForPosition2 = vacancyNames.filter(
+    (name) => name !== data.desiredPosition1 && name !== data.desiredPosition3
+  );
+  const availableForPosition3 = vacancyNames.filter(
+    (name) => name !== data.desiredPosition1 && name !== data.desiredPosition2
   );
 
   return (
@@ -120,8 +129,8 @@ export function Step5Aspirations({ data, onChange, errors }: Step5Props) {
                 <SelectValue placeholder="Selecione" />
               </SelectTrigger>
               <SelectContent>
-                {AVAILABLE_POSITIONS.filter(p => p !== data.desiredPosition2 && p !== data.desiredPosition3).map((position) => (
-                  <SelectItem key={position} value={position}>{position}</SelectItem>
+                {availableForPosition1.map((name) => (
+                  <SelectItem key={name} value={name}>{name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -136,8 +145,8 @@ export function Step5Aspirations({ data, onChange, errors }: Step5Props) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">Nenhuma</SelectItem>
-                {AVAILABLE_POSITIONS.filter(p => p !== data.desiredPosition1 && p !== data.desiredPosition3).map((position) => (
-                  <SelectItem key={position} value={position}>{position}</SelectItem>
+                {availableForPosition2.map((name) => (
+                  <SelectItem key={name} value={name}>{name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -151,8 +160,8 @@ export function Step5Aspirations({ data, onChange, errors }: Step5Props) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">Nenhuma</SelectItem>
-                {AVAILABLE_POSITIONS.filter(p => p !== data.desiredPosition1 && p !== data.desiredPosition2).map((position) => (
-                  <SelectItem key={position} value={position}>{position}</SelectItem>
+                {availableForPosition3.map((name) => (
+                  <SelectItem key={name} value={name}>{name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

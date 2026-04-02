@@ -14,10 +14,7 @@ export interface ProcessEvaluation {
   candidateHired: 'Em Análise' | 'Sim' | 'Não';
   talentBank: boolean;
   ns: boolean;
-  interviewScheduled: boolean;
-  interviewDate?: string;
-  interviewTime?: string;
-  interviewAttended?: boolean;
+  interviewStatus: string;
 }
 
 export interface Admission {
@@ -26,6 +23,7 @@ export interface Admission {
   admissionStatus?: string;
   definedSalary?: string;
   storeUnit?: string;
+  workHours?: string;
   expectedStartDate?: string;
   observations?: string;
 }
@@ -65,6 +63,13 @@ export const DOCUMENT_LABELS: Record<keyof CandidateDocumentation, string> = {
   terminationContract: 'Contrato de rescisão de trabalho',
 };
 
+export interface EmergencyContact {
+  id: string;
+  name: string;
+  relationship: string;
+  phone: string;
+}
+
 export interface CandidateHRData {
   candidateId: string;
   photoUrl?: string;
@@ -73,9 +78,12 @@ export interface CandidateHRData {
   admission: Admission;
   termination: Termination;
   documentation: CandidateDocumentation;
+  emergencyContacts: EmergencyContact[];
 }
 
 export const EVALUATION_STATUS_OPTIONS = ['Em Análise', 'Sim', 'Não'] as const;
+
+export const INTERVIEW_STATUS_OPTIONS = ['Não', 'Sim', 'Não Compareceu', 'Compareceu'] as const;
 
 export const ADMISSION_STATUS_OPTIONS = [
   'Aguardando',
@@ -83,6 +91,16 @@ export const ADMISSION_STATUS_OPTIONS = [
   'Aprovado',
   'Contratado',
   'Cancelado'
+];
+
+export const RELATIONSHIP_OPTIONS = [
+  'Pai',
+  'Mãe',
+  'Filho(a)',
+  'Avô/Avó',
+  'Cônjuge',
+  'Irmão(ã)',
+  'Outro',
 ];
 
 export const createDefaultDocumentation = (): CandidateDocumentation => ({

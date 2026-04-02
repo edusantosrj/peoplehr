@@ -10,6 +10,7 @@ interface VacancyContextType {
   addVacancy: (vacancy: Vacancy) => void;
   updateVacancy: (id: string, vacancy: Partial<Vacancy>) => void;
   deleteVacancy: (id: string) => void;
+  debitVacancy: (id: string) => boolean;
   addSector: (sector: string) => void;
   removeSector: (sector: string) => void;
   addUnit: (unit: string) => void;
@@ -134,6 +135,15 @@ export const VacancyProvider = ({ children }: { children: ReactNode }) => {
     setVacancies((prev) => prev.filter((v) => v.id !== id));
   };
 
+  const debitVacancy = (id: string): boolean => {
+    const vacancy = vacancies.find((v) => v.id === id);
+    if (!vacancy || vacancy.quantity <= 0) return false;
+    setVacancies((prev) =>
+      prev.map((v) => (v.id === id ? { ...v, quantity: v.quantity - 1 } : v))
+    );
+    return true;
+  };
+
   const addSector = (sector: string) => {
     if (!sectors.includes(sector)) {
       setSectors((prev) => [...prev, sector].sort());
@@ -174,6 +184,7 @@ export const VacancyProvider = ({ children }: { children: ReactNode }) => {
         addVacancy,
         updateVacancy,
         deleteVacancy,
+        debitVacancy,
         addSector,
         removeSector,
         addUnit,

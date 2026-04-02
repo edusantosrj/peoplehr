@@ -127,7 +127,7 @@ const createInitialHRData = (candidateId: string): CandidateHRData => {
         candidateHired: "Sim",
         talentBank: false,
         ns: false,
-        interviewScheduled: false,
+        interviewStatus: 'Não',
       },
       admission: {
         vacancyId: "1",
@@ -145,6 +145,7 @@ const createInitialHRData = (candidateId: string): CandidateHRData => {
         priorNotice: { checked: false },
         terminationContract: { checked: false },
       },
+      emergencyContacts: [],
     };
   }
   
@@ -161,11 +162,12 @@ const createInitialHRData = (candidateId: string): CandidateHRData => {
       candidateHired: "Em Análise",
       talentBank: false,
       ns: false,
-      interviewScheduled: false,
+      interviewStatus: 'Não',
     },
     admission: {},
     termination: {},
     documentation: createDefaultDocumentation(),
+    emergencyContacts: [],
   };
 };
 

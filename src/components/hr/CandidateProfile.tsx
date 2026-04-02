@@ -14,9 +14,11 @@ import { AdmissionBlock } from "./blocks/AdmissionBlock";
 import { TerminationBlock } from "./blocks/TerminationBlock";
 import { DocumentationBlock } from "./blocks/DocumentationBlock";
 import { HistoryBlock } from "./blocks/HistoryBlock";
+import { EmergencyContactsBlock } from "./blocks/EmergencyContactsBlock";
 import type { Candidate } from "@/types/candidate";
-import type { CandidateHRData, HRAnnotation, ProcessEvaluation, Admission, Termination, CandidateDocumentation } from "@/types/hr";
+import type { CandidateHRData, HRAnnotation, ProcessEvaluation, Admission, Termination, CandidateDocumentation, EmergencyContact } from "@/types/hr";
 import { useToast } from "@/hooks/use-toast";
+import { useVacancies } from "@/contexts/VacancyContext";
 
 interface CandidateProfileProps {
   candidate: Candidate;
@@ -32,6 +34,7 @@ export const CandidateProfile = ({
   onUpdateHRData,
 }: CandidateProfileProps) => {
   const { toast } = useToast();
+  const { debitVacancy } = useVacancies();
   const [localHRData, setLocalHRData] = useState<CandidateHRData>(hrData);
 
   const handleAddAnnotation = (text: string) => {
@@ -73,6 +76,17 @@ export const CandidateProfile = ({
       },
     };
     setLocalHRData(updated);
+  };
+
+  const handleDebitVacancy = (vacancyId: string) => {
+    const success = debitVacancy(vacancyId);
+    if (!success) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível debitar a vaga. Quantidade insuficiente.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSaveAdmission = () => {
@@ -117,6 +131,15 @@ export const CandidateProfile = ({
           [key]: value,
         },
       },
+    };
+    setLocalHRData(updated);
+    onUpdateHRData(updated);
+  };
+
+  const handleUpdateEmergencyContacts = (contacts: EmergencyContact[]) => {
+    const updated = {
+      ...localHRData,
+      emergencyContacts: contacts,
     };
     setLocalHRData(updated);
     onUpdateHRData(updated);
@@ -178,6 +201,7 @@ export const CandidateProfile = ({
           admission={localHRData.admission}
           onUpdate={handleUpdateAdmission}
           onSave={handleSaveAdmission}
+          onDebitVacancy={handleDebitVacancy}
         />
 
         {/* Bloco 10 - Desligamento do Funcionário */}
@@ -187,7 +211,13 @@ export const CandidateProfile = ({
           onSave={handleSaveTermination}
         />
 
-        {/* Bloco 11 - Histórico de Movimentações */}
+        {/* Bloco 11 - Informações de Contato */}
+        <EmergencyContactsBlock
+          contacts={localHRData.emergencyContacts || []}
+          onUpdate={handleUpdateEmergencyContacts}
+        />
+
+        {/* Bloco 12 - Histórico de Movimentações */}
         <HistoryBlock
           candidate={candidate}
           hrData={localHRData}
