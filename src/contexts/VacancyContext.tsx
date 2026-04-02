@@ -184,6 +184,7 @@ export const VacancyProvider = ({ children }: { children: ReactNode }) => {
         addVacancy,
         updateVacancy,
         deleteVacancy,
+        debitVacancy,
         addSector,
         removeSector,
         addUnit,

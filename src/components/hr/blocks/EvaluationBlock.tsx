@@ -6,12 +6,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { ClipboardCheck, Calendar, Clock } from "lucide-react";
+import { ClipboardCheck } from "lucide-react";
 import type { ProcessEvaluation } from "@/types/hr";
-import { EVALUATION_STATUS_OPTIONS } from "@/types/hr";
+import { EVALUATION_STATUS_OPTIONS, INTERVIEW_STATUS_OPTIONS } from "@/types/hr";
 
 interface EvaluationBlockProps {
   evaluation: ProcessEvaluation;
@@ -40,6 +39,19 @@ export const EvaluationBlock = ({
         return 'text-red-500';
       default:
         return 'text-yellow-600';
+    }
+  };
+
+  const getInterviewColor = (status: string) => {
+    switch (status) {
+      case 'Sim':
+        return 'text-green-600';
+      case 'Compareceu':
+        return 'text-green-600';
+      case 'Não Compareceu':
+        return 'text-red-500';
+      default:
+        return 'text-muted-foreground';
     }
   };
 
@@ -75,7 +87,7 @@ export const EvaluationBlock = ({
           ))}
         </div>
 
-        {/* New toggle fields */}
+        {/* Toggle fields */}
         <div className="border-t pt-4 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex items-center justify-between rounded-lg border p-3">
@@ -94,50 +106,25 @@ export const EvaluationBlock = ({
                 onCheckedChange={(checked) => onUpdate('ns', checked)}
               />
             </div>
-            <div className="flex items-center justify-between rounded-lg border p-3">
-              <Label htmlFor="interviewScheduled" className="text-sm font-medium">Entrevista Agendada</Label>
-              <Switch
-                id="interviewScheduled"
-                checked={evaluation.interviewScheduled}
-                onCheckedChange={(checked) => onUpdate('interviewScheduled', checked)}
-              />
+            <div className="space-y-1">
+              <Label className="text-sm font-medium">Entrevista Agendada</Label>
+              <Select
+                value={evaluation.interviewStatus || 'Não'}
+                onValueChange={(value) => onUpdate('interviewStatus', value)}
+              >
+                <SelectTrigger className={getInterviewColor(evaluation.interviewStatus || 'Não')}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {INTERVIEW_STATUS_OPTIONS.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
-
-          {evaluation.interviewScheduled && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg border bg-muted/30">
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2 text-sm">
-                  <Calendar className="h-4 w-4" />
-                  Data da Entrevista
-                </Label>
-                <Input
-                  type="date"
-                  value={evaluation.interviewDate || ''}
-                  onChange={(e) => onUpdate('interviewDate', e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2 text-sm">
-                  <Clock className="h-4 w-4" />
-                  Horário da Entrevista
-                </Label>
-                <Input
-                  type="time"
-                  value={evaluation.interviewTime || ''}
-                  onChange={(e) => onUpdate('interviewTime', e.target.value)}
-                />
-              </div>
-              <div className="flex items-center justify-between rounded-lg border p-3 bg-background">
-                <Label htmlFor="interviewAttended" className="text-sm font-medium">Compareceu</Label>
-                <Switch
-                  id="interviewAttended"
-                  checked={evaluation.interviewAttended || false}
-                  onCheckedChange={(checked) => onUpdate('interviewAttended', checked)}
-                />
-              </div>
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>
