@@ -2,9 +2,8 @@ import { useState } from "react";
 import { CpfPreCheck } from "@/components/candidate/CpfPreCheck";
 import { CandidateForm } from "@/components/candidate/CandidateForm";
 import { VacancyProvider } from "@/contexts/VacancyContext";
-
-// Simulated existing CPFs (in production, this would come from a database)
-const existingCpfs: string[] = [];
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Index = () => {
   const [validatedCpf, setValidatedCpf] = useState<string | null>(null);
@@ -13,10 +12,46 @@ const Index = () => {
     setValidatedCpf(cpf);
   };
 
-  const handleFormSubmit = (data: any) => {
-    // In production, this would save to a database
-    console.log("Form submitted:", data);
-    existingCpfs.push(data.cpf);
+  const handleFormSubmit = async (data: any) => {
+    const { error } = await supabase.from("candidates").insert({
+      cpf: data.cpf,
+      full_name: data.fullName,
+      birth_date: data.birthDate,
+      marital_status: data.maritalStatus,
+      mother_name: data.motherName,
+      father_name: data.fatherName || null,
+      whatsapp: data.whatsapp,
+      instagram: data.instagram || null,
+      facebook: data.facebook || null,
+      address: data.address,
+      address_number: data.addressNumber,
+      neighborhood: data.neighborhood,
+      city: data.city,
+      state: data.state,
+      education: data.education,
+      course: data.course || null,
+      period: data.period || null,
+      has_technical_course: data.hasTechnicalCourse,
+      completed_courses: data.completedCourses || [],
+      other_courses: data.otherCourses || null,
+      has_criminal_record: data.hasCriminalRecord,
+      work_experiences: data.workExperiences || [],
+      salary_expectation: data.salaryExpectation,
+      immediate_start: data.immediateStart,
+      available_weekends: data.availableWeekends,
+      available_holidays: data.availableHolidays,
+      desired_position_1: data.desiredPosition1,
+      desired_position_2: data.desiredPosition2 || null,
+      desired_position_3: data.desiredPosition3 || null,
+      lgpd_consent: data.lgpdConsent,
+      lgpd_consent_date: data.lgpdConsent ? new Date().toISOString() : null,
+    });
+
+    if (error) {
+      console.error("Erro ao salvar candidato:", error);
+      toast.error("Erro ao salvar cadastro. Tente novamente.");
+      throw error;
+    }
   };
 
   return (
