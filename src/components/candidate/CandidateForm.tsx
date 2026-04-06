@@ -17,7 +17,7 @@ import { toast } from "sonner";
 
 interface CandidateFormProps {
   cpf: string;
-  onSubmit: (data: FormData) => void;
+  onSubmit: (data: FormData) => Promise<void>;
 }
 
 interface FormData {
@@ -193,11 +193,15 @@ export function CandidateForm({ cpf, onSubmit }: CandidateFormProps) {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (validateStep(7)) {
-      onSubmit(formData);
-      setIsSubmitted(true);
-      toast.success("Cadastro realizado com sucesso!");
+      try {
+        await onSubmit(formData);
+        setIsSubmitted(true);
+        toast.success("Cadastro realizado com sucesso!");
+      } catch {
+        // Error already handled in onSubmit
+      }
     }
   };
 
