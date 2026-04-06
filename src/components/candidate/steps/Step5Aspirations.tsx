@@ -139,12 +139,12 @@ export function Step5Aspirations({ data, onChange, errors }: Step5Props) {
 
           <div className="space-y-2">
             <Label>Vaga Desejada 2</Label>
-            <Select value={data.desiredPosition2} onValueChange={(v) => onChange("desiredPosition2", v)}>
+            <Select value={data.desiredPosition2} onValueChange={(v) => onChange("desiredPosition2", v === "__none__" ? "" : v)}>
               <SelectTrigger>
                 <SelectValue placeholder="Opcional" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Nenhuma</SelectItem>
+                <SelectItem value="__none__">Nenhuma</SelectItem>
                 {availableForPosition2.map((name) => (
                   <SelectItem key={name} value={name}>{name}</SelectItem>
                 ))}
@@ -154,12 +154,12 @@ export function Step5Aspirations({ data, onChange, errors }: Step5Props) {
 
           <div className="space-y-2">
             <Label>Vaga Desejada 3</Label>
-            <Select value={data.desiredPosition3} onValueChange={(v) => onChange("desiredPosition3", v)}>
+            <Select value={data.desiredPosition3} onValueChange={(v) => onChange("desiredPosition3", v === "__none__" ? "" : v)}>
               <SelectTrigger>
                 <SelectValue placeholder="Opcional" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Nenhuma</SelectItem>
+                <SelectItem value="__none__">Nenhuma</SelectItem>
                 {availableForPosition3.map((name) => (
                   <SelectItem key={name} value={name}>{name}</SelectItem>
                 ))}
