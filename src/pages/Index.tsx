@@ -74,7 +74,6 @@ const Index = () => {
           {!validatedCpf ? (
             <CpfPreCheck 
               onCpfValidated={handleCpfValidated} 
-              existingCpfs={existingCpfs}
             />
           ) : (
             <CandidateForm 

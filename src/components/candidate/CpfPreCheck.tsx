@@ -5,17 +5,18 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { formatCPF, validateCPF } from "@/utils/cpfValidation";
-import { UserCheck, AlertCircle } from "lucide-react";
+import { UserCheck, AlertCircle, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CpfPreCheckProps {
   onCpfValidated: (cpf: string) => void;
-  existingCpfs: string[];
 }
 
-export function CpfPreCheck({ onCpfValidated, existingCpfs }: CpfPreCheckProps) {
+export function CpfPreCheck({ onCpfValidated }: CpfPreCheckProps) {
   const [cpf, setCpf] = useState("");
   const [error, setError] = useState("");
   const [cpfExists, setCpfExists] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatCPF(e.target.value);
@@ -24,7 +25,7 @@ export function CpfPreCheck({ onCpfValidated, existingCpfs }: CpfPreCheckProps) 
     setCpfExists(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const cleanCpf = cpf.replace(/\D/g, '');
@@ -33,14 +34,32 @@ export function CpfPreCheck({ onCpfValidated, existingCpfs }: CpfPreCheckProps) 
       setError("CPF inválido. Verifique os dígitos informados.");
       return;
     }
-    
-    // Check if CPF already exists
-    if (existingCpfs.includes(cleanCpf)) {
-      setCpfExists(true);
-      return;
+
+    setLoading(true);
+    try {
+      const { data, error: queryError } = await supabase
+        .from("candidates")
+        .select("id")
+        .eq("cpf", cleanCpf)
+        .maybeSingle();
+
+      if (queryError) {
+        // If RLS blocks SELECT for anon, treat as "not found" (new candidate)
+        onCpfValidated(cleanCpf);
+        return;
+      }
+
+      if (data) {
+        setCpfExists(true);
+        return;
+      }
+
+      onCpfValidated(cleanCpf);
+    } catch {
+      onCpfValidated(cleanCpf);
+    } finally {
+      setLoading(false);
     }
-    
-    onCpfValidated(cleanCpf);
   };
 
   return (
@@ -81,7 +100,8 @@ export function CpfPreCheck({ onCpfValidated, existingCpfs }: CpfPreCheckProps) 
                 <p className="text-sm text-destructive">{error}</p>
               )}
             </div>
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Continuar
             </Button>
           </form>
