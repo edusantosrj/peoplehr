@@ -14,7 +14,120 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      candidates: {
+        Row: {
+          address: string
+          address_number: string
+          available_holidays: boolean
+          available_weekends: boolean
+          birth_date: string
+          city: string
+          completed_courses: string[] | null
+          course: string | null
+          cpf: string
+          created_at: string
+          desired_position_1: string
+          desired_position_2: string | null
+          desired_position_3: string | null
+          education: string
+          facebook: string | null
+          father_name: string | null
+          full_name: string
+          has_criminal_record: boolean
+          has_technical_course: boolean
+          id: string
+          immediate_start: boolean
+          instagram: string | null
+          lgpd_consent: boolean
+          lgpd_consent_date: string | null
+          marital_status: string
+          mother_name: string
+          neighborhood: string
+          other_courses: string | null
+          other_files_urls: string[] | null
+          period: string | null
+          resume_url: string | null
+          salary_expectation: string
+          state: string
+          whatsapp: string
+          work_experiences: Json | null
+        }
+        Insert: {
+          address: string
+          address_number: string
+          available_holidays?: boolean
+          available_weekends?: boolean
+          birth_date: string
+          city: string
+          completed_courses?: string[] | null
+          course?: string | null
+          cpf: string
+          created_at?: string
+          desired_position_1: string
+          desired_position_2?: string | null
+          desired_position_3?: string | null
+          education: string
+          facebook?: string | null
+          father_name?: string | null
+          full_name: string
+          has_criminal_record?: boolean
+          has_technical_course?: boolean
+          id?: string
+          immediate_start?: boolean
+          instagram?: string | null
+          lgpd_consent?: boolean
+          lgpd_consent_date?: string | null
+          marital_status: string
+          mother_name: string
+          neighborhood: string
+          other_courses?: string | null
+          other_files_urls?: string[] | null
+          period?: string | null
+          resume_url?: string | null
+          salary_expectation: string
+          state: string
+          whatsapp: string
+          work_experiences?: Json | null
+        }
+        Update: {
+          address?: string
+          address_number?: string
+          available_holidays?: boolean
+          available_weekends?: boolean
+          birth_date?: string
+          city?: string
+          completed_courses?: string[] | null
+          course?: string | null
+          cpf?: string
+          created_at?: string
+          desired_position_1?: string
+          desired_position_2?: string | null
+          desired_position_3?: string | null
+          education?: string
+          facebook?: string | null
+          father_name?: string | null
+          full_name?: string
+          has_criminal_record?: boolean
+          has_technical_course?: boolean
+          id?: string
+          immediate_start?: boolean
+          instagram?: string | null
+          lgpd_consent?: boolean
+          lgpd_consent_date?: string | null
+          marital_status?: string
+          mother_name?: string
+          neighborhood?: string
+          other_courses?: string | null
+          other_files_urls?: string[] | null
+          period?: string | null
+          resume_url?: string | null
+          salary_expectation?: string
+          state?: string
+          whatsapp?: string
+          work_experiences?: Json | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
