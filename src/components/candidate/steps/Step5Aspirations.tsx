@@ -139,7 +139,7 @@ export function Step5Aspirations({ data, onChange, errors }: Step5Props) {
 
           <div className="space-y-2">
             <Label>Vaga Desejada 2</Label>
-            <Select value={data.desiredPosition2} onValueChange={(v) => onChange("desiredPosition2", v)}>
+            <Select value={data.desiredPosition2} onValueChange={(v) => onChange("desiredPosition2", v === "__none__" ? "" : v)}>
               <SelectTrigger>
                 <SelectValue placeholder="Opcional" />
               </SelectTrigger>
