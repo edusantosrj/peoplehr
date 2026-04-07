@@ -5,6 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { EDUCATION_LEVELS, AVAILABLE_COURSES } from "@/types/candidate";
+import { capitalizeProperName } from "@/utils/textFormatting";
 
 interface Step2Props {
   data: {
@@ -58,6 +59,7 @@ export function Step2Education({ data, onChange, errors }: Step2Props) {
                 id="course"
                 value={data.course}
                 onChange={(e) => onChange("course", e.target.value)}
+                onBlur={(e) => onChange("course", capitalizeProperName(e.target.value))}
                 placeholder="Nome do curso"
               />
               {errors.course && <p className="text-sm text-destructive">{errors.course}</p>}

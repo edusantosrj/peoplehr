@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { MessageSquare, Plus, Clock } from "lucide-react";
+import { formatDateTimeDisplay } from "@/utils/textFormatting";
 import type { HRAnnotation } from "@/types/hr";
 
 interface AnnotationsBlockProps {
@@ -23,16 +24,7 @@ export const AnnotationsBlock = ({
     }
   };
 
-  const formatDateTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
+  const formatDateTime = formatDateTimeDisplay;
 
   // Sort by date, most recent first
   const sortedAnnotations = [...annotations].sort((a, b) => {

@@ -14,6 +14,7 @@ import {
 import { Search, Eye, Users, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import type { Candidate } from "@/types/candidate";
 import type { CandidateHRData } from "@/types/hr";
+import { formatDateDisplay } from "@/utils/textFormatting";
 
 interface CandidateListProps {
   candidates: Candidate[];
@@ -38,10 +39,7 @@ export const CandidateList = ({
     return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR');
-  };
+  const formatDate = formatDateDisplay;
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {

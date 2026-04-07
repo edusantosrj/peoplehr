@@ -15,6 +15,8 @@ export interface ProcessEvaluation {
   talentBank: boolean;
   ns: boolean;
   interviewStatus: string;
+  interviewDate?: string;
+  interviewAttended?: 'Sim' | 'Não';
 }
 
 export interface Admission {

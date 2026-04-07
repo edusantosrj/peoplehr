@@ -1,26 +1,28 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User } from "lucide-react";
 import type { Candidate } from "@/types/candidate";
+import { formatDateDisplay } from "@/utils/textFormatting";
 
 interface PersonalDataBlockProps {
   candidate: Candidate;
 }
 
 export const PersonalDataBlock = ({ candidate }: PersonalDataBlockProps) => {
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR');
-  };
 
   const calculateAge = (birthDate: string) => {
-    const today = new Date();
-    const birth = new Date(birthDate);
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      age--;
+    // Parse DD/MM/YYYY format
+    const parts = birthDate.split('/');
+    if (parts.length === 3) {
+      const birth = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+      const today = new Date();
+      let age = today.getFullYear() - birth.getFullYear();
+      const monthDiff = today.getMonth() - birth.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+        age--;
+      }
+      return age;
     }
-    return age;
+    return 0;
   };
 
   return (
@@ -36,7 +38,7 @@ export const PersonalDataBlock = ({ candidate }: PersonalDataBlockProps) => {
           <div>
             <p className="text-sm text-muted-foreground">Data de Nascimento</p>
             <p className="font-medium">
-              {formatDate(candidate.birthDate)} ({calculateAge(candidate.birthDate)} anos)
+              {formatDateDisplay(candidate.birthDate)} ({calculateAge(candidate.birthDate)} anos)
             </p>
           </div>
           <div>
