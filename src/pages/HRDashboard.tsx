@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { CandidateList } from "@/components/hr/CandidateList";
 import { CandidateProfile } from "@/components/hr/CandidateProfile";
 import { VacancyModule } from "@/components/vacancy/VacancyModule";
@@ -9,9 +10,10 @@ import { VacancyProvider, useVacancies } from "@/contexts/VacancyContext";
 import type { Candidate } from "@/types/candidate";
 import type { CandidateHRData } from "@/types/hr";
 import { createDefaultDocumentation } from "@/types/hr";
-import { Users, Briefcase, UserCheck, BarChart3, FileText, AlertTriangle, Loader2 } from "lucide-react";
+import { Users, Briefcase, UserCheck, BarChart3, FileText, AlertTriangle, Loader2, LogOut } from "lucide-react";
 import { DocumentsControlPanel } from "@/components/hr/reports/DocumentsControlPanel";
 import { ManagementAlerts } from "@/components/hr/alerts/ManagementAlerts";
+import { LoginForm } from "@/components/hr/LoginForm";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -255,22 +257,61 @@ const HRDashboardContent = () => {
 };
 
 const HRDashboard = () => {
+  const [session, setSession] = useState<any>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+        setAuthLoading(false);
+      }
+    );
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setAuthLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <VacancyProvider>
       <div className="min-h-screen bg-background">
         <header className="bg-primary text-primary-foreground py-6 shadow-md">
-          <div className="container mx-auto px-4">
-            <h1 className="text-2xl sm:text-3xl font-bold text-center">
-              Supermercados Marinho
-            </h1>
-            <p className="text-center text-primary-foreground/80 mt-1">
-              Sistema de Recursos Humanos - Painel RH
-            </p>
+          <div className="container mx-auto px-4 flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold">
+                Supermercados Marinho
+              </h1>
+              <p className="text-primary-foreground/80 mt-1">
+                Sistema de Recursos Humanos - Painel RH
+              </p>
+            </div>
+            {session && (
+              <Button variant="secondary" size="sm" onClick={handleLogout} className="flex items-center gap-2">
+                <LogOut className="h-4 w-4" />
+                Sair
+              </Button>
+            )}
           </div>
         </header>
 
         <main className="container mx-auto px-4 py-8">
-          <HRDashboardContent />
+          {session ? <HRDashboardContent /> : <LoginForm onLogin={() => {}} />}
         </main>
 
         <footer className="bg-muted py-4 mt-auto">
