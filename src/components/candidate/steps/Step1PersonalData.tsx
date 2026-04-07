@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatPhone, formatDate, calculateAge } from "@/utils/cpfValidation";
 import { MARITAL_STATUS_OPTIONS, BRAZIL_STATES } from "@/types/candidate";
+import { capitalizeProperName } from "@/utils/textFormatting";
 
 interface Step1Props {
   data: {
@@ -39,6 +40,7 @@ export function Step1PersonalData({ data, onChange, errors }: Step1Props) {
               id="fullName"
               value={data.fullName}
               onChange={(e) => onChange("fullName", e.target.value)}
+              onBlur={(e) => onChange("fullName", capitalizeProperName(e.target.value))}
               placeholder="Digite seu nome completo"
             />
             {errors.fullName && <p className="text-sm text-destructive">{errors.fullName}</p>}
@@ -80,6 +82,7 @@ export function Step1PersonalData({ data, onChange, errors }: Step1Props) {
               id="motherName"
               value={data.motherName}
               onChange={(e) => onChange("motherName", e.target.value)}
+              onBlur={(e) => onChange("motherName", capitalizeProperName(e.target.value))}
               placeholder="Nome completo da mãe"
             />
             {errors.motherName && <p className="text-sm text-destructive">{errors.motherName}</p>}
@@ -91,6 +94,7 @@ export function Step1PersonalData({ data, onChange, errors }: Step1Props) {
               id="fatherName"
               value={data.fatherName}
               onChange={(e) => onChange("fatherName", e.target.value)}
+              onBlur={(e) => onChange("fatherName", capitalizeProperName(e.target.value))}
               placeholder="Nome completo do pai (opcional)"
             />
           </div>
@@ -119,6 +123,7 @@ export function Step1PersonalData({ data, onChange, errors }: Step1Props) {
               id="address"
               value={data.address}
               onChange={(e) => onChange("address", e.target.value)}
+              onBlur={(e) => onChange("address", capitalizeProperName(e.target.value))}
               placeholder="Rua, Avenida..."
             />
             {errors.address && <p className="text-sm text-destructive">{errors.address}</p>}
@@ -141,6 +146,7 @@ export function Step1PersonalData({ data, onChange, errors }: Step1Props) {
               id="neighborhood"
               value={data.neighborhood}
               onChange={(e) => onChange("neighborhood", e.target.value)}
+              onBlur={(e) => onChange("neighborhood", capitalizeProperName(e.target.value))}
               placeholder="Bairro"
             />
             {errors.neighborhood && <p className="text-sm text-destructive">{errors.neighborhood}</p>}
@@ -152,6 +158,7 @@ export function Step1PersonalData({ data, onChange, errors }: Step1Props) {
               id="city"
               value={data.city}
               onChange={(e) => onChange("city", e.target.value)}
+              onBlur={(e) => onChange("city", capitalizeProperName(e.target.value))}
               placeholder="Cidade"
             />
             {errors.city && <p className="text-sm text-destructive">{errors.city}</p>}

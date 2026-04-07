@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate, formatPhone } from "@/utils/cpfValidation";
 import { Plus, Trash2, Briefcase } from "lucide-react";
 import { WorkExperience } from "@/types/candidate";
+import { capitalizeProperName } from "@/utils/textFormatting";
 
 interface Step4Props {
   data: {
@@ -100,6 +101,7 @@ export function Step4Experience({ data, onChange, errors }: Step4Props) {
                     <Input
                       value={exp.company}
                       onChange={(e) => updateExperience(exp.id, 'company', e.target.value)}
+                      onBlur={(e) => updateExperience(exp.id, 'company', capitalizeProperName(e.target.value))}
                       placeholder="Nome da empresa"
                     />
                   </div>
@@ -109,6 +111,7 @@ export function Step4Experience({ data, onChange, errors }: Step4Props) {
                     <Input
                       value={exp.position}
                       onChange={(e) => updateExperience(exp.id, 'position', e.target.value)}
+                      onBlur={(e) => updateExperience(exp.id, 'position', capitalizeProperName(e.target.value))}
                       placeholder="Cargo exercido"
                     />
                   </div>
@@ -170,6 +173,7 @@ export function Step4Experience({ data, onChange, errors }: Step4Props) {
                     <Input
                       value={exp.referenceName}
                       onChange={(e) => updateExperience(exp.id, 'referenceName', e.target.value)}
+                      onBlur={(e) => updateExperience(exp.id, 'referenceName', capitalizeProperName(e.target.value))}
                       placeholder="Nome do contato de referência"
                     />
                   </div>

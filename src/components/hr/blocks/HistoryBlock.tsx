@@ -16,6 +16,7 @@ import {
   Clock
 } from "lucide-react";
 import type { Candidate } from "@/types/candidate";
+import { formatDateDisplay } from "@/utils/textFormatting";
 import type { CandidateHRData } from "@/types/hr";
 
 interface TimelineEvent {
@@ -36,8 +37,11 @@ interface HistoryBlockProps {
 
 const formatDateTime = (dateString: string) => {
   const date = new Date(dateString);
+  if (isNaN(date.getTime())) {
+    return { date: formatDateDisplay(dateString), time: '00:00' };
+  }
   return {
-    date: date.toLocaleDateString('pt-BR'),
+    date: date.toLocaleDateString('pt-BR', { timeZone: 'UTC' }),
     time: date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
   };
 };
@@ -238,7 +242,7 @@ export const HistoryBlock = ({ candidate, hrData }: HistoryBlockProps) => {
         time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
         type: 'admissao',
         title: 'Data de Início Prevista',
-        description: `Data prevista de início: ${new Date(hrData.admission.expectedStartDate).toLocaleDateString('pt-BR')}`,
+        description: `Data prevista de início: ${formatDateDisplay(hrData.admission.expectedStartDate)}`,
         origin: 'RH',
         icon: <Calendar className="h-4 w-4" />,
       });

@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
 import { ClipboardCheck } from "lucide-react";
 import type { ProcessEvaluation } from "@/types/hr";
 import { EVALUATION_STATUS_OPTIONS, INTERVIEW_STATUS_OPTIONS } from "@/types/hr";
@@ -54,6 +55,8 @@ export const EvaluationBlock = ({
         return 'text-muted-foreground';
     }
   };
+
+  const isInterviewScheduled = evaluation.interviewStatus === 'Sim';
 
   return (
     <Card>
@@ -125,6 +128,34 @@ export const EvaluationBlock = ({
               </Select>
             </div>
           </div>
+
+          {isInterviewScheduled && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg border border-blue-200 bg-blue-50/50">
+              <div className="space-y-1">
+                <Label className="text-sm font-medium">Data da Entrevista</Label>
+                <Input
+                  type="date"
+                  value={evaluation.interviewDate || ''}
+                  onChange={(e) => onUpdate('interviewDate', e.target.value)}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-sm font-medium">Compareceu?</Label>
+                <Select
+                  value={evaluation.interviewAttended || ''}
+                  onValueChange={(value) => onUpdate('interviewAttended', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Sim">Sim</SelectItem>
+                    <SelectItem value="Não">Não</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

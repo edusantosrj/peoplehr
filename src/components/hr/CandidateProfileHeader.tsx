@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { User } from "lucide-react";
+import { formatDateDisplay } from "@/utils/textFormatting";
 
 interface CandidateProfileHeaderProps {
   photoUrl?: string;
@@ -24,10 +25,7 @@ export const CandidateProfileHeader = ({
     return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR');
-  };
+  const formatDate = formatDateDisplay;
 
   const getInitials = (name: string) => {
     return name
