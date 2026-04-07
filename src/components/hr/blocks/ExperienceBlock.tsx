@@ -1,21 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, Phone, User } from "lucide-react";
 import type { WorkExperience } from "@/types/candidate";
+import { formatDateDisplay } from "@/utils/textFormatting";
 
 interface ExperienceBlockProps {
   experiences: WorkExperience[];
 }
 
 export const ExperienceBlock = ({ experiences }: ExperienceBlockProps) => {
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR', { month: '2-digit', year: 'numeric' });
-  };
+  const formatDate = (dateString: string) => formatDateDisplay(dateString);
 
-  // Sort by start date, most recent first
-  const sortedExperiences = [...experiences].sort((a, b) => {
-    return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
-  });
+  // Sort experiences - just use string comparison on DD/MM/YYYY
+  const sortedExperiences = [...experiences];
 
   return (
     <Card>
