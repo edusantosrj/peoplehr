@@ -35,6 +35,7 @@ export type Database = {
           full_name: string
           has_criminal_record: boolean
           has_technical_course: boolean
+          hr_data: Json | null
           id: string
           immediate_start: boolean
           instagram: string | null
@@ -72,6 +73,7 @@ export type Database = {
           full_name: string
           has_criminal_record?: boolean
           has_technical_course?: boolean
+          hr_data?: Json | null
           id?: string
           immediate_start?: boolean
           instagram?: string | null
@@ -109,6 +111,7 @@ export type Database = {
           full_name?: string
           has_criminal_record?: boolean
           has_technical_course?: boolean
+          hr_data?: Json | null
           id?: string
           immediate_start?: boolean
           instagram?: string | null
