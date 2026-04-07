@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CandidateList } from "@/components/hr/CandidateList";
 import { CandidateProfile } from "@/components/hr/CandidateProfile";
@@ -9,180 +9,115 @@ import { VacancyProvider, useVacancies } from "@/contexts/VacancyContext";
 import type { Candidate } from "@/types/candidate";
 import type { CandidateHRData } from "@/types/hr";
 import { createDefaultDocumentation } from "@/types/hr";
-import { Users, Briefcase, UserCheck, BarChart3, FileText, AlertTriangle } from "lucide-react";
+import { Users, Briefcase, UserCheck, BarChart3, FileText, AlertTriangle, Loader2 } from "lucide-react";
 import { DocumentsControlPanel } from "@/components/hr/reports/DocumentsControlPanel";
 import { ManagementAlerts } from "@/components/hr/alerts/ManagementAlerts";
-// Mock data for demonstration
-const MOCK_CANDIDATES: Candidate[] = [
-  {
-    id: "1",
-    cpf: "12345678901",
-    fullName: "João Silva Santos",
-    registrationDate: "2024-01-15T10:30:00Z",
-    birthDate: "1995-03-20",
-    maritalStatus: "Solteiro(a)",
-    motherName: "Maria Silva Santos",
-    fatherName: "José Santos",
-    whatsapp: "(11) 99999-9999",
-    instagram: "@joaosilva",
-    facebook: "joao.silva",
-    address: "Rua das Flores",
-    addressNumber: "123",
-    neighborhood: "Centro",
-    city: "São Paulo",
-    state: "SP",
-    education: "Ensino Médio Completo",
-    hasTechnicalCourse: true,
-    completedCourses: ["Informática Básica", "Atendimento ao Cliente"],
-    otherCourses: "Curso de Inglês Básico",
-    hasCriminalRecord: false,
-    workExperiences: [
-      {
-        id: "exp1",
-        company: "Supermercado ABC",
-        position: "Operador de Caixa",
-        startDate: "2022-01-10",
-        endDate: "2023-12-15",
-        currentlyWorking: false,
-        reasonForLeaving: "Busca de novas oportunidades",
-        referenceName: "Carlos Supervisor",
-        referencePhone: "(11) 98888-8888",
-      },
-      {
-        id: "exp2",
-        company: "Loja XYZ",
-        position: "Repositor",
-        startDate: "2024-01-20",
-        currentlyWorking: true,
-        referenceName: "Ana Gerente",
-        referencePhone: "(11) 97777-7777",
-      },
-    ],
-    salaryExpectation: "R$ 2.000,00",
-    immediateStart: true,
-    availableWeekends: true,
-    availableHolidays: false,
-    desiredPosition1: "Operador de Caixa",
-    desiredPosition2: "Repositor",
-    lgpdConsent: true,
-    lgpdConsentDate: "2024-01-15T10:30:00Z",
-  },
-  {
-    id: "2",
-    cpf: "98765432100",
-    fullName: "Maria Oliveira Costa",
-    registrationDate: "2024-01-18T14:00:00Z",
-    birthDate: "1990-08-15",
-    maritalStatus: "Casado(a)",
-    motherName: "Ana Oliveira",
-    whatsapp: "(11) 98765-4321",
-    address: "Av. Brasil",
-    addressNumber: "456",
-    neighborhood: "Jardim América",
-    city: "São Paulo",
-    state: "SP",
-    education: "Superior Completo",
-    course: "Administração",
-    hasTechnicalCourse: false,
-    completedCourses: ["Excel Avançado", "Gestão de Estoque"],
-    hasCriminalRecord: false,
-    workExperiences: [
-      {
-        id: "exp3",
-        company: "Empresa Comercial Ltda",
-        position: "Auxiliar Administrativo",
-        startDate: "2018-03-01",
-        endDate: "2023-11-30",
-        currentlyWorking: false,
-        reasonForLeaving: "Encerramento da empresa",
-        referenceName: "Pedro Diretor",
-        referencePhone: "(11) 96666-6666",
-      },
-    ],
-    salaryExpectation: "R$ 3.500,00",
-    immediateStart: false,
-    availableWeekends: false,
-    availableHolidays: true,
-    desiredPosition1: "Auxiliar Administrativo",
-    desiredPosition2: "Gerente de Loja",
-    desiredPosition3: "Supervisor de Seção",
-    lgpdConsent: true,
-    lgpdConsentDate: "2024-01-18T14:00:00Z",
-  },
-];
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
-const createInitialHRData = (candidateId: string): CandidateHRData => {
-  // Set first candidate as "Contratado" to demonstrate StaffDashboard
-  if (candidateId === "1") {
-    return {
-      candidateId,
-      annotations: [],
-      evaluation: {
-        fichaValidation: "Sim",
-        managementValidation: "Sim",
-        directorValidation: "Sim",
-        proposalPresented: "Sim",
-        proposalAccepted: "Sim",
-        documentationDelivered: "Sim",
-        candidateHired: "Sim",
-        talentBank: false,
-        ns: false,
-        interviewStatus: 'Não',
-      },
-      admission: {
-        vacancyId: "1",
-        vacancyDisplay: "Operador de Caixa - Manhã - Loja Centro",
-        admissionStatus: "Contratado",
-        definedSalary: "R$ 1.800,00",
-        storeUnit: "Loja Centro",
-        expectedStartDate: "2024-02-01",
-      },
-      termination: {},
-      documentation: {
-        basicDocumentation: { checked: true },
-        experienceContract: { checked: true, expirationDate: "2024-05-01" },
-        experienceExtension: { checked: false },
-        priorNotice: { checked: false },
-        terminationContract: { checked: false },
-      },
-      emergencyContacts: [],
-    };
-  }
-  
-  return {
-    candidateId,
-    annotations: [],
-    evaluation: {
-      fichaValidation: "Em Análise",
-      managementValidation: "Em Análise",
-      directorValidation: "Em Análise",
-      proposalPresented: "Em Análise",
-      proposalAccepted: "Em Análise",
-      documentationDelivered: "Em Análise",
-      candidateHired: "Em Análise",
-      talentBank: false,
-      ns: false,
-      interviewStatus: 'Não',
-    },
-    admission: {},
-    termination: {},
-    documentation: createDefaultDocumentation(),
-    emergencyContacts: [],
-  };
-};
+const mapDbRowToCandidate = (row: any): Candidate => ({
+  id: row.id,
+  cpf: row.cpf,
+  fullName: row.full_name,
+  registrationDate: row.created_at,
+  birthDate: row.birth_date,
+  maritalStatus: row.marital_status,
+  motherName: row.mother_name,
+  fatherName: row.father_name || undefined,
+  whatsapp: row.whatsapp,
+  instagram: row.instagram || undefined,
+  facebook: row.facebook || undefined,
+  address: row.address,
+  addressNumber: row.address_number,
+  neighborhood: row.neighborhood,
+  city: row.city,
+  state: row.state,
+  education: row.education,
+  course: row.course || undefined,
+  period: row.period || undefined,
+  hasTechnicalCourse: row.has_technical_course,
+  completedCourses: row.completed_courses || [],
+  otherCourses: row.other_courses || undefined,
+  hasCriminalRecord: row.has_criminal_record,
+  workExperiences: Array.isArray(row.work_experiences) ? row.work_experiences : [],
+  salaryExpectation: row.salary_expectation,
+  immediateStart: row.immediate_start,
+  availableWeekends: row.available_weekends,
+  availableHolidays: row.available_holidays,
+  desiredPosition1: row.desired_position_1,
+  desiredPosition2: row.desired_position_2 || undefined,
+  desiredPosition3: row.desired_position_3 || undefined,
+  resumeUrl: row.resume_url || undefined,
+  lgpdConsent: row.lgpd_consent,
+  lgpdConsentDate: row.lgpd_consent_date || undefined,
+});
+
+const createInitialHRData = (candidateId: string): CandidateHRData => ({
+  candidateId,
+  annotations: [],
+  evaluation: {
+    fichaValidation: "Em Análise",
+    managementValidation: "Em Análise",
+    directorValidation: "Em Análise",
+    proposalPresented: "Em Análise",
+    proposalAccepted: "Em Análise",
+    documentationDelivered: "Em Análise",
+    candidateHired: "Em Análise",
+    talentBank: false,
+    ns: false,
+    interviewStatus: 'Não',
+  },
+  admission: {},
+  termination: {},
+  documentation: createDefaultDocumentation(),
+  emergencyContacts: [],
+});
 
 const HRDashboardContent = () => {
   const { vacancies } = useVacancies();
-  const [candidates] = useState<Candidate[]>(MOCK_CANDIDATES);
+  const { toast } = useToast();
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [hrDataMap, setHRDataMap] = useState<Record<string, CandidateHRData>>({});
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
-  const [hrDataMap, setHRDataMap] = useState<Record<string, CandidateHRData>>(() => {
-    const initial: Record<string, CandidateHRData> = {};
-    MOCK_CANDIDATES.forEach((c) => {
-      initial[c.id] = createInitialHRData(c.id);
-    });
-    return initial;
-  });
   const [activeTab, setActiveTab] = useState("alertas");
+  const [loading, setLoading] = useState(true);
+
+  const fetchCandidates = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("candidates")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Erro ao carregar candidatos:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os candidatos.",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
+    const mappedCandidates = (data || []).map(mapDbRowToCandidate);
+    setCandidates(mappedCandidates);
+
+    const hrMap: Record<string, CandidateHRData> = {};
+    (data || []).forEach((row: any) => {
+      if (row.hr_data) {
+        hrMap[row.id] = { ...createInitialHRData(row.id), ...row.hr_data, candidateId: row.id };
+      } else {
+        hrMap[row.id] = createInitialHRData(row.id);
+      }
+    });
+    setHRDataMap(hrMap);
+    setLoading(false);
+  }, [toast]);
+
+  useEffect(() => {
+    fetchCandidates();
+  }, [fetchCandidates]);
 
   const handleSelectCandidate = (candidate: Candidate) => {
     setSelectedCandidate(candidate);
@@ -203,14 +138,36 @@ const HRDashboardContent = () => {
     setActiveTab(panel);
   };
 
-  const handleUpdateHRData = (data: CandidateHRData) => {
+  const handleUpdateHRData = async (data: CandidateHRData) => {
     setHRDataMap((prev) => ({
       ...prev,
       [data.candidateId]: data,
     }));
+
+    const { error } = await supabase
+      .from("candidates")
+      .update({ hr_data: data as any })
+      .eq("id", data.candidateId);
+
+    if (error) {
+      console.error("Erro ao salvar dados do RH:", error);
+      toast({
+        title: "Erro ao salvar",
+        description: "Não foi possível salvar os dados. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
 
-  // If viewing a candidate profile, show it full screen
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-3 text-muted-foreground">Carregando candidatos...</span>
+      </div>
+    );
+  }
+
   if (selectedCandidate) {
     return (
       <CandidateProfile
@@ -301,7 +258,6 @@ const HRDashboard = () => {
   return (
     <VacancyProvider>
       <div className="min-h-screen bg-background">
-        {/* Header */}
         <header className="bg-primary text-primary-foreground py-6 shadow-md">
           <div className="container mx-auto px-4">
             <h1 className="text-2xl sm:text-3xl font-bold text-center">
@@ -313,12 +269,10 @@ const HRDashboard = () => {
           </div>
         </header>
 
-        {/* Main Content */}
         <main className="container mx-auto px-4 py-8">
           <HRDashboardContent />
         </main>
 
-        {/* Footer */}
         <footer className="bg-muted py-4 mt-auto">
           <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
             <p>© {new Date().getFullYear()} Supermercados Marinho - Todos os direitos reservados</p>
