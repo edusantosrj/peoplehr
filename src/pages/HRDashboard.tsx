@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { CandidateList } from "@/components/hr/CandidateList";
 import { CandidateProfile } from "@/components/hr/CandidateProfile";
 import { VacancyModule } from "@/components/vacancy/VacancyModule";
@@ -9,9 +10,10 @@ import { VacancyProvider, useVacancies } from "@/contexts/VacancyContext";
 import type { Candidate } from "@/types/candidate";
 import type { CandidateHRData } from "@/types/hr";
 import { createDefaultDocumentation } from "@/types/hr";
-import { Users, Briefcase, UserCheck, BarChart3, FileText, AlertTriangle, Loader2 } from "lucide-react";
+import { Users, Briefcase, UserCheck, BarChart3, FileText, AlertTriangle, Loader2, LogOut } from "lucide-react";
 import { DocumentsControlPanel } from "@/components/hr/reports/DocumentsControlPanel";
 import { ManagementAlerts } from "@/components/hr/alerts/ManagementAlerts";
+import { LoginForm } from "@/components/hr/LoginForm";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
