@@ -17,6 +17,24 @@ import { LoginForm } from "@/components/hr/LoginForm";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+const mergeHRData = (defaults: CandidateHRData, stored: any): CandidateHRData => ({
+  ...defaults,
+  ...stored,
+  candidateId: defaults.candidateId,
+  annotations: stored.annotations || defaults.annotations,
+  evaluation: { ...defaults.evaluation, ...(stored.evaluation || {}) },
+  admission: { ...defaults.admission, ...(stored.admission || {}) },
+  termination: { ...defaults.termination, ...(stored.termination || {}) },
+  documentation: {
+    basicDocumentation: { ...defaults.documentation.basicDocumentation, ...(stored.documentation?.basicDocumentation || {}) },
+    experienceContract: { ...defaults.documentation.experienceContract, ...(stored.documentation?.experienceContract || {}) },
+    experienceExtension: { ...defaults.documentation.experienceExtension, ...(stored.documentation?.experienceExtension || {}) },
+    priorNotice: { ...defaults.documentation.priorNotice, ...(stored.documentation?.priorNotice || {}) },
+    terminationContract: { ...defaults.documentation.terminationContract, ...(stored.documentation?.terminationContract || {}) },
+  },
+  emergencyContacts: stored.emergencyContacts || defaults.emergencyContacts,
+});
+
 const mapDbRowToCandidate = (row: any): Candidate => ({
   id: row.id,
   cpf: row.cpf,
@@ -107,10 +125,11 @@ const HRDashboardContent = () => {
 
     const hrMap: Record<string, CandidateHRData> = {};
     (data || []).forEach((row: any) => {
+      const defaults = createInitialHRData(row.id);
       if (row.hr_data) {
-        hrMap[row.id] = { ...createInitialHRData(row.id), ...row.hr_data, candidateId: row.id };
+        hrMap[row.id] = mergeHRData(defaults, row.hr_data);
       } else {
-        hrMap[row.id] = createInitialHRData(row.id);
+        hrMap[row.id] = defaults;
       }
     });
     setHRDataMap(hrMap);
