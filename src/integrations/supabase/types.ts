@@ -131,6 +131,315 @@ export type Database = {
         }
         Relationships: []
       }
+      hr_admissions: {
+        Row: {
+          admission_status: string | null
+          candidate_id: string
+          created_at: string
+          defined_salary: string | null
+          expected_start_date: string | null
+          id: string
+          observations: string | null
+          store_unit: string | null
+          updated_at: string
+          vacancy_display: string | null
+          vacancy_id: string | null
+          work_hours: string | null
+        }
+        Insert: {
+          admission_status?: string | null
+          candidate_id: string
+          created_at?: string
+          defined_salary?: string | null
+          expected_start_date?: string | null
+          id?: string
+          observations?: string | null
+          store_unit?: string | null
+          updated_at?: string
+          vacancy_display?: string | null
+          vacancy_id?: string | null
+          work_hours?: string | null
+        }
+        Update: {
+          admission_status?: string | null
+          candidate_id?: string
+          created_at?: string
+          defined_salary?: string | null
+          expected_start_date?: string | null
+          id?: string
+          observations?: string | null
+          store_unit?: string | null
+          updated_at?: string
+          vacancy_display?: string | null
+          vacancy_id?: string | null
+          work_hours?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_admissions_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: true
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_annotations: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          id: string
+          text: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          id?: string
+          text: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          id?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_annotations_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_documentation: {
+        Row: {
+          basic_doc_checked: boolean
+          basic_doc_completed: boolean | null
+          basic_doc_expiration_date: string | null
+          candidate_id: string
+          created_at: string
+          experience_contract_checked: boolean
+          experience_contract_completed: boolean | null
+          experience_contract_expiration_date: string | null
+          experience_extension_checked: boolean
+          experience_extension_completed: boolean | null
+          experience_extension_expiration_date: string | null
+          id: string
+          prior_notice_checked: boolean
+          prior_notice_completed: boolean | null
+          prior_notice_expiration_date: string | null
+          termination_contract_checked: boolean
+          termination_contract_completed: boolean | null
+          termination_contract_expiration_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          basic_doc_checked?: boolean
+          basic_doc_completed?: boolean | null
+          basic_doc_expiration_date?: string | null
+          candidate_id: string
+          created_at?: string
+          experience_contract_checked?: boolean
+          experience_contract_completed?: boolean | null
+          experience_contract_expiration_date?: string | null
+          experience_extension_checked?: boolean
+          experience_extension_completed?: boolean | null
+          experience_extension_expiration_date?: string | null
+          id?: string
+          prior_notice_checked?: boolean
+          prior_notice_completed?: boolean | null
+          prior_notice_expiration_date?: string | null
+          termination_contract_checked?: boolean
+          termination_contract_completed?: boolean | null
+          termination_contract_expiration_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          basic_doc_checked?: boolean
+          basic_doc_completed?: boolean | null
+          basic_doc_expiration_date?: string | null
+          candidate_id?: string
+          created_at?: string
+          experience_contract_checked?: boolean
+          experience_contract_completed?: boolean | null
+          experience_contract_expiration_date?: string | null
+          experience_extension_checked?: boolean
+          experience_extension_completed?: boolean | null
+          experience_extension_expiration_date?: string | null
+          id?: string
+          prior_notice_checked?: boolean
+          prior_notice_completed?: boolean | null
+          prior_notice_expiration_date?: string | null
+          termination_contract_checked?: boolean
+          termination_contract_completed?: boolean | null
+          termination_contract_expiration_date?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_documentation_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: true
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_emergency_contacts: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          id: string
+          name: string
+          phone: string
+          relationship: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          id?: string
+          name: string
+          phone: string
+          relationship: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          phone?: string
+          relationship?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_emergency_contacts_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_evaluations: {
+        Row: {
+          candidate_hired: string
+          candidate_id: string
+          created_at: string
+          director_validation: string
+          documentation_delivered: string
+          ficha_validation: string
+          id: string
+          interview_attended: string | null
+          interview_date: string | null
+          interview_status: string
+          management_validation: string
+          ns: boolean
+          proposal_accepted: string
+          proposal_presented: string
+          talent_bank: boolean
+          updated_at: string
+        }
+        Insert: {
+          candidate_hired?: string
+          candidate_id: string
+          created_at?: string
+          director_validation?: string
+          documentation_delivered?: string
+          ficha_validation?: string
+          id?: string
+          interview_attended?: string | null
+          interview_date?: string | null
+          interview_status?: string
+          management_validation?: string
+          ns?: boolean
+          proposal_accepted?: string
+          proposal_presented?: string
+          talent_bank?: boolean
+          updated_at?: string
+        }
+        Update: {
+          candidate_hired?: string
+          candidate_id?: string
+          created_at?: string
+          director_validation?: string
+          documentation_delivered?: string
+          ficha_validation?: string
+          id?: string
+          interview_attended?: string | null
+          interview_date?: string | null
+          interview_status?: string
+          management_validation?: string
+          ns?: boolean
+          proposal_accepted?: string
+          proposal_presented?: string
+          talent_bank?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_evaluations_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: true
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_terminations: {
+        Row: {
+          can_be_rehired: boolean | null
+          candidate_id: string
+          confirmed: boolean | null
+          created_at: string
+          id: string
+          last_work_day: string | null
+          notice_days: number | null
+          request_date: string | null
+          termination_reason: string | null
+          updated_at: string
+          voluntary_termination: boolean | null
+          will_serve_notice: boolean | null
+        }
+        Insert: {
+          can_be_rehired?: boolean | null
+          candidate_id: string
+          confirmed?: boolean | null
+          created_at?: string
+          id?: string
+          last_work_day?: string | null
+          notice_days?: number | null
+          request_date?: string | null
+          termination_reason?: string | null
+          updated_at?: string
+          voluntary_termination?: boolean | null
+          will_serve_notice?: boolean | null
+        }
+        Update: {
+          can_be_rehired?: boolean | null
+          candidate_id?: string
+          confirmed?: boolean | null
+          created_at?: string
+          id?: string
+          last_work_day?: string | null
+          notice_days?: number | null
+          request_date?: string | null
+          termination_reason?: string | null
+          updated_at?: string
+          voluntary_termination?: boolean | null
+          will_serve_notice?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_terminations_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: true
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
