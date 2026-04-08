@@ -17,6 +17,24 @@ import { LoginForm } from "@/components/hr/LoginForm";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+const mergeHRData = (defaults: CandidateHRData, stored: any): CandidateHRData => ({
+  ...defaults,
+  ...stored,
+  candidateId: defaults.candidateId,
+  annotations: stored.annotations || defaults.annotations,
+  evaluation: { ...defaults.evaluation, ...(stored.evaluation || {}) },
+  admission: { ...defaults.admission, ...(stored.admission || {}) },
+  termination: { ...defaults.termination, ...(stored.termination || {}) },
+  documentation: {
+    basicDocumentation: { ...defaults.documentation.basicDocumentation, ...(stored.documentation?.basicDocumentation || {}) },
+    experienceContract: { ...defaults.documentation.experienceContract, ...(stored.documentation?.experienceContract || {}) },
+    experienceExtension: { ...defaults.documentation.experienceExtension, ...(stored.documentation?.experienceExtension || {}) },
+    priorNotice: { ...defaults.documentation.priorNotice, ...(stored.documentation?.priorNotice || {}) },
+    terminationContract: { ...defaults.documentation.terminationContract, ...(stored.documentation?.terminationContract || {}) },
+  },
+  emergencyContacts: stored.emergencyContacts || defaults.emergencyContacts,
+});
+
 const mapDbRowToCandidate = (row: any): Candidate => ({
   id: row.id,
   cpf: row.cpf,
