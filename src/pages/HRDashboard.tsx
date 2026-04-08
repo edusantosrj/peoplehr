@@ -125,10 +125,11 @@ const HRDashboardContent = () => {
 
     const hrMap: Record<string, CandidateHRData> = {};
     (data || []).forEach((row: any) => {
+      const defaults = createInitialHRData(row.id);
       if (row.hr_data) {
-        hrMap[row.id] = { ...createInitialHRData(row.id), ...row.hr_data, candidateId: row.id };
+        hrMap[row.id] = mergeHRData(defaults, row.hr_data);
       } else {
-        hrMap[row.id] = createInitialHRData(row.id);
+        hrMap[row.id] = defaults;
       }
     });
     setHRDataMap(hrMap);
