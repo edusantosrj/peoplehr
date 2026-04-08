@@ -9,31 +9,13 @@ import { ReportsModule } from "@/components/hr/reports/ReportsModule";
 import { VacancyProvider, useVacancies } from "@/contexts/VacancyContext";
 import type { Candidate } from "@/types/candidate";
 import type { CandidateHRData } from "@/types/hr";
-import { createDefaultDocumentation } from "@/types/hr";
 import { Users, Briefcase, UserCheck, BarChart3, FileText, AlertTriangle, Loader2, LogOut } from "lucide-react";
 import { DocumentsControlPanel } from "@/components/hr/reports/DocumentsControlPanel";
 import { ManagementAlerts } from "@/components/hr/alerts/ManagementAlerts";
 import { LoginForm } from "@/components/hr/LoginForm";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-
-const mergeHRData = (defaults: CandidateHRData, stored: any): CandidateHRData => ({
-  ...defaults,
-  ...stored,
-  candidateId: defaults.candidateId,
-  annotations: stored.annotations || defaults.annotations,
-  evaluation: { ...defaults.evaluation, ...(stored.evaluation || {}) },
-  admission: { ...defaults.admission, ...(stored.admission || {}) },
-  termination: { ...defaults.termination, ...(stored.termination || {}) },
-  documentation: {
-    basicDocumentation: { ...defaults.documentation.basicDocumentation, ...(stored.documentation?.basicDocumentation || {}) },
-    experienceContract: { ...defaults.documentation.experienceContract, ...(stored.documentation?.experienceContract || {}) },
-    experienceExtension: { ...defaults.documentation.experienceExtension, ...(stored.documentation?.experienceExtension || {}) },
-    priorNotice: { ...defaults.documentation.priorNotice, ...(stored.documentation?.priorNotice || {}) },
-    terminationContract: { ...defaults.documentation.terminationContract, ...(stored.documentation?.terminationContract || {}) },
-  },
-  emergencyContacts: stored.emergencyContacts || defaults.emergencyContacts,
-});
+import { fetchAllHRData } from "@/services/hrDataService";
 
 const mapDbRowToCandidate = (row: any): Candidate => ({
   id: row.id,
@@ -72,27 +54,6 @@ const mapDbRowToCandidate = (row: any): Candidate => ({
   lgpdConsentDate: row.lgpd_consent_date || undefined,
 });
 
-const createInitialHRData = (candidateId: string): CandidateHRData => ({
-  candidateId,
-  annotations: [],
-  evaluation: {
-    fichaValidation: "Em Análise",
-    managementValidation: "Em Análise",
-    directorValidation: "Em Análise",
-    proposalPresented: "Em Análise",
-    proposalAccepted: "Em Análise",
-    documentationDelivered: "Em Análise",
-    candidateHired: "Em Análise",
-    talentBank: false,
-    ns: false,
-    interviewStatus: 'Não',
-  },
-  admission: {},
-  termination: {},
-  documentation: createDefaultDocumentation(),
-  emergencyContacts: [],
-});
-
 const HRDashboardContent = () => {
   const { vacancies } = useVacancies();
   const { toast } = useToast();
@@ -123,15 +84,8 @@ const HRDashboardContent = () => {
     const mappedCandidates = (data || []).map(mapDbRowToCandidate);
     setCandidates(mappedCandidates);
 
-    const hrMap: Record<string, CandidateHRData> = {};
-    (data || []).forEach((row: any) => {
-      const defaults = createInitialHRData(row.id);
-      if (row.hr_data) {
-        hrMap[row.id] = mergeHRData(defaults, row.hr_data);
-      } else {
-        hrMap[row.id] = defaults;
-      }
-    });
+    const candidateIds = mappedCandidates.map((c) => c.id);
+    const hrMap = await fetchAllHRData(candidateIds);
     setHRDataMap(hrMap);
     setLoading(false);
   }, [toast]);
@@ -153,31 +107,19 @@ const HRDashboardContent = () => {
 
   const handleBack = () => {
     setSelectedCandidate(null);
+    // Refresh data when going back
+    fetchCandidates();
   };
 
   const handleNavigateToPanel = (panel: string) => {
     setActiveTab(panel);
   };
 
-  const handleUpdateHRData = async (data: CandidateHRData) => {
+  const handleUpdateHRData = (data: CandidateHRData) => {
     setHRDataMap((prev) => ({
       ...prev,
       [data.candidateId]: data,
     }));
-
-    const { error } = await supabase
-      .from("candidates")
-      .update({ hr_data: data as any })
-      .eq("id", data.candidateId);
-
-    if (error) {
-      console.error("Erro ao salvar dados do RH:", error);
-      toast({
-        title: "Erro ao salvar",
-        description: "Não foi possível salvar os dados. Tente novamente.",
-        variant: "destructive",
-      });
-    }
   };
 
   if (loading) {

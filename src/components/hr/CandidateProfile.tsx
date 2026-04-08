@@ -19,6 +19,14 @@ import type { Candidate } from "@/types/candidate";
 import type { CandidateHRData, HRAnnotation, ProcessEvaluation, Admission, Termination, CandidateDocumentation, EmergencyContact } from "@/types/hr";
 import { useToast } from "@/hooks/use-toast";
 import { useVacancies } from "@/contexts/VacancyContext";
+import {
+  saveEvaluation,
+  addAnnotation,
+  saveAdmission,
+  saveTermination,
+  saveDocumentation,
+  saveEmergencyContacts,
+} from "@/services/hrDataService";
 
 interface CandidateProfileProps {
   candidate: Candidate;
@@ -37,43 +45,39 @@ export const CandidateProfile = ({
   const { debitVacancy } = useVacancies();
   const [localHRData, setLocalHRData] = useState<CandidateHRData>(hrData);
 
-  const handleAddAnnotation = (text: string) => {
-    const newAnnotation: HRAnnotation = {
-      id: Date.now().toString(),
-      text,
-      createdAt: new Date().toISOString(),
-    };
-    const updated = {
-      ...localHRData,
-      annotations: [...localHRData.annotations, newAnnotation],
-    };
+  const updateLocal = (updated: CandidateHRData) => {
     setLocalHRData(updated);
     onUpdateHRData(updated);
-    toast({
-      title: "Anotação adicionada",
-      description: "A anotação foi registrada com sucesso.",
-    });
   };
 
-  const handleUpdateEvaluation = (field: keyof ProcessEvaluation, value: string | boolean) => {
-    const updated = {
-      ...localHRData,
-      evaluation: {
-        ...localHRData.evaluation,
-        [field]: value,
-      },
-    };
-    setLocalHRData(updated);
-    onUpdateHRData(updated);
+  const handleAddAnnotation = async (text: string) => {
+    const saved = await addAnnotation(candidate.id, text);
+    if (saved) {
+      const updated = {
+        ...localHRData,
+        annotations: [...localHRData.annotations, saved],
+      };
+      updateLocal(updated);
+      toast({ title: "Anotação adicionada", description: "A anotação foi registrada com sucesso." });
+    } else {
+      toast({ title: "Erro", description: "Não foi possível salvar a anotação.", variant: "destructive" });
+    }
+  };
+
+  const handleUpdateEvaluation = async (field: keyof ProcessEvaluation, value: string | boolean) => {
+    const newEvaluation = { ...localHRData.evaluation, [field]: value };
+    const updated = { ...localHRData, evaluation: newEvaluation };
+    updateLocal(updated);
+    const ok = await saveEvaluation(candidate.id, newEvaluation);
+    if (!ok) {
+      toast({ title: "Erro ao salvar", description: "Não foi possível salvar a avaliação.", variant: "destructive" });
+    }
   };
 
   const handleUpdateAdmission = (field: keyof Admission, value: string) => {
     const updated = {
       ...localHRData,
-      admission: {
-        ...localHRData.admission,
-        [field]: value,
-      },
+      admission: { ...localHRData.admission, [field]: value },
     };
     setLocalHRData(updated);
   };
@@ -81,68 +85,62 @@ export const CandidateProfile = ({
   const handleDebitVacancy = (vacancyId: string) => {
     const success = debitVacancy(vacancyId);
     if (!success) {
-      toast({
-        title: "Erro",
-        description: "Não foi possível debitar a vaga. Quantidade insuficiente.",
-        variant: "destructive",
-      });
+      toast({ title: "Erro", description: "Não foi possível debitar a vaga. Quantidade insuficiente.", variant: "destructive" });
     }
   };
 
-  const handleSaveAdmission = () => {
-    onUpdateHRData(localHRData);
-    toast({
-      title: "Admissão salva",
-      description: "Os dados de admissão foram salvos com sucesso.",
-    });
+  const handleSaveAdmission = async () => {
+    updateLocal(localHRData);
+    const ok = await saveAdmission(candidate.id, localHRData.admission);
+    if (ok) {
+      toast({ title: "Admissão salva", description: "Os dados de admissão foram salvos com sucesso." });
+    } else {
+      toast({ title: "Erro ao salvar", description: "Não foi possível salvar a admissão.", variant: "destructive" });
+    }
   };
 
   const handleUpdateTermination = (field: keyof Termination, value: string | boolean | number) => {
     const updated = {
       ...localHRData,
-      termination: {
-        ...localHRData.termination,
-        [field]: value,
-      },
+      termination: { ...localHRData.termination, [field]: value },
     };
     setLocalHRData(updated);
   };
 
-  const handleSaveTermination = () => {
-    onUpdateHRData(localHRData);
-    toast({
-      title: "Desligamento salvo",
-      description: "Os dados de desligamento foram salvos com sucesso.",
-      variant: "destructive",
-    });
+  const handleSaveTermination = async () => {
+    updateLocal(localHRData);
+    const ok = await saveTermination(candidate.id, localHRData.termination);
+    if (ok) {
+      toast({ title: "Desligamento salvo", description: "Os dados de desligamento foram salvos com sucesso.", variant: "destructive" });
+    } else {
+      toast({ title: "Erro ao salvar", description: "Não foi possível salvar o desligamento.", variant: "destructive" });
+    }
   };
 
-  const handleUpdateDocumentation = (
+  const handleUpdateDocumentation = async (
     field: keyof CandidateDocumentation,
     key: 'checked' | 'expirationDate' | 'completed',
     value: boolean | string
   ) => {
-    const updated = {
-      ...localHRData,
-      documentation: {
-        ...localHRData.documentation,
-        [field]: {
-          ...localHRData.documentation[field],
-          [key]: value,
-        },
-      },
+    const newDoc = {
+      ...localHRData.documentation,
+      [field]: { ...localHRData.documentation[field], [key]: value },
     };
-    setLocalHRData(updated);
-    onUpdateHRData(updated);
+    const updated = { ...localHRData, documentation: newDoc };
+    updateLocal(updated);
+    const ok = await saveDocumentation(candidate.id, newDoc);
+    if (!ok) {
+      toast({ title: "Erro ao salvar", description: "Não foi possível salvar a documentação.", variant: "destructive" });
+    }
   };
 
-  const handleUpdateEmergencyContacts = (contacts: EmergencyContact[]) => {
-    const updated = {
-      ...localHRData,
-      emergencyContacts: contacts,
-    };
-    setLocalHRData(updated);
-    onUpdateHRData(updated);
+  const handleUpdateEmergencyContacts = async (contacts: EmergencyContact[]) => {
+    const updated = { ...localHRData, emergencyContacts: contacts };
+    updateLocal(updated);
+    const ok = await saveEmergencyContacts(candidate.id, contacts);
+    if (!ok) {
+      toast({ title: "Erro ao salvar", description: "Não foi possível salvar os contatos.", variant: "destructive" });
+    }
   };
 
   return (
@@ -160,64 +158,39 @@ export const CandidateProfile = ({
       />
 
       <div className="space-y-6">
-        {/* Bloco 0 - Dados Pessoais */}
         <PersonalDataBlock candidate={candidate} />
-
-        {/* Bloco 1 - Endereço */}
         <AddressBlock candidate={candidate} />
-
-        {/* Bloco 2 - Escolaridade e Cursos */}
         <EducationBlock candidate={candidate} />
-
-        {/* Bloco 3 - Experiências Profissionais */}
         <ExperienceBlock experiences={candidate.workExperiences} />
-
-        {/* Bloco 4 - Pretensões e Disponibilidade */}
         <AspirationsBlock candidate={candidate} />
-
-        {/* Bloco 5 - Currículo */}
         <ResumeBlock candidate={candidate} />
-
-        {/* Bloco 6 - Anotações do RH */}
         <AnnotationsBlock
           annotations={localHRData.annotations}
           onAddAnnotation={handleAddAnnotation}
         />
-
-        {/* Bloco 7 - Avaliação do Processo Seletivo */}
         <EvaluationBlock
           evaluation={localHRData.evaluation}
           onUpdate={handleUpdateEvaluation}
         />
-
-        {/* Bloco 8 - Documentação do Candidato */}
         <DocumentationBlock
           documentation={localHRData.documentation}
           onUpdate={handleUpdateDocumentation}
         />
-
-        {/* Bloco 9 - Admissão do Candidato */}
         <AdmissionBlock
           admission={localHRData.admission}
           onUpdate={handleUpdateAdmission}
           onSave={handleSaveAdmission}
           onDebitVacancy={handleDebitVacancy}
         />
-
-        {/* Bloco 10 - Desligamento do Funcionário */}
         <TerminationBlock
           termination={localHRData.termination}
           onUpdate={handleUpdateTermination}
           onSave={handleSaveTermination}
         />
-
-        {/* Bloco 11 - Informações de Contato */}
         <EmergencyContactsBlock
           contacts={localHRData.emergencyContacts || []}
           onUpdate={handleUpdateEmergencyContacts}
         />
-
-        {/* Bloco 12 - Histórico de Movimentações */}
         <HistoryBlock
           candidate={candidate}
           hrData={localHRData}
