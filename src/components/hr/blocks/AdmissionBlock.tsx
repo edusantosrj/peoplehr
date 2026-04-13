@@ -28,6 +28,7 @@ interface AdmissionBlockProps {
 export const AdmissionBlock = ({
   admission,
   onUpdate,
+  onBatchUpdate,
   onSave,
   onDebitVacancy,
 }: AdmissionBlockProps) => {
