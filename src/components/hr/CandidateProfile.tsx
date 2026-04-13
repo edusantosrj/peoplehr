@@ -75,11 +75,17 @@ export const CandidateProfile = ({
   };
 
   const handleUpdateAdmission = (field: keyof Admission, value: string) => {
-    const updated = {
-      ...localHRData,
-      admission: { ...localHRData.admission, [field]: value },
-    };
-    setLocalHRData(updated);
+    setLocalHRData((prev) => ({
+      ...prev,
+      admission: { ...prev.admission, [field]: value },
+    }));
+  };
+
+  const handleBatchUpdateAdmission = (updates: Partial<Admission>) => {
+    setLocalHRData((prev) => ({
+      ...prev,
+      admission: { ...prev.admission, ...updates },
+    }));
   };
 
   const handleDebitVacancy = async (vacancyId: string) => {
@@ -110,11 +116,10 @@ export const CandidateProfile = ({
   };
 
   const handleUpdateTermination = (field: keyof Termination, value: string | boolean | number) => {
-    const updated = {
-      ...localHRData,
-      termination: { ...localHRData.termination, [field]: value },
-    };
-    setLocalHRData(updated);
+    setLocalHRData((prev) => ({
+      ...prev,
+      termination: { ...prev.termination, [field]: value },
+    }));
   };
 
   const handleSaveTermination = async () => {
@@ -189,6 +194,7 @@ export const CandidateProfile = ({
         <AdmissionBlock
           admission={localHRData.admission}
           onUpdate={handleUpdateAdmission}
+          onBatchUpdate={handleBatchUpdateAdmission}
           onSave={handleSaveAdmission}
           onDebitVacancy={handleDebitVacancy}
         />

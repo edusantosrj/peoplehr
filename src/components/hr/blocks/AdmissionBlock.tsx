@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 interface AdmissionBlockProps {
   admission: Admission;
   onUpdate: (field: keyof Admission, value: string) => void;
+  onBatchUpdate: (updates: Partial<Admission>) => void;
   onSave: () => void;
   onDebitVacancy?: (vacancyId: string) => void;
 }
@@ -27,6 +28,7 @@ interface AdmissionBlockProps {
 export const AdmissionBlock = ({
   admission,
   onUpdate,
+  onBatchUpdate,
   onSave,
   onDebitVacancy,
 }: AdmissionBlockProps) => {
@@ -44,11 +46,13 @@ export const AdmissionBlock = ({
         });
         return;
       }
-      onUpdate('vacancyId', vacancyId);
-      onUpdate('vacancyDisplay', formatVacancyDisplay(vacancy));
-      onUpdate('storeUnit', vacancy.unit);
-      onUpdate('definedSalary', formatSalary(vacancy.grossSalary));
-      onUpdate('workHours', formatWorkHours(vacancy.workHoursStart, vacancy.workHoursEnd));
+      onBatchUpdate({
+        vacancyId,
+        vacancyDisplay: formatVacancyDisplay(vacancy),
+        storeUnit: vacancy.unit,
+        definedSalary: formatSalary(vacancy.grossSalary),
+        workHours: formatWorkHours(vacancy.workHoursStart, vacancy.workHoursEnd),
+      });
     }
   };
 
