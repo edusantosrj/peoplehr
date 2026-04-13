@@ -136,14 +136,14 @@ export const VacancyForm = ({ vacancy, onSave, onCancel }: VacancyFormProps) => 
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (vacancy) {
-      updateVacancy(vacancy.id, formData);
+      await updateVacancy(vacancy.id, formData);
     } else {
       const newVacancy: Vacancy = {
-        id: Date.now().toString(),
+        id: '',
         name: formData.name || '',
         unit: formData.unit || '',
         shift: formData.shift || '',
@@ -156,7 +156,7 @@ export const VacancyForm = ({ vacancy, onSave, onCancel }: VacancyFormProps) => 
         status: formData.status || 'Ativa',
         createdAt: new Date().toISOString(),
       };
-      addVacancy(newVacancy);
+      await addVacancy(newVacancy);
     }
     onSave();
   };
