@@ -116,11 +116,10 @@ export const CandidateProfile = ({
   };
 
   const handleUpdateTermination = (field: keyof Termination, value: string | boolean | number) => {
-    const updated = {
-      ...localHRData,
-      termination: { ...localHRData.termination, [field]: value },
-    };
-    setLocalHRData(updated);
+    setLocalHRData((prev) => ({
+      ...prev,
+      termination: { ...prev.termination, [field]: value },
+    }));
   };
 
   const handleSaveTermination = async () => {
