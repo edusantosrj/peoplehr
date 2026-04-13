@@ -1,131 +1,150 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import type { Vacancy } from '@/types/vacancy';
 import { INITIAL_SECTORS, UNITS, SHIFTS } from '@/types/vacancy';
+import { supabase } from '@/integrations/supabase/client';
 
 interface VacancyContextType {
   vacancies: Vacancy[];
   sectors: string[];
   units: string[];
   shifts: string[];
-  addVacancy: (vacancy: Vacancy) => void;
-  updateVacancy: (id: string, vacancy: Partial<Vacancy>) => void;
+  loading: boolean;
+  addVacancy: (vacancy: Vacancy) => Promise<void>;
+  updateVacancy: (id: string, vacancy: Partial<Vacancy>) => Promise<void>;
   deleteVacancy: (id: string) => void;
-  debitVacancy: (id: string) => boolean;
+  debitVacancy: (id: string) => Promise<boolean>;
   addSector: (sector: string) => void;
   removeSector: (sector: string) => void;
   addUnit: (unit: string) => void;
   removeUnit: (unit: string) => void;
   addShift: (shift: string) => void;
   removeShift: (shift: string) => void;
+  refreshVacancies: () => Promise<void>;
 }
 
 const VacancyContext = createContext<VacancyContextType | undefined>(undefined);
 
-// Mock initial vacancies
-const INITIAL_VACANCIES: Vacancy[] = [
-  {
-    id: '1',
-    name: 'Operador de Caixa',
-    unit: 'Loja Centro',
-    shift: 'Manhã',
-    sector: 'Caixa',
-    type: 'Nova Contratação',
-    quantity: 3,
-    workHoursStart: '06:00',
-    workHoursEnd: '14:00',
-    grossSalary: 1800,
-    status: 'Ativa',
-    createdAt: '2024-01-10T10:00:00Z',
-  },
-  {
-    id: '2',
-    name: 'Repositor',
-    unit: 'Loja Centro',
-    shift: 'Tarde',
-    sector: 'Estoque',
-    type: 'Substituição',
-    quantity: 2,
-    workHoursStart: '14:00',
-    workHoursEnd: '22:00',
-    grossSalary: 1650,
-    status: 'Ativa',
-    createdAt: '2024-01-12T09:00:00Z',
-  },
-  {
-    id: '3',
-    name: 'Açougueiro',
-    unit: 'Loja Norte',
-    shift: 'Manhã',
-    sector: 'Açougue',
-    type: 'Nova Contratação',
-    quantity: 1,
-    workHoursStart: '06:00',
-    workHoursEnd: '14:00',
-    grossSalary: 2500,
-    status: 'Ativa',
-    createdAt: '2024-01-15T11:00:00Z',
-  },
-  {
-    id: '4',
-    name: 'Padeiro',
-    unit: 'Loja Sul',
-    shift: 'Noite',
-    sector: 'Padaria',
-    type: 'Substituição',
-    quantity: 1,
-    workHoursStart: '22:00',
-    workHoursEnd: '06:00',
-    grossSalary: 2200,
-    status: 'Inativa',
-    createdAt: '2024-01-08T08:00:00Z',
-  },
-  {
-    id: '5',
-    name: 'Auxiliar de Limpeza',
-    unit: 'Loja Centro',
-    shift: 'Integral',
-    sector: 'Limpeza',
-    type: 'Nova Contratação',
-    quantity: 2,
-    workHoursStart: '08:00',
-    workHoursEnd: '17:00',
-    grossSalary: 1500,
-    status: 'Ativa',
-    createdAt: '2024-01-20T14:00:00Z',
-  },
-  {
-    id: '6',
-    name: 'Atendente de Frios',
-    unit: 'Loja Norte',
-    shift: 'Tarde',
-    sector: 'Frios',
-    type: 'Nova Contratação',
-    quantity: 1,
-    workHoursStart: '14:00',
-    workHoursEnd: '22:00',
-    grossSalary: 1700,
-    status: 'Inativa',
-    createdAt: '2024-01-05T10:00:00Z',
-  },
-];
+const mapRowToVacancy = (row: any): Vacancy => ({
+  id: row.id,
+  name: row.name,
+  unit: row.unit,
+  shift: row.shift,
+  sector: row.sector,
+  type: row.type,
+  quantity: row.quantity,
+  workHoursStart: row.work_hours_start,
+  workHoursEnd: row.work_hours_end,
+  grossSalary: Number(row.gross_salary),
+  status: row.status,
+  createdAt: row.created_at,
+});
 
 export const VacancyProvider = ({ children }: { children: ReactNode }) => {
-  const [vacancies, setVacancies] = useState<Vacancy[]>(INITIAL_VACANCIES);
+  const [vacancies, setVacancies] = useState<Vacancy[]>([]);
   const [sectors, setSectors] = useState<string[]>(INITIAL_SECTORS);
   const [units, setUnits] = useState<string[]>([...UNITS]);
   const [shifts, setShifts] = useState<string[]>([...SHIFTS]);
+  const [loading, setLoading] = useState(true);
 
-  const addVacancy = (vacancy: Vacancy) => {
-    setVacancies((prev) => [...prev, vacancy]);
+  const fetchVacancies = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('vacancies')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Erro ao carregar vagas:', error);
+      setLoading(false);
+      return;
+    }
+
+    const mapped = (data || []).map(mapRowToVacancy);
+    setVacancies(mapped);
+
+    // Derive dynamic sectors/units/shifts from existing vacancies
+    const dbSectors = new Set(mapped.map((v) => v.sector).filter(Boolean));
+    const dbUnits = new Set(mapped.map((v) => v.unit).filter(Boolean));
+    const dbShifts = new Set(mapped.map((v) => v.shift).filter(Boolean));
+
+    setSectors((prev) => {
+      const merged = new Set([...INITIAL_SECTORS, ...prev, ...dbSectors]);
+      return Array.from(merged).sort();
+    });
+    setUnits((prev) => {
+      const merged = new Set([...UNITS, ...prev, ...dbUnits]);
+      return Array.from(merged).sort();
+    });
+    setShifts((prev) => {
+      const merged = new Set([...SHIFTS, ...prev, ...dbShifts]);
+      return Array.from(merged).sort();
+    });
+
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchVacancies();
+  }, [fetchVacancies]);
+
+  const addVacancy = async (vacancy: Vacancy) => {
+    const { data, error } = await supabase
+      .from('vacancies')
+      .insert({
+        name: vacancy.name,
+        unit: vacancy.unit,
+        shift: vacancy.shift,
+        sector: vacancy.sector,
+        type: vacancy.type,
+        quantity: vacancy.quantity,
+        work_hours_start: vacancy.workHoursStart,
+        work_hours_end: vacancy.workHoursEnd,
+        gross_salary: vacancy.grossSalary,
+        status: vacancy.status,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Erro ao criar vaga:', error);
+      return;
+    }
+
+    const newVacancy = mapRowToVacancy(data);
+    setVacancies((prev) => [newVacancy, ...prev]);
+
     if (vacancy.sector && !sectors.includes(vacancy.sector)) {
       setSectors((prev) => [...prev, vacancy.sector].sort());
     }
   };
 
-  const updateVacancy = (id: string, updates: Partial<Vacancy>) => {
+  const updateVacancy = async (id: string, updates: Partial<Vacancy>) => {
+    const dbUpdates: any = { updated_at: new Date().toISOString() };
+    if (updates.name !== undefined) dbUpdates.name = updates.name;
+    if (updates.unit !== undefined) dbUpdates.unit = updates.unit;
+    if (updates.shift !== undefined) dbUpdates.shift = updates.shift;
+    if (updates.sector !== undefined) dbUpdates.sector = updates.sector;
+    if (updates.type !== undefined) dbUpdates.type = updates.type;
+    if (updates.quantity !== undefined) dbUpdates.quantity = updates.quantity;
+    if (updates.workHoursStart !== undefined) dbUpdates.work_hours_start = updates.workHoursStart;
+    if (updates.workHoursEnd !== undefined) dbUpdates.work_hours_end = updates.workHoursEnd;
+    if (updates.grossSalary !== undefined) dbUpdates.gross_salary = updates.grossSalary;
+    if (updates.status !== undefined) dbUpdates.status = updates.status;
+
+    const { error } = await supabase
+      .from('vacancies')
+      .update(dbUpdates)
+      .eq('id', id);
+
+    if (error) {
+      console.error('Erro ao atualizar vaga:', error);
+      return;
+    }
+
     setVacancies((prev) =>
       prev.map((v) => (v.id === id ? { ...v, ...updates } : v))
     );
+
     if (updates.sector && !sectors.includes(updates.sector)) {
       setSectors((prev) => [...prev, updates.sector!].sort());
     }
@@ -135,11 +154,23 @@ export const VacancyProvider = ({ children }: { children: ReactNode }) => {
     setVacancies((prev) => prev.filter((v) => v.id !== id));
   };
 
-  const debitVacancy = (id: string): boolean => {
+  const debitVacancy = async (id: string): Promise<boolean> => {
     const vacancy = vacancies.find((v) => v.id === id);
     if (!vacancy || vacancy.quantity <= 0) return false;
+
+    const newQuantity = vacancy.quantity - 1;
+    const { error } = await supabase
+      .from('vacancies')
+      .update({ quantity: newQuantity, updated_at: new Date().toISOString() })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Erro ao debitar vaga:', error);
+      return false;
+    }
+
     setVacancies((prev) =>
-      prev.map((v) => (v.id === id ? { ...v, quantity: v.quantity - 1 } : v))
+      prev.map((v) => (v.id === id ? { ...v, quantity: newQuantity } : v))
     );
     return true;
   };
@@ -181,6 +212,7 @@ export const VacancyProvider = ({ children }: { children: ReactNode }) => {
         sectors,
         units,
         shifts,
+        loading,
         addVacancy,
         updateVacancy,
         deleteVacancy,
@@ -191,6 +223,7 @@ export const VacancyProvider = ({ children }: { children: ReactNode }) => {
         removeUnit,
         addShift,
         removeShift,
+        refreshVacancies: fetchVacancies,
       }}
     >
       {children}
