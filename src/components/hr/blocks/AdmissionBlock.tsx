@@ -46,11 +46,13 @@ export const AdmissionBlock = ({
         });
         return;
       }
-      onUpdate('vacancyId', vacancyId);
-      onUpdate('vacancyDisplay', formatVacancyDisplay(vacancy));
-      onUpdate('storeUnit', vacancy.unit);
-      onUpdate('definedSalary', formatSalary(vacancy.grossSalary));
-      onUpdate('workHours', formatWorkHours(vacancy.workHoursStart, vacancy.workHoursEnd));
+      onBatchUpdate({
+        vacancyId,
+        vacancyDisplay: formatVacancyDisplay(vacancy),
+        storeUnit: vacancy.unit,
+        definedSalary: formatSalary(vacancy.grossSalary),
+        workHours: formatWorkHours(vacancy.workHoursStart, vacancy.workHoursEnd),
+      });
     }
   };
 
