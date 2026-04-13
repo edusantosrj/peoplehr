@@ -440,6 +440,54 @@ export type Database = {
           },
         ]
       }
+      vacancies: {
+        Row: {
+          created_at: string
+          gross_salary: number
+          id: string
+          name: string
+          quantity: number
+          sector: string
+          shift: string
+          status: string
+          type: string
+          unit: string
+          updated_at: string
+          work_hours_end: string
+          work_hours_start: string
+        }
+        Insert: {
+          created_at?: string
+          gross_salary?: number
+          id?: string
+          name: string
+          quantity?: number
+          sector: string
+          shift: string
+          status?: string
+          type: string
+          unit: string
+          updated_at?: string
+          work_hours_end: string
+          work_hours_start: string
+        }
+        Update: {
+          created_at?: string
+          gross_salary?: number
+          id?: string
+          name?: string
+          quantity?: number
+          sector?: string
+          shift?: string
+          status?: string
+          type?: string
+          unit?: string
+          updated_at?: string
+          work_hours_end?: string
+          work_hours_start?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
