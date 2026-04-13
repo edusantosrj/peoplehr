@@ -63,9 +63,6 @@ export const AdmissionBlock = ({
         });
         return;
       }
-      if (onDebitVacancy && admission.vacancyId) {
-        onDebitVacancy(admission.vacancyId);
-      }
     }
     onUpdate('admissionStatus', value);
   };

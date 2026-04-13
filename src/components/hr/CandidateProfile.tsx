@@ -82,14 +82,24 @@ export const CandidateProfile = ({
     setLocalHRData(updated);
   };
 
-  const handleDebitVacancy = (vacancyId: string) => {
-    const success = debitVacancy(vacancyId);
+  const handleDebitVacancy = async (vacancyId: string) => {
+    const success = await debitVacancy(vacancyId);
     if (!success) {
       toast({ title: "Erro", description: "Não foi possível debitar a vaga. Quantidade insuficiente.", variant: "destructive" });
     }
   };
 
   const handleSaveAdmission = async () => {
+    // Debit vacancy when status changes to "Contratado" and vacancy is selected
+    const previousStatus = hrData.admission?.admissionStatus;
+    const newStatus = localHRData.admission?.admissionStatus;
+    if (newStatus === 'Contratado' && previousStatus !== 'Contratado' && localHRData.admission?.vacancyId) {
+      const success = await debitVacancy(localHRData.admission.vacancyId);
+      if (!success) {
+        toast({ title: "Vaga indisponível", description: "Não foi possível contratar. A vaga não possui mais vagas disponíveis.", variant: "destructive" });
+        return;
+      }
+    }
     updateLocal(localHRData);
     const ok = await saveAdmission(candidate.id, localHRData.admission);
     if (ok) {
