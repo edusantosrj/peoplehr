@@ -75,11 +75,17 @@ export const CandidateProfile = ({
   };
 
   const handleUpdateAdmission = (field: keyof Admission, value: string) => {
-    const updated = {
-      ...localHRData,
-      admission: { ...localHRData.admission, [field]: value },
-    };
-    setLocalHRData(updated);
+    setLocalHRData((prev) => ({
+      ...prev,
+      admission: { ...prev.admission, [field]: value },
+    }));
+  };
+
+  const handleBatchUpdateAdmission = (updates: Partial<Admission>) => {
+    setLocalHRData((prev) => ({
+      ...prev,
+      admission: { ...prev.admission, ...updates },
+    }));
   };
 
   const handleDebitVacancy = async (vacancyId: string) => {
