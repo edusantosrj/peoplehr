@@ -195,6 +195,7 @@ export const CandidateProfile = ({
         <AdmissionBlock
           admission={localHRData.admission}
           onUpdate={handleUpdateAdmission}
+          onBatchUpdate={handleBatchUpdateAdmission}
           onSave={handleSaveAdmission}
           onDebitVacancy={handleDebitVacancy}
         />

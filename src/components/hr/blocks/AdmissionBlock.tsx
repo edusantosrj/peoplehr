@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 interface AdmissionBlockProps {
   admission: Admission;
   onUpdate: (field: keyof Admission, value: string) => void;
+  onBatchUpdate: (updates: Partial<Admission>) => void;
   onSave: () => void;
   onDebitVacancy?: (vacancyId: string) => void;
 }
