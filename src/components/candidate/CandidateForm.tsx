@@ -52,6 +52,7 @@ interface FormData {
   desiredPosition3: string;
   resumeFile: File | null;
   otherFiles: File[];
+  selfieFile: File | null;
   lgpdConsent: boolean;
 }
 
@@ -97,6 +98,7 @@ const initialFormData: FormData = {
   desiredPosition3: "",
   resumeFile: null,
   otherFiles: [],
+  selfieFile: null,
   lgpdConsent: false
 };
 
@@ -164,6 +166,7 @@ export function CandidateForm({ cpf, onSubmit }: CandidateFormProps) {
 
       case 6:
         if (!formData.resumeFile) newErrors.resumeFile = "Currículo é obrigatório";
+        if (!formData.selfieFile) newErrors.selfieFile = "Selfie é obrigatória";
         break;
 
       case 7:
