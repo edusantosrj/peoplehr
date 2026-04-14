@@ -49,6 +49,7 @@ export type Database = {
           period: string | null
           resume_url: string | null
           salary_expectation: string
+          selfie_url: string | null
           state: string
           whatsapp: string
           work_experiences: Json | null
@@ -87,6 +88,7 @@ export type Database = {
           period?: string | null
           resume_url?: string | null
           salary_expectation: string
+          selfie_url?: string | null
           state: string
           whatsapp: string
           work_experiences?: Json | null
@@ -125,6 +127,7 @@ export type Database = {
           period?: string | null
           resume_url?: string | null
           salary_expectation?: string
+          selfie_url?: string | null
           state?: string
           whatsapp?: string
           work_experiences?: Json | null
