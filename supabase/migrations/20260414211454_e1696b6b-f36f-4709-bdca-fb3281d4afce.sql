@@ -1,0 +1,1 @@
+ALTER TABLE public.candidates ADD COLUMN first_job boolean NOT NULL DEFAULT false;

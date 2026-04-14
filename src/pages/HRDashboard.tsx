@@ -41,6 +41,7 @@ const mapDbRowToCandidate = (row: any): Candidate => ({
   completedCourses: row.completed_courses || [],
   otherCourses: row.other_courses || undefined,
   hasCriminalRecord: row.has_criminal_record,
+  firstJob: row.first_job ?? false,
   workExperiences: Array.isArray(row.work_experiences) ? row.work_experiences : [],
   salaryExpectation: row.salary_expectation,
   immediateStart: row.immediate_start,

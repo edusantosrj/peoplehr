@@ -71,6 +71,10 @@ export const PersonalDataBlock = ({ candidate }: PersonalDataBlockProps) => {
               <p className="font-medium">{candidate.facebook}</p>
             </div>
           )}
+          <div>
+            <p className="text-sm text-muted-foreground">Primeiro Emprego</p>
+            <p className="font-medium">{candidate.firstJob ? "Sim" : "Não"}</p>
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -32,6 +32,7 @@ export type Database = {
           education: string
           facebook: string | null
           father_name: string | null
+          first_job: boolean
           full_name: string
           has_criminal_record: boolean
           has_technical_course: boolean
@@ -71,6 +72,7 @@ export type Database = {
           education: string
           facebook?: string | null
           father_name?: string | null
+          first_job?: boolean
           full_name: string
           has_criminal_record?: boolean
           has_technical_course?: boolean
@@ -110,6 +112,7 @@ export type Database = {
           education?: string
           facebook?: string | null
           father_name?: string | null
+          first_job?: boolean
           full_name?: string
           has_criminal_record?: boolean
           has_technical_course?: boolean
