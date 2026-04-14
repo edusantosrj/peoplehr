@@ -166,7 +166,7 @@ export const CandidateProfile = ({
       </Button>
 
       <CandidateProfileHeader
-        photoUrl={localHRData.photoUrl}
+        photoUrl={candidate.selfieUrl}
         fullName={candidate.fullName}
         cpf={candidate.cpf}
         registrationDate={candidate.registrationDate}

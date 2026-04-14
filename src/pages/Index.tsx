@@ -13,6 +13,24 @@ const Index = () => {
   };
 
   const handleFormSubmit = async (data: any) => {
+    let selfieUrl: string | null = null;
+
+    // Upload selfie to storage
+    if (data.selfieFile) {
+      const ext = "jpg";
+      const path = `${data.cpf.replace(/\D/g, '')}_${Date.now()}.${ext}`;
+      const { error: uploadErr } = await supabase.storage
+        .from("selfies")
+        .upload(path, data.selfieFile, { contentType: "image/jpeg" });
+      if (uploadErr) {
+        console.error("Erro ao enviar selfie:", uploadErr);
+        toast.error("Erro ao enviar selfie. Tente novamente.");
+        throw uploadErr;
+      }
+      const { data: urlData } = supabase.storage.from("selfies").getPublicUrl(path);
+      selfieUrl = urlData.publicUrl;
+    }
+
     const { error } = await supabase.from("candidates").insert({
       cpf: data.cpf,
       full_name: data.fullName,
@@ -45,6 +63,7 @@ const Index = () => {
       desired_position_3: data.desiredPosition3 || null,
       lgpd_consent: data.lgpdConsent,
       lgpd_consent_date: data.lgpdConsent ? new Date().toISOString() : null,
+      selfie_url: selfieUrl,
     });
 
     if (error) {

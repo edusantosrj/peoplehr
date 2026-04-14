@@ -234,7 +234,7 @@ const EmployeeCard = ({ candidate, hrData, vacancy }: EmployeeCardProps) => {
     <div className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-muted/30 transition-colors">
       {/* Photo */}
       <Avatar className="h-12 w-12 flex-shrink-0">
-        <AvatarImage src={hrData.photoUrl} alt={candidate.fullName} />
+        <AvatarImage src={candidate.selfieUrl} alt={candidate.fullName} />
         <AvatarFallback className="bg-primary/10 text-primary font-medium">
           {getInitials(candidate.fullName)}
         </AvatarFallback>
