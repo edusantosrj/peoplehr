@@ -13,8 +13,9 @@ import { capitalizeProperName } from "@/utils/textFormatting";
 interface Step4Props {
   data: {
     workExperiences: WorkExperience[];
+    firstJob: boolean;
   };
-  onChange: (field: string, value: WorkExperience[]) => void;
+  onChange: (field: string, value: any) => void;
   errors: Record<string, string>;
 }
 
@@ -60,6 +61,26 @@ export function Step4Experience({ data, onChange, errors }: Step4Props) {
 
   return (
     <div className="space-y-6">
+      <div className="space-y-3 mb-6">
+        <Label className="text-base font-medium">Este é seu primeiro emprego?</Label>
+        <RadioGroup
+          value={data.firstJob ? "yes" : "no"}
+          onValueChange={(v) => onChange("firstJob", v === "yes")}
+          className="flex gap-6"
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="yes" id="first-job-yes" />
+            <Label htmlFor="first-job-yes" className="font-normal cursor-pointer">Sim</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="no" id="first-job-no" />
+            <Label htmlFor="first-job-no" className="font-normal cursor-pointer">Não</Label>
+          </div>
+        </RadioGroup>
+      </div>
+
+      {!data.firstJob && (
+      <>
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-primary">Experiências Profissionais</h3>
         <Button type="button" onClick={addExperience} variant="outline" size="sm">
@@ -196,6 +217,8 @@ export function Step4Experience({ data, onChange, errors }: Step4Props) {
       
       {errors.workExperiences && (
         <p className="text-sm text-destructive">{errors.workExperiences}</p>
+      )}
+      </>
       )}
     </div>
   );

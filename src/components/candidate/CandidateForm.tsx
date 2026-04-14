@@ -42,6 +42,7 @@ interface FormData {
   completedCourses: string[];
   otherCourses: string;
   hasCriminalRecord: boolean;
+  firstJob: boolean;
   workExperiences: WorkExperience[];
   salaryExpectation: string;
   immediateStart: boolean;
@@ -88,6 +89,7 @@ const initialFormData: FormData = {
   completedCourses: [],
   otherCourses: "",
   hasCriminalRecord: false,
+  firstJob: false,
   workExperiences: [],
   salaryExpectation: "",
   immediateStart: false,
@@ -156,6 +158,12 @@ export function CandidateForm({ cpf, onSubmit }: CandidateFormProps) {
         if (['Superior Incompleto', 'Pós-Graduação Incompleta'].includes(formData.education)) {
           if (!formData.course.trim()) newErrors.course = "Curso é obrigatório";
           if (!formData.period.trim()) newErrors.period = "Período é obrigatório";
+        }
+        break;
+
+      case 4:
+        if (!formData.firstJob && formData.workExperiences.length === 0) {
+          newErrors.workExperiences = "Cadastre ao menos uma experiência profissional";
         }
         break;
 

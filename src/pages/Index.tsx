@@ -53,6 +53,7 @@ const Index = () => {
       completed_courses: data.completedCourses || [],
       other_courses: data.otherCourses || null,
       has_criminal_record: data.hasCriminalRecord,
+      first_job: data.firstJob,
       work_experiences: data.workExperiences || [],
       salary_expectation: data.salaryExpectation,
       immediate_start: data.immediateStart,

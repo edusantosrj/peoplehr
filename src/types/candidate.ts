@@ -44,6 +44,9 @@ export interface Candidate {
   // Background
   hasCriminalRecord: boolean;
   
+  // First Job
+  firstJob: boolean;
+  
   // Work Experience
   workExperiences: WorkExperience[];
   
