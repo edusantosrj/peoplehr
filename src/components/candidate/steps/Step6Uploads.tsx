@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,11 +17,33 @@ interface Step6Props {
 
 export function Step6Uploads({ data, onChange, errors }: Step6Props) {
   const [cameraActive, setCameraActive] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
   const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
   const [pendingSelfie, setPendingSelfie] = useState<{ file: File; url: string } | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+
+  const attachVideoRef = useCallback((video: HTMLVideoElement | null) => {
+    videoRef.current = video;
+    if (video && streamRef.current) {
+      video.srcObject = streamRef.current;
+      void video.play().catch(() => undefined);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!data.selfieFile || selfiePreview || pendingSelfie) return;
+    const url = URL.createObjectURL(data.selfieFile);
+    setSelfiePreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [data.selfieFile, pendingSelfie, selfiePreview]);
+
+  useEffect(() => {
+    return () => {
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+    };
+  }, []);
 
   const handleResumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
@@ -39,6 +61,14 @@ export function Step6Uploads({ data, onChange, errors }: Step6Props) {
   };
 
   const startCamera = useCallback(async () => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      alert("Câmera não disponível neste dispositivo ou navegador.");
+      return;
+    }
+
+    setVideoReady(false);
+    setCameraActive(true);
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
@@ -46,10 +76,10 @@ export function Step6Uploads({ data, onChange, errors }: Step6Props) {
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        await videoRef.current.play();
+        void videoRef.current.play().catch(() => undefined);
       }
-      setCameraActive(true);
     } catch {
+      setCameraActive(false);
       alert("Não foi possível acessar a câmera. Verifique as permissões.");
     }
   }, []);
@@ -57,6 +87,7 @@ export function Step6Uploads({ data, onChange, errors }: Step6Props) {
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
+    setVideoReady(false);
     setCameraActive(false);
   }, []);
 
@@ -64,6 +95,10 @@ export function Step6Uploads({ data, onChange, errors }: Step6Props) {
     const video = videoRef.current;
     const canvas = canvasRef.current;
     if (!video || !canvas) return;
+    if (!video.videoWidth || !video.videoHeight) {
+      alert("Aguarde a câmera carregar para capturar a selfie.");
+      return;
+    }
 
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
