@@ -51,6 +51,7 @@ const mapDbRowToCandidate = (row: any): Candidate => ({
   desiredPosition2: row.desired_position_2 || undefined,
   desiredPosition3: row.desired_position_3 || undefined,
   resumeUrl: row.resume_url || undefined,
+  otherFilesUrls: row.other_files_urls || undefined,
   selfieUrl: row.selfie_url || undefined,
   lgpdConsent: row.lgpd_consent,
   lgpdConsentDate: row.lgpd_consent_date || undefined,
