@@ -61,7 +61,7 @@ export interface Candidate {
   
   // Uploads
   resumeUrl?: string;
-  otherFilesUrl?: string;
+  otherFilesUrls?: string[];
   selfieUrl?: string;
   
   // LGPD
