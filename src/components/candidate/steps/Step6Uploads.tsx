@@ -209,15 +209,18 @@ export function Step6Uploads({ data, onChange, errors }: Step6Props) {
               <CardContent className="p-4">
                 <div className="flex flex-col items-center gap-3">
                   <video
-                    ref={videoRef}
+                    ref={attachVideoRef}
                     autoPlay
                     playsInline
                     muted
-                    onLoadedMetadata={(event) => event.currentTarget.play()}
-                    className="w-full max-w-xs rounded-lg"
+                    onLoadedMetadata={(event) => {
+                      setVideoReady(true);
+                      void event.currentTarget.play().catch(() => undefined);
+                    }}
+                    className="w-full max-w-xs aspect-[4/3] rounded-lg bg-muted object-cover"
                   />
                   <div className="flex gap-2">
-                    <Button type="button" onClick={capturePhoto}>
+                    <Button type="button" onClick={capturePhoto} disabled={!videoReady}>
                       <Camera className="w-4 h-4 mr-2" />
                       Capturar
                     </Button>
