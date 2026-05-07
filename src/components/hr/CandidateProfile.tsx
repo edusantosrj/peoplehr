@@ -182,7 +182,7 @@ export const CandidateProfile = ({
         <PersonalDataBlock candidate={candidate} />
         <AddressBlock candidate={candidate} />
         <EducationBlock candidate={candidate} />
-        <ExperienceBlock experiences={candidate.workExperiences} />
+        <ExperienceBlock experiences={candidate.workExperiences} firstJob={candidate.firstJob} />
         <AspirationsBlock candidate={candidate} />
         <ResumeBlock candidate={candidate} />
         <AnnotationsBlock
