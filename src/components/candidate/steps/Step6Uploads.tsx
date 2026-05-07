@@ -18,7 +18,9 @@ interface Step6Props {
 export function Step6Uploads({ data, onChange, errors }: Step6Props) {
   const [cameraActive, setCameraActive] = useState(false);
   const [videoReady, setVideoReady] = useState(false);
-  const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
+  const [selfiePreview, setSelfiePreview] = useState<string | null>(() =>
+    data.selfieFile ? URL.createObjectURL(data.selfieFile) : null
+  );
   const [pendingSelfie, setPendingSelfie] = useState<{ file: File; url: string } | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -31,13 +33,6 @@ export function Step6Uploads({ data, onChange, errors }: Step6Props) {
       void video.play().catch(() => undefined);
     }
   }, []);
-
-  useEffect(() => {
-    if (!data.selfieFile || selfiePreview || pendingSelfie) return;
-    const url = URL.createObjectURL(data.selfieFile);
-    setSelfiePreview(url);
-    return () => URL.revokeObjectURL(url);
-  }, [data.selfieFile, pendingSelfie, selfiePreview]);
 
   useEffect(() => {
     return () => {
