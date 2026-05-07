@@ -159,11 +159,17 @@ export const CandidateProfile = ({
   };
 
   return (
-    <div className="space-y-6">
-      <Button variant="ghost" onClick={onBack} className="mb-4">
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Voltar para Lista
-      </Button>
+    <div className="space-y-6 print:space-y-3">
+      <div className="flex items-center justify-between gap-2 mb-4 print:hidden">
+        <Button variant="ghost" onClick={onBack}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Voltar para Lista
+        </Button>
+        <Button variant="outline" onClick={() => window.print()}>
+          <Printer className="h-4 w-4 mr-2" />
+          Imprimir Ficha
+        </Button>
+      </div>
 
       <CandidateProfileHeader
         photoUrl={candidate.selfieUrl}
