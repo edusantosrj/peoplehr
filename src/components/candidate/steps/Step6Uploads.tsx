@@ -178,6 +178,7 @@ export function Step6Uploads({ data, onChange, errors }: Step6Props) {
                     autoPlay
                     playsInline
                     muted
+                    onLoadedMetadata={(event) => event.currentTarget.play()}
                     className="w-full max-w-xs rounded-lg"
                   />
                   <div className="flex gap-2">
@@ -217,7 +218,7 @@ export function Step6Uploads({ data, onChange, errors }: Step6Props) {
 
         {/* Resume Section - unchanged */}
         <div className="space-y-2">
-          <Label htmlFor="resume">Currículo *</Label>
+          <Label htmlFor="resume">Currículo</Label>
           <Card className="border-dashed border-2 hover:border-primary/50 transition-colors cursor-pointer">
             <CardContent className="p-6">
               <label htmlFor="resume" className="cursor-pointer">
