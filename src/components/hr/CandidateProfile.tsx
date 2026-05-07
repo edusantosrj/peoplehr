@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Printer } from "lucide-react";
 import { CandidateProfileHeader } from "./CandidateProfileHeader";
 import { PersonalDataBlock } from "./blocks/PersonalDataBlock";
 import { AddressBlock } from "./blocks/AddressBlock";
@@ -159,11 +159,17 @@ export const CandidateProfile = ({
   };
 
   return (
-    <div className="space-y-6">
-      <Button variant="ghost" onClick={onBack} className="mb-4">
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Voltar para Lista
-      </Button>
+    <div className="space-y-6 print:space-y-3">
+      <div className="flex items-center justify-between gap-2 mb-4 print:hidden">
+        <Button variant="ghost" onClick={onBack}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Voltar para Lista
+        </Button>
+        <Button variant="outline" onClick={() => window.print()}>
+          <Printer className="h-4 w-4 mr-2" />
+          Imprimir Ficha
+        </Button>
+      </div>
 
       <CandidateProfileHeader
         photoUrl={candidate.selfieUrl}
@@ -176,7 +182,7 @@ export const CandidateProfile = ({
         <PersonalDataBlock candidate={candidate} />
         <AddressBlock candidate={candidate} />
         <EducationBlock candidate={candidate} />
-        <ExperienceBlock experiences={candidate.workExperiences} />
+        <ExperienceBlock experiences={candidate.workExperiences} firstJob={candidate.firstJob} />
         <AspirationsBlock candidate={candidate} />
         <ResumeBlock candidate={candidate} />
         <AnnotationsBlock

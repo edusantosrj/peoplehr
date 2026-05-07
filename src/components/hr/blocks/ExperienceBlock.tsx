@@ -5,9 +5,10 @@ import { formatDateDisplay } from "@/utils/textFormatting";
 
 interface ExperienceBlockProps {
   experiences: WorkExperience[];
+  firstJob?: boolean;
 }
 
-export const ExperienceBlock = ({ experiences }: ExperienceBlockProps) => {
+export const ExperienceBlock = ({ experiences, firstJob }: ExperienceBlockProps) => {
   const formatDate = (dateString: string) => formatDateDisplay(dateString);
 
   // Sort experiences - just use string comparison on DD/MM/YYYY
@@ -22,6 +23,14 @@ export const ExperienceBlock = ({ experiences }: ExperienceBlockProps) => {
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {firstJob !== undefined && (
+          <div className="mb-4 p-3 rounded-lg bg-primary/10 border border-primary/20">
+            <p className="text-sm">
+              <span className="font-semibold">Primeiro Emprego:</span>{" "}
+              <span className="text-primary font-medium">{firstJob ? "Sim" : "Não"}</span>
+            </p>
+          </div>
+        )}
         {sortedExperiences.length === 0 ? (
           <p className="text-muted-foreground text-center py-4">
             Nenhuma experiência profissional cadastrada.

@@ -8,15 +8,15 @@ interface ResumeBlockProps {
 }
 
 export const ResumeBlock = ({ candidate }: ResumeBlockProps) => {
-  const handleViewResume = () => {
-    if (candidate.resumeUrl) {
-      window.open(candidate.resumeUrl, '_blank');
-    }
-  };
+  const otherFiles = candidate.otherFilesUrls || [];
 
-  const handleViewOtherFiles = () => {
-    if (candidate.otherFilesUrl) {
-      window.open(candidate.otherFilesUrl, '_blank');
+  const fileNameFromUrl = (url: string) => {
+    try {
+      const decoded = decodeURIComponent(url.split('?')[0]);
+      const last = decoded.split('/').pop() || 'arquivo';
+      return last.replace(/^\d+_/, '');
+    } catch {
+      return 'arquivo';
     }
   };
 
@@ -25,7 +25,7 @@ export const ResumeBlock = ({ candidate }: ResumeBlockProps) => {
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
           <FileText className="h-5 w-5 text-primary" />
-          Currículo
+          Currículo e Arquivos
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -34,7 +34,7 @@ export const ResumeBlock = ({ candidate }: ResumeBlockProps) => {
             <Button
               variant="outline"
               className="w-full justify-start gap-2"
-              onClick={handleViewResume}
+              onClick={() => window.open(candidate.resumeUrl, '_blank')}
             >
               <FileText className="h-4 w-4" />
               Visualizar Currículo
@@ -46,16 +46,22 @@ export const ResumeBlock = ({ candidate }: ResumeBlockProps) => {
             </p>
           )}
 
-          {candidate.otherFilesUrl && (
-            <Button
-              variant="ghost"
-              className="w-full justify-start gap-2"
-              onClick={handleViewOtherFiles}
-            >
-              <File className="h-4 w-4" />
-              Outros Arquivos
-              <ExternalLink className="h-3 w-3 ml-auto" />
-            </Button>
+          {otherFiles.length > 0 && (
+            <div className="space-y-2 pt-2 border-t">
+              <p className="text-sm font-medium text-muted-foreground">Outros Arquivos</p>
+              {otherFiles.map((url, i) => (
+                <Button
+                  key={i}
+                  variant="ghost"
+                  className="w-full justify-start gap-2"
+                  onClick={() => window.open(url, '_blank')}
+                >
+                  <File className="h-4 w-4" />
+                  <span className="truncate">{fileNameFromUrl(url)}</span>
+                  <ExternalLink className="h-3 w-3 ml-auto flex-shrink-0" />
+                </Button>
+              ))}
+            </div>
           )}
         </div>
       </CardContent>
