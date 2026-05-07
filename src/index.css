@@ -109,3 +109,21 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+@media print {
+  @page { margin: 12mm; }
+  header, footer, .print\:hidden { display: none !important; }
+  body { background: white !important; color: black !important; }
+  .print-selfie {
+    width: 220px !important;
+    height: 220px !important;
+  }
+  .print-selfie img,
+  .print-selfie [data-radix-avatar-image] {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+  button { display: none !important; }
+  .card, [class*="rounded-lg"] { break-inside: avoid; }
+}
