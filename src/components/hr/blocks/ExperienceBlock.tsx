@@ -5,9 +5,10 @@ import { formatDateDisplay } from "@/utils/textFormatting";
 
 interface ExperienceBlockProps {
   experiences: WorkExperience[];
+  firstJob?: boolean;
 }
 
-export const ExperienceBlock = ({ experiences }: ExperienceBlockProps) => {
+export const ExperienceBlock = ({ experiences, firstJob }: ExperienceBlockProps) => {
   const formatDate = (dateString: string) => formatDateDisplay(dateString);
 
   // Sort experiences - just use string comparison on DD/MM/YYYY
