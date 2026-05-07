@@ -14,11 +14,14 @@ const Index = () => {
 
   const handleFormSubmit = async (data: any) => {
     let selfieUrl: string | null = null;
+    let resumeUrl: string | null = null;
+    const otherFilesUrls: string[] = [];
+
+    const cpfDigits = data.cpf.replace(/\D/g, '');
 
     // Upload selfie to storage
     if (data.selfieFile) {
-      const ext = "jpg";
-      const path = `${data.cpf.replace(/\D/g, '')}_${Date.now()}.${ext}`;
+      const path = `${cpfDigits}_${Date.now()}.jpg`;
       const { error: uploadErr } = await supabase.storage
         .from("selfies")
         .upload(path, data.selfieFile, { contentType: "image/jpeg" });
@@ -29,6 +32,35 @@ const Index = () => {
       }
       const { data: urlData } = supabase.storage.from("selfies").getPublicUrl(path);
       selfieUrl = urlData.publicUrl;
+    }
+
+    // Upload resume
+    if (data.resumeFile) {
+      const safeName = data.resumeFile.name.replace(/[^\w.\-]/g, '_');
+      const path = `${cpfDigits}/${Date.now()}_${safeName}`;
+      const { error: upErr } = await supabase.storage
+        .from("documents")
+        .upload(path, data.resumeFile, { contentType: data.resumeFile.type || undefined });
+      if (upErr) {
+        console.error("Erro ao enviar currículo:", upErr);
+        toast.error("Erro ao enviar currículo.");
+      } else {
+        resumeUrl = supabase.storage.from("documents").getPublicUrl(path).data.publicUrl;
+      }
+    }
+
+    // Upload other files
+    if (Array.isArray(data.otherFiles)) {
+      for (const file of data.otherFiles) {
+        const safeName = file.name.replace(/[^\w.\-]/g, '_');
+        const path = `${cpfDigits}/${Date.now()}_${safeName}`;
+        const { error: upErr } = await supabase.storage
+          .from("documents")
+          .upload(path, file, { contentType: file.type || undefined });
+        if (!upErr) {
+          otherFilesUrls.push(supabase.storage.from("documents").getPublicUrl(path).data.publicUrl);
+        }
+      }
     }
 
     const { error } = await supabase.from("candidates").insert({
@@ -65,6 +97,8 @@ const Index = () => {
       lgpd_consent: data.lgpdConsent,
       lgpd_consent_date: data.lgpdConsent ? new Date().toISOString() : null,
       selfie_url: selfieUrl,
+      resume_url: resumeUrl,
+      other_files_urls: otherFilesUrls.length ? otherFilesUrls : null,
     });
 
     if (error) {
