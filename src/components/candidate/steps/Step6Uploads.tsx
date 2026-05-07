@@ -46,6 +46,7 @@ export function Step6Uploads({ data, onChange, errors }: Step6Props) {
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        await videoRef.current.play();
       }
       setCameraActive(true);
     } catch {
@@ -75,28 +76,35 @@ export function Step6Uploads({ data, onChange, errors }: Step6Props) {
         if (!blob) return;
         const file = new File([blob], `selfie_${Date.now()}.jpg`, { type: "image/jpeg" });
         const url = URL.createObjectURL(blob);
+        if (pendingSelfie) URL.revokeObjectURL(pendingSelfie.url);
         setPendingSelfie({ file, url });
         stopCamera();
       },
       "image/jpeg",
       0.85
     );
-  }, [stopCamera]);
+  }, [pendingSelfie, stopCamera]);
 
   const confirmSelfie = useCallback(() => {
     if (!pendingSelfie) return;
+    if (selfiePreview) URL.revokeObjectURL(selfiePreview);
     onChange("selfieFile", pendingSelfie.file);
     setSelfiePreview(pendingSelfie.url);
     setPendingSelfie(null);
-  }, [pendingSelfie, onChange]);
+  }, [pendingSelfie, selfiePreview, onChange]);
 
   const redoSelfie = useCallback(() => {
     if (pendingSelfie) {
       URL.revokeObjectURL(pendingSelfie.url);
       setPendingSelfie(null);
     }
+    if (selfiePreview) {
+      URL.revokeObjectURL(selfiePreview);
+      setSelfiePreview(null);
+      onChange("selfieFile", null);
+    }
     startCamera();
-  }, [pendingSelfie, startCamera]);
+  }, [pendingSelfie, selfiePreview, onChange, startCamera]);
 
   const removeSelfie = useCallback(() => {
     if (selfiePreview) URL.revokeObjectURL(selfiePreview);
