@@ -46,6 +46,7 @@ export function Step6Uploads({ data, onChange, errors }: Step6Props) {
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        await videoRef.current.play();
       }
       setCameraActive(true);
     } catch {
@@ -75,28 +76,35 @@ export function Step6Uploads({ data, onChange, errors }: Step6Props) {
         if (!blob) return;
         const file = new File([blob], `selfie_${Date.now()}.jpg`, { type: "image/jpeg" });
         const url = URL.createObjectURL(blob);
+        if (pendingSelfie) URL.revokeObjectURL(pendingSelfie.url);
         setPendingSelfie({ file, url });
         stopCamera();
       },
       "image/jpeg",
       0.85
     );
-  }, [stopCamera]);
+  }, [pendingSelfie, stopCamera]);
 
   const confirmSelfie = useCallback(() => {
     if (!pendingSelfie) return;
+    if (selfiePreview) URL.revokeObjectURL(selfiePreview);
     onChange("selfieFile", pendingSelfie.file);
     setSelfiePreview(pendingSelfie.url);
     setPendingSelfie(null);
-  }, [pendingSelfie, onChange]);
+  }, [pendingSelfie, selfiePreview, onChange]);
 
   const redoSelfie = useCallback(() => {
     if (pendingSelfie) {
       URL.revokeObjectURL(pendingSelfie.url);
       setPendingSelfie(null);
     }
+    if (selfiePreview) {
+      URL.revokeObjectURL(selfiePreview);
+      setSelfiePreview(null);
+      onChange("selfieFile", null);
+    }
     startCamera();
-  }, [pendingSelfie, startCamera]);
+  }, [pendingSelfie, selfiePreview, onChange, startCamera]);
 
   const removeSelfie = useCallback(() => {
     if (selfiePreview) URL.revokeObjectURL(selfiePreview);
@@ -170,6 +178,7 @@ export function Step6Uploads({ data, onChange, errors }: Step6Props) {
                     autoPlay
                     playsInline
                     muted
+                    onLoadedMetadata={(event) => event.currentTarget.play()}
                     className="w-full max-w-xs rounded-lg"
                   />
                   <div className="flex gap-2">
@@ -209,7 +218,7 @@ export function Step6Uploads({ data, onChange, errors }: Step6Props) {
 
         {/* Resume Section - unchanged */}
         <div className="space-y-2">
-          <Label htmlFor="resume">Currículo *</Label>
+          <Label htmlFor="resume">Currículo</Label>
           <Card className="border-dashed border-2 hover:border-primary/50 transition-colors cursor-pointer">
             <CardContent className="p-6">
               <label htmlFor="resume" className="cursor-pointer">

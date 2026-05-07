@@ -173,7 +173,6 @@ export function CandidateForm({ cpf, onSubmit }: CandidateFormProps) {
         break;
 
       case 6:
-        if (!formData.resumeFile) newErrors.resumeFile = "Currículo é obrigatório";
         if (!formData.selfieFile) newErrors.selfieFile = "Selfie é obrigatória";
         break;
 
