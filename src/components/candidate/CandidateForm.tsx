@@ -17,10 +17,10 @@ import { toast } from "sonner";
 
 interface CandidateFormProps {
   cpf: string;
-  onSubmit: (data: FormData) => Promise<void>;
+  onSubmit: (data: CandidateFormData) => Promise<void>;
 }
 
-interface FormData {
+export interface CandidateFormData {
   cpf: string;
   fullName: string;
   birthDate: string;
@@ -67,7 +67,7 @@ const STEP_LABELS = [
   "LGPD"
 ];
 
-const initialFormData: FormData = {
+const initialFormData: CandidateFormData = {
   cpf: "",
   fullName: "",
   birthDate: "",
@@ -106,13 +106,13 @@ const initialFormData: FormData = {
 
 export function CandidateForm({ cpf, onSubmit }: CandidateFormProps) {
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState<FormData>({ ...initialFormData, cpf });
+  const [formData, setFormData] = useState<CandidateFormData>({ ...initialFormData, cpf });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const submittingRef = useRef(false);
 
-  const updateField = (field: string, value: any) => {
+  const updateField = (field: string, value: unknown) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: "" }));
