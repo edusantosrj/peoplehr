@@ -44,6 +44,7 @@ export const CandidateProfile = ({
   const { toast } = useToast();
   const { debitVacancy } = useVacancies();
   const [localHRData, setLocalHRData] = useState<CandidateHRData>(hrData);
+  const [isPreparingPrint, setIsPreparingPrint] = useState(false);
 
   const updateLocal = (updated: CandidateHRData) => {
     setLocalHRData(updated);
@@ -158,6 +159,27 @@ export const CandidateProfile = ({
     }
   };
 
+  const handlePrint = async () => {
+    setIsPreparingPrint(true);
+    try {
+      if (candidate.selfieUrl) {
+        await new Promise<void>((resolve, reject) => {
+          const image = new Image();
+          image.onload = () => resolve();
+          image.onerror = () => reject(new Error("selfie-load-error"));
+          image.src = candidate.selfieUrl;
+        });
+      }
+
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      window.print();
+    } catch {
+      toast({ title: "Erro", description: "Não foi possível carregar a selfie para impressão.", variant: "destructive" });
+    } finally {
+      setIsPreparingPrint(false);
+    }
+  };
+
   return (
     <div className="space-y-6 print:space-y-3">
       <div className="flex items-center justify-between gap-2 mb-4 print:hidden">
@@ -165,9 +187,9 @@ export const CandidateProfile = ({
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar para Lista
         </Button>
-        <Button variant="outline" onClick={() => window.print()}>
+        <Button variant="outline" onClick={handlePrint} disabled={isPreparingPrint}>
           <Printer className="h-4 w-4 mr-2" />
-          Imprimir Ficha
+          {isPreparingPrint ? "Preparando impressão..." : "Impressão Ficha Candidato"}
         </Button>
       </div>
 
