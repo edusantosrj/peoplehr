@@ -50,13 +50,6 @@ export const CandidateProfileHeader = ({
                   </AvatarFallback>
                 </Avatar>
               </button>
-              {photoUrl ? (
-                <img
-                  src={photoUrl}
-                  alt={`Selfie de ${fullName}`}
-                  className="hidden print:block print-selfie"
-                />
-              ) : null}
             </DialogTrigger>
             <DialogContent className="max-w-md">
               {photoUrl ? (
@@ -72,6 +65,13 @@ export const CandidateProfileHeader = ({
               )}
             </DialogContent>
           </Dialog>
+          {photoUrl ? (
+            <img
+              src={photoUrl}
+              alt={`Selfie de ${fullName}`}
+              className="hidden print:block print-selfie"
+            />
+          ) : null}
 
           <div className="text-center sm:text-left flex-1">
             <h2 className="text-2xl font-bold text-foreground">{fullName}</h2>
