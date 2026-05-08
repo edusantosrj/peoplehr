@@ -117,6 +117,8 @@ All colors MUST be HSL.
   .print-selfie {
     width: 220px !important;
     height: 220px !important;
+    border-radius: 9999px !important;
+    object-fit: cover !important;
   }
   .print-selfie img,
   .print-selfie [data-radix-avatar-image] {
