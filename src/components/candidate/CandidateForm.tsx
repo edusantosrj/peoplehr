@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StepIndicator } from "./StepIndicator";
@@ -110,6 +110,7 @@ export function CandidateForm({ cpf, onSubmit }: CandidateFormProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const submittingRef = useRef(false);
 
   const updateField = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -205,9 +206,10 @@ export function CandidateForm({ cpf, onSubmit }: CandidateFormProps) {
   };
 
   const handleSubmit = async () => {
-    if (isSubmitting) return;
+    if (submittingRef.current) return;
 
     if (validateStep(7)) {
+      submittingRef.current = true;
       setIsSubmitting(true);
       try {
         await onSubmit(formData);
@@ -215,6 +217,7 @@ export function CandidateForm({ cpf, onSubmit }: CandidateFormProps) {
         toast.success("Cadastro realizado com sucesso!");
       } catch {
         // Error already handled in onSubmit
+        submittingRef.current = false;
         setIsSubmitting(false);
       }
     }
