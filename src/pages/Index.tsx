@@ -4,7 +4,10 @@ import { CandidateForm } from "@/components/candidate/CandidateForm";
 import type { CandidateFormData } from "@/components/candidate/CandidateForm";
 import { VacancyProvider } from "@/contexts/VacancyContext";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database, Json } from "@/integrations/supabase/types";
 import { toast } from "sonner";
+
+type CandidateInsert = Database["public"]["Tables"]["candidates"]["Insert"];
 
 const Index = () => {
   const [validatedCpf, setValidatedCpf] = useState<string | null>(null);
@@ -76,7 +79,7 @@ const Index = () => {
       }
     }
 
-    const candidatePayload = {
+    const candidatePayload: CandidateInsert = {
       cpf: data.cpf,
       full_name: data.fullName,
       birth_date: data.birthDate,
@@ -99,7 +102,7 @@ const Index = () => {
       other_courses: data.otherCourses || null,
       has_criminal_record: data.hasCriminalRecord,
       first_job: data.firstJob,
-      work_experiences: data.workExperiences || [],
+      work_experiences: (data.workExperiences || []) as unknown as Json,
       salary_expectation: data.salaryExpectation,
       immediate_start: data.immediateStart,
       available_weekends: data.availableWeekends,
