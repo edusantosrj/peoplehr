@@ -49,14 +49,14 @@ export const CandidateProfileHeader = ({
                     {photoUrl ? getInitials(fullName) : <User className="h-12 w-12" />}
                   </AvatarFallback>
                 </Avatar>
-                {photoUrl ? (
-                  <img
-                    src={photoUrl}
-                    alt={`Selfie de ${fullName}`}
-                    className="hidden print:block print-selfie"
-                  />
-                ) : null}
               </button>
+              {photoUrl ? (
+                <img
+                  src={photoUrl}
+                  alt={`Selfie de ${fullName}`}
+                  className="hidden print:block print-selfie"
+                />
+              ) : null}
             </DialogTrigger>
             <DialogContent className="max-w-md">
               {photoUrl ? (
