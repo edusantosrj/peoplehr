@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { CpfPreCheck } from "@/components/candidate/CpfPreCheck";
 import { CandidateForm } from "@/components/candidate/CandidateForm";
+import type { CandidateFormData } from "@/components/candidate/CandidateForm";
 import { VacancyProvider } from "@/contexts/VacancyContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -12,7 +13,7 @@ const Index = () => {
     setValidatedCpf(cpf);
   };
 
-  const handleFormSubmit = async (data: any) => {
+  const handleFormSubmit = async (data: CandidateFormData) => {
     let selfieUrl: string | null = null;
     let resumeUrl: string | null = null;
     const otherFilesUrls: string[] = [];
@@ -48,7 +49,7 @@ const Index = () => {
 
     // Upload resume
     if (data.resumeFile) {
-      const safeName = data.resumeFile.name.replace(/[^\w.\-]/g, '_');
+      const safeName = data.resumeFile.name.replace(/[^\w.-]/g, '_');
       const path = `${cpfDigits}/${Date.now()}_${safeName}`;
       const { error: upErr } = await supabase.storage
         .from("documents")
@@ -64,7 +65,7 @@ const Index = () => {
     // Upload other files
     if (Array.isArray(data.otherFiles)) {
       for (const file of data.otherFiles) {
-        const safeName = file.name.replace(/[^\w.\-]/g, '_');
+        const safeName = file.name.replace(/[^\w.-]/g, '_');
         const path = `${cpfDigits}/${Date.now()}_${safeName}`;
         const { error: upErr } = await supabase.storage
           .from("documents")
