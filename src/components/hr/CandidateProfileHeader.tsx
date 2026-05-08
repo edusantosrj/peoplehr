@@ -43,7 +43,7 @@ export const CandidateProfileHeader = ({
           <Dialog open={imageOpen} onOpenChange={setImageOpen}>
             <DialogTrigger asChild>
               <button className="focus:outline-none focus:ring-2 focus:ring-primary rounded-full">
-                <Avatar className="h-24 w-24 cursor-pointer hover:opacity-80 transition-opacity print-selfie">
+                <Avatar className="h-24 w-24 cursor-pointer hover:opacity-80 transition-opacity print:hidden">
                   <AvatarImage src={photoUrl} alt={fullName} />
                   <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
                     {photoUrl ? getInitials(fullName) : <User className="h-12 w-12" />}
@@ -65,6 +65,13 @@ export const CandidateProfileHeader = ({
               )}
             </DialogContent>
           </Dialog>
+          {photoUrl ? (
+            <img
+              src={photoUrl}
+              alt={`Selfie de ${fullName}`}
+              className="hidden print:block print-selfie"
+            />
+          ) : null}
 
           <div className="text-center sm:text-left flex-1">
             <h2 className="text-2xl font-bold text-foreground">{fullName}</h2>

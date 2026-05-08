@@ -1,9 +1,13 @@
 import { useState } from "react";
 import { CpfPreCheck } from "@/components/candidate/CpfPreCheck";
 import { CandidateForm } from "@/components/candidate/CandidateForm";
+import type { CandidateFormData } from "@/components/candidate/CandidateForm";
 import { VacancyProvider } from "@/contexts/VacancyContext";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database, Json } from "@/integrations/supabase/types";
 import { toast } from "sonner";
+
+type CandidateInsert = Database["public"]["Tables"]["candidates"]["Insert"];
 
 const Index = () => {
   const [validatedCpf, setValidatedCpf] = useState<string | null>(null);
@@ -12,12 +16,24 @@ const Index = () => {
     setValidatedCpf(cpf);
   };
 
-  const handleFormSubmit = async (data: any) => {
+  const handleFormSubmit = async (data: CandidateFormData) => {
     let selfieUrl: string | null = null;
     let resumeUrl: string | null = null;
     const otherFilesUrls: string[] = [];
 
     const cpfDigits = data.cpf.replace(/\D/g, '');
+
+    const { data: existingCandidate, error: lookupError } = await supabase
+      .from("candidates")
+      .select("id, selfie_url, resume_url, other_files_urls")
+      .eq("cpf", cpfDigits)
+      .maybeSingle();
+
+    if (lookupError) {
+      console.error("Erro ao verificar cadastro existente:", lookupError);
+      toast.error("Erro ao verificar cadastro. Tente novamente.");
+      throw lookupError;
+    }
 
     // Upload selfie to storage
     if (data.selfieFile) {
@@ -36,7 +52,7 @@ const Index = () => {
 
     // Upload resume
     if (data.resumeFile) {
-      const safeName = data.resumeFile.name.replace(/[^\w.\-]/g, '_');
+      const safeName = data.resumeFile.name.replace(/[^\w.-]/g, '_');
       const path = `${cpfDigits}/${Date.now()}_${safeName}`;
       const { error: upErr } = await supabase.storage
         .from("documents")
@@ -52,7 +68,7 @@ const Index = () => {
     // Upload other files
     if (Array.isArray(data.otherFiles)) {
       for (const file of data.otherFiles) {
-        const safeName = file.name.replace(/[^\w.\-]/g, '_');
+        const safeName = file.name.replace(/[^\w.-]/g, '_');
         const path = `${cpfDigits}/${Date.now()}_${safeName}`;
         const { error: upErr } = await supabase.storage
           .from("documents")
@@ -63,7 +79,7 @@ const Index = () => {
       }
     }
 
-    const { error } = await supabase.from("candidates").insert({
+    const candidatePayload: CandidateInsert = {
       cpf: data.cpf,
       full_name: data.fullName,
       birth_date: data.birthDate,
@@ -86,7 +102,7 @@ const Index = () => {
       other_courses: data.otherCourses || null,
       has_criminal_record: data.hasCriminalRecord,
       first_job: data.firstJob,
-      work_experiences: data.workExperiences || [],
+      work_experiences: (data.workExperiences || []) as unknown as Json,
       salary_expectation: data.salaryExpectation,
       immediate_start: data.immediateStart,
       available_weekends: data.availableWeekends,
@@ -96,10 +112,14 @@ const Index = () => {
       desired_position_3: data.desiredPosition3 || null,
       lgpd_consent: data.lgpdConsent,
       lgpd_consent_date: data.lgpdConsent ? new Date().toISOString() : null,
-      selfie_url: selfieUrl,
-      resume_url: resumeUrl,
-      other_files_urls: otherFilesUrls.length ? otherFilesUrls : null,
-    });
+      selfie_url: selfieUrl || existingCandidate?.selfie_url || null,
+      resume_url: resumeUrl || existingCandidate?.resume_url || null,
+      other_files_urls: otherFilesUrls.length ? otherFilesUrls : existingCandidate?.other_files_urls || null,
+    };
+
+    const { error } = existingCandidate
+      ? await supabase.from("candidates").update(candidatePayload).eq("id", existingCandidate.id)
+      : await supabase.from("candidates").insert(candidatePayload);
 
     if (error) {
       console.error("Erro ao salvar candidato:", error);

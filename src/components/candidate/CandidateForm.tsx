@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StepIndicator } from "./StepIndicator";
@@ -17,10 +17,10 @@ import { toast } from "sonner";
 
 interface CandidateFormProps {
   cpf: string;
-  onSubmit: (data: FormData) => Promise<void>;
+  onSubmit: (data: CandidateFormData) => Promise<void>;
 }
 
-interface FormData {
+export interface CandidateFormData {
   cpf: string;
   fullName: string;
   birthDate: string;
@@ -67,7 +67,7 @@ const STEP_LABELS = [
   "LGPD"
 ];
 
-const initialFormData: FormData = {
+const initialFormData: CandidateFormData = {
   cpf: "",
   fullName: "",
   birthDate: "",
@@ -106,11 +106,13 @@ const initialFormData: FormData = {
 
 export function CandidateForm({ cpf, onSubmit }: CandidateFormProps) {
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState<FormData>({ ...initialFormData, cpf });
+  const [formData, setFormData] = useState<CandidateFormData>({ ...initialFormData, cpf });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submittingRef = useRef(false);
 
-  const updateField = (field: string, value: any) => {
+  const updateField = (field: string, value: unknown) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: "" }));
@@ -204,13 +206,19 @@ export function CandidateForm({ cpf, onSubmit }: CandidateFormProps) {
   };
 
   const handleSubmit = async () => {
+    if (submittingRef.current) return;
+
     if (validateStep(7)) {
+      submittingRef.current = true;
+      setIsSubmitting(true);
       try {
         await onSubmit(formData);
         setIsSubmitted(true);
         toast.success("Cadastro realizado com sucesso!");
       } catch {
         // Error already handled in onSubmit
+        submittingRef.current = false;
+        setIsSubmitting(false);
       }
     }
   };
@@ -274,8 +282,8 @@ export function CandidateForm({ cpf, onSubmit }: CandidateFormProps) {
                 <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
             ) : (
-              <Button type="button" onClick={handleSubmit}>
-                Enviar Cadastro
+              <Button type="button" onClick={handleSubmit} disabled={isSubmitting}>
+                {isSubmitting ? "Enviando..." : "Enviar Cadastro"}
                 <Send className="w-4 h-4 ml-2" />
               </Button>
             )}
