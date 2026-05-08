@@ -109,6 +109,7 @@ export function CandidateForm({ cpf, onSubmit }: CandidateFormProps) {
   const [formData, setFormData] = useState<FormData>({ ...initialFormData, cpf });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const updateField = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -204,13 +205,17 @@ export function CandidateForm({ cpf, onSubmit }: CandidateFormProps) {
   };
 
   const handleSubmit = async () => {
+    if (isSubmitting) return;
+
     if (validateStep(7)) {
+      setIsSubmitting(true);
       try {
         await onSubmit(formData);
         setIsSubmitted(true);
         toast.success("Cadastro realizado com sucesso!");
       } catch {
         // Error already handled in onSubmit
+        setIsSubmitting(false);
       }
     }
   };
@@ -274,8 +279,8 @@ export function CandidateForm({ cpf, onSubmit }: CandidateFormProps) {
                 <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
             ) : (
-              <Button type="button" onClick={handleSubmit}>
-                Enviar Cadastro
+              <Button type="button" onClick={handleSubmit} disabled={isSubmitting}>
+                {isSubmitting ? "Enviando..." : "Enviar Cadastro"}
                 <Send className="w-4 h-4 ml-2" />
               </Button>
             )}
