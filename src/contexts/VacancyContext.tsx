@@ -13,6 +13,7 @@ interface VacancyContextType {
   updateVacancy: (id: string, vacancy: Partial<Vacancy>) => Promise<void>;
   deleteVacancy: (id: string) => void;
   debitVacancy: (id: string) => Promise<boolean>;
+  creditVacancy: (id: string) => Promise<boolean>;
   addSector: (sector: string) => void;
   removeSector: (sector: string) => void;
   addUnit: (unit: string) => void;
