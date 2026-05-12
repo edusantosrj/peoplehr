@@ -239,6 +239,7 @@ export const VacancyProvider = ({ children }: { children: ReactNode }) => {
         updateVacancy,
         deleteVacancy,
         debitVacancy,
+        creditVacancy,
         addSector,
         removeSector,
         addUnit,
