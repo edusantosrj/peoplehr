@@ -176,6 +176,27 @@ export const VacancyProvider = ({ children }: { children: ReactNode }) => {
     return true;
   };
 
+  const creditVacancy = async (id: string): Promise<boolean> => {
+    const vacancy = vacancies.find((v) => v.id === id);
+    if (!vacancy) return false;
+
+    const newQuantity = vacancy.quantity + 1;
+    const { error } = await supabase
+      .from('vacancies')
+      .update({ quantity: newQuantity, status: 'Ativa', updated_at: new Date().toISOString() })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Erro ao creditar vaga:', error);
+      return false;
+    }
+
+    setVacancies((prev) =>
+      prev.map((v) => (v.id === id ? { ...v, quantity: newQuantity, status: 'Ativa' } : v))
+    );
+    return true;
+  };
+
   const addSector = (sector: string) => {
     if (!sectors.includes(sector)) {
       setSectors((prev) => [...prev, sector].sort());
