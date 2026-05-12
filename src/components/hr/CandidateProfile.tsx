@@ -42,7 +42,7 @@ export const CandidateProfile = ({
   onUpdateHRData,
 }: CandidateProfileProps) => {
   const { toast } = useToast();
-  const { debitVacancy } = useVacancies();
+  const { debitVacancy, creditVacancy } = useVacancies();
   const [localHRData, setLocalHRData] = useState<CandidateHRData>(hrData);
   const [isPreparingPrint, setIsPreparingPrint] = useState(false);
 
