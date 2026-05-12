@@ -96,13 +96,13 @@ export const ADMISSION_STATUS_OPTIONS = [
 ];
 
 export const RELATIONSHIP_OPTIONS = [
-  'Pai',
-  'Mãe',
-  'Filho(a)',
   'Avô/Avó',
   'Cônjuge',
+  'Filho(a)',
   'Irmão(ã)',
+  'Mãe',
   'Outro',
+  'Pai',
 ];
 
 export const createDefaultDocumentation = (): CandidateDocumentation => ({

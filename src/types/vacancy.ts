@@ -15,10 +15,10 @@ export interface Vacancy {
 
 export const UNITS = [
   'Loja Centro',
-  'Loja Norte',
-  'Loja Sul',
   'Loja Leste',
+  'Loja Norte',
   'Loja Oeste',
+  'Loja Sul',
 ];
 
 export const SHIFTS = [
@@ -35,14 +35,14 @@ export const VACANCY_STATUS = ['Ativa', 'Inativa'] as const;
 // Initial sectors - will grow dynamically as users add new ones
 export const INITIAL_SECTORS = [
   'Açougue',
-  'Padaria',
+  'Administrativo',
+  'Caixa',
+  'Estoque',
   'Frios',
   'Hortifruti',
-  'Mercearia',
-  'Caixa',
   'Limpeza',
-  'Estoque',
-  'Administrativo',
+  'Mercearia',
+  'Padaria',
 ];
 
 export const formatVacancyDisplay = (vacancy: Vacancy): string => {
