@@ -70,11 +70,11 @@ export interface Candidate {
 }
 
 export const MARITAL_STATUS_OPTIONS = [
-  'Solteiro(a)',
   'Casado(a)',
   'Divorciado(a)',
+  'Solteiro(a)',
+  'União Estável',
   'Viúvo(a)',
-  'União Estável'
 ];
 
 export const BRAZIL_STATES = [
@@ -95,30 +95,30 @@ export const EDUCATION_LEVELS = [
 ];
 
 export const AVAILABLE_COURSES = [
-  'Informática Básica',
-  'Excel Avançado',
   'Atendimento ao Cliente',
-  'Operador de Caixa',
-  'Técnicas de Vendas',
+  'Excel Avançado',
   'Gestão de Estoque',
+  'Informática Básica',
   'Logística',
-  'Segurança do Trabalho',
   'Manipulação de Alimentos',
-  'Primeiros Socorros'
+  'Operador de Caixa',
+  'Primeiros Socorros',
+  'Segurança do Trabalho',
+  'Técnicas de Vendas',
 ];
 
 export const AVAILABLE_POSITIONS = [
-  'Operador de Caixa',
-  'Repositor',
   'Açougueiro',
-  'Padeiro',
-  'Confeiteiro',
   'Atendente de Frios',
-  'Fiscal de Loja',
-  'Auxiliar de Limpeza',
-  'Estoquista',
-  'Motorista',
   'Auxiliar Administrativo',
+  'Auxiliar de Limpeza',
+  'Confeiteiro',
+  'Estoquista',
+  'Fiscal de Loja',
   'Gerente de Loja',
-  'Supervisor de Seção'
+  'Motorista',
+  'Operador de Caixa',
+  'Padeiro',
+  'Repositor',
+  'Supervisor de Seção',
 ];
