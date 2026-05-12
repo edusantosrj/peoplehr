@@ -124,9 +124,18 @@ export const CandidateProfile = ({
   };
 
   const handleSaveTermination = async () => {
+    const wasConfirmed = hrData.termination?.confirmed === true;
+    const isConfirmed = localHRData.termination?.confirmed === true;
     updateLocal(localHRData);
     const ok = await saveTermination(candidate.id, localHRData.termination);
     if (ok) {
+      // Credit back the vacancy when termination is confirmed for the first time
+      if (isConfirmed && !wasConfirmed && localHRData.admission?.vacancyId) {
+        const credited = await creditVacancy(localHRData.admission.vacancyId);
+        if (credited) {
+          toast({ title: "Vaga reaberta", description: "A vaga foi incrementada (+1) e marcada como Ativa." });
+        }
+      }
       toast({ title: "Desligamento salvo", description: "Os dados de desligamento foram salvos com sucesso.", variant: "destructive" });
     } else {
       toast({ title: "Erro ao salvar", description: "Não foi possível salvar o desligamento.", variant: "destructive" });
