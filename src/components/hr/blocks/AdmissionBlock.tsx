@@ -96,7 +96,9 @@ export const AdmissionBlock = ({
                 <SelectValue placeholder="Selecione uma vaga" />
               </SelectTrigger>
               <SelectContent>
-                {availableVacancies.map((vacancy) => (
+                {availableVacancies
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map((vacancy) => (
                   <SelectItem
                     key={vacancy.id}
                     value={vacancy.id}
