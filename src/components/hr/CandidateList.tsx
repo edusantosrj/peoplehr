@@ -87,6 +87,9 @@ export const CandidateList = ({
           case 'desiredPosition1': valA = a.desiredPosition1; valB = b.desiredPosition1; break;
           case 'registrationDate': valA = a.registrationDate; valB = b.registrationDate; break;
           case 'hired': valA = isHired(a.id) ? 1 : 0; valB = isHired(b.id) ? 1 : 0; break;
+          case 'terminated': valA = isTerminated(a.id) ? 1 : 0; valB = isTerminated(b.id) ? 1 : 0; break;
+          case 'hiredVacancy': valA = getHiredVacancy(a.id); valB = getHiredVacancy(b.id); break;
+          case 'storeUnit': valA = getStoreUnit(a.id); valB = getStoreUnit(b.id); break;
           case 'pcd': valA = isPCD(a.id) ? 1 : 0; valB = isPCD(b.id) ? 1 : 0; break;
           case 'ns': valA = isNS(a.id) ? 1 : 0; valB = isNS(b.id) ? 1 : 0; break;
         }
