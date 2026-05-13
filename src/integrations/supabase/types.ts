@@ -342,6 +342,7 @@ export type Database = {
           interview_status: string
           management_validation: string
           ns: boolean
+          pcd: boolean
           proposal_accepted: string
           proposal_presented: string
           talent_bank: boolean
@@ -360,6 +361,7 @@ export type Database = {
           interview_status?: string
           management_validation?: string
           ns?: boolean
+          pcd?: boolean
           proposal_accepted?: string
           proposal_presented?: string
           talent_bank?: boolean
@@ -378,6 +380,7 @@ export type Database = {
           interview_status?: string
           management_validation?: string
           ns?: boolean
+          pcd?: boolean
           proposal_accepted?: string
           proposal_presented?: string
           talent_bank?: boolean
