@@ -45,7 +45,9 @@ export const CandidateProfile = ({
   const { toast } = useToast();
   const { debitVacancy, creditVacancy } = useVacancies();
   const [localHRData, setLocalHRData] = useState<CandidateHRData>(hrData);
+  const [localCandidate, setLocalCandidate] = useState<Candidate>(candidate);
   const [isPreparingPrint, setIsPreparingPrint] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
   const updateLocal = (updated: CandidateHRData) => {
     setLocalHRData(updated);
