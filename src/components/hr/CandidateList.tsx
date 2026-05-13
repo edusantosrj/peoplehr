@@ -174,6 +174,15 @@ export const CandidateList = ({
                   <TableHead className="cursor-pointer select-none" onClick={() => handleSort('hired')}>
                     <span className="flex items-center">Contratado <SortIcon field="hired" /></span>
                   </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort('terminated')}>
+                    <span className="flex items-center">Demitido <SortIcon field="terminated" /></span>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort('hiredVacancy')}>
+                    <span className="flex items-center">Vaga Contratado <SortIcon field="hiredVacancy" /></span>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort('storeUnit')}>
+                    <span className="flex items-center">Loja/Unidade <SortIcon field="storeUnit" /></span>
+                  </TableHead>
                   <TableHead className="cursor-pointer select-none" onClick={() => handleSort('pcd')}>
                     <span className="flex items-center">PCD <SortIcon field="pcd" /></span>
                   </TableHead>
