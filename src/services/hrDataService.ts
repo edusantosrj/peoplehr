@@ -22,6 +22,7 @@ const createInitialHRData = (candidateId: string): CandidateHRData => ({
     documentationDelivered: "Em Análise",
     candidateHired: "Em Análise",
     talentBank: false,
+    pcd: false,
     ns: false,
     interviewStatus: "Não",
   },
