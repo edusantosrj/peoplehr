@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Printer } from "lucide-react";
+import { ArrowLeft, Printer, Pencil } from "lucide-react";
+import { CandidateEditDialog } from "./CandidateEditDialog";
 import { CandidateProfileHeader } from "./CandidateProfileHeader";
 import { PersonalDataBlock } from "./blocks/PersonalDataBlock";
 import { AddressBlock } from "./blocks/AddressBlock";
