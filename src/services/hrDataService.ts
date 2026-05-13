@@ -66,6 +66,7 @@ export async function fetchAllHRData(
         documentationDelivered: row.documentation_delivered as any,
         candidateHired: row.candidate_hired as any,
         talentBank: row.talent_bank,
+        pcd: (row as any).pcd ?? false,
         ns: row.ns,
         interviewStatus: row.interview_status,
         interviewDate: row.interview_date || undefined,
