@@ -24,7 +24,7 @@ import {
   EDUCATION_LEVELS,
   AVAILABLE_POSITIONS,
 } from "@/types/candidate";
-import { toProperCase } from "@/utils/textFormatting";
+import { capitalizeProperName as toProperCase } from "@/utils/textFormatting";
 
 interface CandidateEditDialogProps {
   open: boolean;
