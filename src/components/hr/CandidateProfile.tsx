@@ -174,12 +174,12 @@ export const CandidateProfile = ({
   const handlePrint = async () => {
     setIsPreparingPrint(true);
     try {
-      if (candidate.selfieUrl) {
+      if (localCandidate.selfieUrl) {
         await new Promise<void>((resolve, reject) => {
           const image = new Image();
           image.onload = () => resolve();
           image.onerror = () => reject(new Error("selfie-load-error"));
-          image.src = candidate.selfieUrl;
+          image.src = localCandidate.selfieUrl;
         });
       }
 
