@@ -23,7 +23,7 @@ interface CandidateListProps {
   hrDataMap?: Record<string, CandidateHRData>;
 }
 
-type SortField = 'fullName' | 'cpf' | 'interviewStatus' | 'desiredPosition1' | 'hired' | 'pcd' | 'ns' | 'registrationDate';
+type SortField = 'fullName' | 'cpf' | 'interviewStatus' | 'desiredPosition1' | 'hired' | 'terminated' | 'hiredVacancy' | 'storeUnit' | 'pcd' | 'ns' | 'registrationDate';
 type SortDirection = 'asc' | 'desc' | null;
 
 export const CandidateList = ({
