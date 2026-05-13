@@ -60,7 +60,10 @@ export const CandidateList = ({
   };
 
   const isHired = (candidateId: string) => hrDataMap[candidateId]?.admission?.admissionStatus === 'Contratado';
-  const isPCD = (_candidateId: string) => false;
+  const isTerminated = (candidateId: string) => hrDataMap[candidateId]?.termination?.confirmed === true;
+  const getHiredVacancy = (candidateId: string) => hrDataMap[candidateId]?.admission?.vacancyDisplay || '';
+  const getStoreUnit = (candidateId: string) => hrDataMap[candidateId]?.admission?.storeUnit || '';
+  const isPCD = (candidateId: string) => hrDataMap[candidateId]?.evaluation?.pcd || false;
   const isNS = (candidateId: string) => hrDataMap[candidateId]?.evaluation?.ns || false;
   const getInterviewStatus = (candidateId: string) => hrDataMap[candidateId]?.evaluation?.interviewStatus || 'Não';
 
