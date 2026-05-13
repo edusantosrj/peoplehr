@@ -92,7 +92,15 @@ export const EvaluationBlock = ({
 
         {/* Toggle fields */}
         <div className="border-t pt-4 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <Label htmlFor="pcd" className="text-sm font-medium">PCD</Label>
+              <Switch
+                id="pcd"
+                checked={evaluation.pcd}
+                onCheckedChange={(checked) => onUpdate('pcd', checked)}
+              />
+            </div>
             <div className="flex items-center justify-between rounded-lg border p-3">
               <Label htmlFor="talentBank" className="text-sm font-medium">Banco de Talentos</Label>
               <Switch

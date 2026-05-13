@@ -1,0 +1,1 @@
+ALTER TABLE public.hr_evaluations ADD COLUMN IF NOT EXISTS pcd boolean NOT NULL DEFAULT false;

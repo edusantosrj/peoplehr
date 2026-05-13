@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Table,
   TableBody,
@@ -22,7 +23,7 @@ interface CandidateListProps {
   hrDataMap?: Record<string, CandidateHRData>;
 }
 
-type SortField = 'fullName' | 'cpf' | 'interviewStatus' | 'desiredPosition1' | 'hired' | 'pcd' | 'ns' | 'registrationDate';
+type SortField = 'fullName' | 'cpf' | 'interviewStatus' | 'desiredPosition1' | 'hired' | 'terminated' | 'hiredVacancy' | 'storeUnit' | 'pcd' | 'ns' | 'registrationDate';
 type SortDirection = 'asc' | 'desc' | null;
 
 export const CandidateList = ({
@@ -59,7 +60,10 @@ export const CandidateList = ({
   };
 
   const isHired = (candidateId: string) => hrDataMap[candidateId]?.admission?.admissionStatus === 'Contratado';
-  const isPCD = (_candidateId: string) => false;
+  const isTerminated = (candidateId: string) => hrDataMap[candidateId]?.termination?.confirmed === true;
+  const getHiredVacancy = (candidateId: string) => hrDataMap[candidateId]?.admission?.vacancyDisplay || '';
+  const getStoreUnit = (candidateId: string) => hrDataMap[candidateId]?.admission?.storeUnit || '';
+  const isPCD = (candidateId: string) => hrDataMap[candidateId]?.evaluation?.pcd || false;
   const isNS = (candidateId: string) => hrDataMap[candidateId]?.evaluation?.ns || false;
   const getInterviewStatus = (candidateId: string) => hrDataMap[candidateId]?.evaluation?.interviewStatus || 'Não';
 
@@ -83,6 +87,9 @@ export const CandidateList = ({
           case 'desiredPosition1': valA = a.desiredPosition1; valB = b.desiredPosition1; break;
           case 'registrationDate': valA = a.registrationDate; valB = b.registrationDate; break;
           case 'hired': valA = isHired(a.id) ? 1 : 0; valB = isHired(b.id) ? 1 : 0; break;
+          case 'terminated': valA = isTerminated(a.id) ? 1 : 0; valB = isTerminated(b.id) ? 1 : 0; break;
+          case 'hiredVacancy': valA = getHiredVacancy(a.id); valB = getHiredVacancy(b.id); break;
+          case 'storeUnit': valA = getStoreUnit(a.id); valB = getStoreUnit(b.id); break;
           case 'pcd': valA = isPCD(a.id) ? 1 : 0; valB = isPCD(b.id) ? 1 : 0; break;
           case 'ns': valA = isNS(a.id) ? 1 : 0; valB = isNS(b.id) ? 1 : 0; break;
         }
@@ -167,6 +174,15 @@ export const CandidateList = ({
                   <TableHead className="cursor-pointer select-none" onClick={() => handleSort('hired')}>
                     <span className="flex items-center">Contratado <SortIcon field="hired" /></span>
                   </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort('terminated')}>
+                    <span className="flex items-center">Demitido <SortIcon field="terminated" /></span>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort('hiredVacancy')}>
+                    <span className="flex items-center">Vaga Contratado <SortIcon field="hiredVacancy" /></span>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort('storeUnit')}>
+                    <span className="flex items-center">Loja/Unidade <SortIcon field="storeUnit" /></span>
+                  </TableHead>
                   <TableHead className="cursor-pointer select-none" onClick={() => handleSort('pcd')}>
                     <span className="flex items-center">PCD <SortIcon field="pcd" /></span>
                   </TableHead>
@@ -183,7 +199,13 @@ export const CandidateList = ({
                 {filteredAndSortedCandidates.map((candidate) => (
                   <TableRow key={candidate.id}>
                     <TableCell className="font-medium">
-                      {candidate.fullName}
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-9 w-9">
+                          <AvatarImage src={candidate.selfieUrl || undefined} alt={candidate.fullName} />
+                          <AvatarFallback>{candidate.fullName.trim().charAt(0).toUpperCase() || '—'}</AvatarFallback>
+                        </Avatar>
+                        <span>{candidate.fullName}</span>
+                      </div>
                     </TableCell>
                     <TableCell>{formatCpf(candidate.cpf)}</TableCell>
                     <TableCell><InterviewBadge status={getInterviewStatus(candidate.id)} /></TableCell>
@@ -193,6 +215,9 @@ export const CandidateList = ({
                       </Badge>
                     </TableCell>
                     <TableCell><BoolBadge value={isHired(candidate.id)} /></TableCell>
+                    <TableCell><BoolBadge value={isTerminated(candidate.id)} /></TableCell>
+                    <TableCell>{getHiredVacancy(candidate.id) || '—'}</TableCell>
+                    <TableCell>{getStoreUnit(candidate.id) || '—'}</TableCell>
                     <TableCell><BoolBadge value={isPCD(candidate.id)} /></TableCell>
                     <TableCell><BoolBadge value={isNS(candidate.id)} /></TableCell>
                     <TableCell>{formatDate(candidate.registrationDate)}</TableCell>
