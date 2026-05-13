@@ -199,26 +199,32 @@ export const CandidateProfile = ({
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar para Lista
         </Button>
-        <Button variant="outline" onClick={handlePrint} disabled={isPreparingPrint}>
-          <Printer className="h-4 w-4 mr-2" />
-          {isPreparingPrint ? "Preparando impressão..." : "Impressão Ficha Candidato"}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="default" onClick={() => setEditOpen(true)}>
+            <Pencil className="h-4 w-4 mr-2" />
+            Editar Ficha do Candidato
+          </Button>
+          <Button variant="outline" onClick={handlePrint} disabled={isPreparingPrint}>
+            <Printer className="h-4 w-4 mr-2" />
+            {isPreparingPrint ? "Preparando impressão..." : "Impressão Ficha Candidato"}
+          </Button>
+        </div>
       </div>
 
       <CandidateProfileHeader
-        photoUrl={candidate.selfieUrl}
-        fullName={candidate.fullName}
-        cpf={candidate.cpf}
-        registrationDate={candidate.registrationDate}
+        photoUrl={localCandidate.selfieUrl}
+        fullName={localCandidate.fullName}
+        cpf={localCandidate.cpf}
+        registrationDate={localCandidate.registrationDate}
       />
 
       <div className="space-y-6">
-        <PersonalDataBlock candidate={candidate} />
-        <AddressBlock candidate={candidate} />
-        <EducationBlock candidate={candidate} />
-        <ExperienceBlock experiences={candidate.workExperiences} firstJob={candidate.firstJob} />
-        <AspirationsBlock candidate={candidate} />
-        <ResumeBlock candidate={candidate} />
+        <PersonalDataBlock candidate={localCandidate} />
+        <AddressBlock candidate={localCandidate} />
+        <EducationBlock candidate={localCandidate} />
+        <ExperienceBlock experiences={localCandidate.workExperiences} firstJob={localCandidate.firstJob} />
+        <AspirationsBlock candidate={localCandidate} />
+        <ResumeBlock candidate={localCandidate} />
         <AnnotationsBlock
           annotations={localHRData.annotations}
           onAddAnnotation={handleAddAnnotation}
@@ -248,10 +254,17 @@ export const CandidateProfile = ({
           onUpdate={handleUpdateEmergencyContacts}
         />
         <HistoryBlock
-          candidate={candidate}
+          candidate={localCandidate}
           hrData={localHRData}
         />
       </div>
+
+      <CandidateEditDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        candidate={localCandidate}
+        onSaved={(updated) => setLocalCandidate(updated)}
+      />
     </div>
   );
 };
