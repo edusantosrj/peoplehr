@@ -199,7 +199,13 @@ export const CandidateList = ({
                 {filteredAndSortedCandidates.map((candidate) => (
                   <TableRow key={candidate.id}>
                     <TableCell className="font-medium">
-                      {candidate.fullName}
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-9 w-9">
+                          <AvatarImage src={candidate.selfieUrl || undefined} alt={candidate.fullName} />
+                          <AvatarFallback>{candidate.fullName.trim().charAt(0).toUpperCase() || '—'}</AvatarFallback>
+                        </Avatar>
+                        <span>{candidate.fullName}</span>
+                      </div>
                     </TableCell>
                     <TableCell>{formatCpf(candidate.cpf)}</TableCell>
                     <TableCell><InterviewBadge status={getInterviewStatus(candidate.id)} /></TableCell>
@@ -209,6 +215,9 @@ export const CandidateList = ({
                       </Badge>
                     </TableCell>
                     <TableCell><BoolBadge value={isHired(candidate.id)} /></TableCell>
+                    <TableCell><BoolBadge value={isTerminated(candidate.id)} /></TableCell>
+                    <TableCell>{getHiredVacancy(candidate.id) || '—'}</TableCell>
+                    <TableCell>{getStoreUnit(candidate.id) || '—'}</TableCell>
                     <TableCell><BoolBadge value={isPCD(candidate.id)} /></TableCell>
                     <TableCell><BoolBadge value={isNS(candidate.id)} /></TableCell>
                     <TableCell>{formatDate(candidate.registrationDate)}</TableCell>
