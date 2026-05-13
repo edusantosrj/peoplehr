@@ -183,6 +183,7 @@ export async function saveEvaluation(candidateId: string, evaluation: ProcessEva
       documentation_delivered: evaluation.documentationDelivered,
       candidate_hired: evaluation.candidateHired,
       talent_bank: evaluation.talentBank,
+      pcd: evaluation.pcd,
       ns: evaluation.ns,
       interview_status: evaluation.interviewStatus,
       interview_date: evaluation.interviewDate || null,
