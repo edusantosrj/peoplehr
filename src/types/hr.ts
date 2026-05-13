@@ -13,6 +13,7 @@ export interface ProcessEvaluation {
   documentationDelivered: 'Em Análise' | 'Sim' | 'Não';
   candidateHired: 'Em Análise' | 'Sim' | 'Não';
   talentBank: boolean;
+  pcd: boolean;
   ns: boolean;
   interviewStatus: string;
   interviewDate?: string;
