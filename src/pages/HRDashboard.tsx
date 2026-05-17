@@ -254,19 +254,24 @@ const HRDashboard = () => {
 
   return (
     <VacancyProvider>
-      <div className="min-h-screen bg-background">
-        <header className="bg-primary text-primary-foreground py-6 shadow-md">
+      <div className="min-h-screen bg-background bg-gradient-mesh">
+        <header className="app-header text-primary-foreground py-7 shadow-elevated">
           <div className="container mx-auto px-4 flex items-center justify-between">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
                 Supermercados Marinho
               </h1>
-              <p className="text-primary-foreground/80 mt-1">
-                Sistema de Recursos Humanos - Painel RH
+              <p className="text-primary-foreground/85 mt-1 text-sm sm:text-base">
+                Sistema de Recursos Humanos · Painel RH
               </p>
             </div>
             {session && (
-              <Button variant="secondary" size="sm" onClick={handleLogout} className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleLogout}
+                className="flex items-center gap-2 bg-white/15 hover:bg-white/25 text-primary-foreground border border-white/20 backdrop-blur-sm"
+              >
                 <LogOut className="h-4 w-4" />
                 Sair
               </Button>
@@ -278,7 +283,7 @@ const HRDashboard = () => {
           {session ? <HRDashboardContent /> : <LoginForm onLogin={() => {}} />}
         </main>
 
-        <footer className="bg-muted py-4 mt-auto">
+        <footer className="border-t border-border/60 bg-background/60 backdrop-blur-sm py-4 mt-auto">
           <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
             <p>© {new Date().getFullYear()} Supermercados Marinho - Todos os direitos reservados</p>
             <p className="mt-1">Sistema de RH - Painel Administrativo</p>
