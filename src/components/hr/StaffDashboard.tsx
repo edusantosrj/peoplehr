@@ -224,11 +224,18 @@ const EmployeeCard = ({ candidate, hrData, vacancy }: EmployeeCardProps) => {
       .toUpperCase();
   };
 
+  // Parse fallback from "Nome - Turno - Unidade" stored display
+  const displayParts = (hrData.admission?.vacancyDisplay || "").split(" - ").map((p) => p.trim());
+  const fallbackName = displayParts[0] || "";
+  const fallbackShift = displayParts[1] || "";
+  const fallbackUnit = displayParts[2] || "";
+
+  const vacancyName = vacancy?.name || fallbackName || "—";
+  const unit = hrData.admission?.storeUnit || vacancy?.unit || fallbackUnit || "—";
+  const shift = vacancy?.shift || fallbackShift || "—";
   const workHours = vacancy
     ? formatWorkHours(vacancy.workHoursStart, vacancy.workHoursEnd)
-    : "—";
-
-  const vacancyName = hrData.admission?.vacancyDisplay || vacancy?.name || "—";
+    : (hrData.admission?.workHours || "—");
 
   return (
     <div className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-muted/30 transition-colors">
@@ -242,17 +249,25 @@ const EmployeeCard = ({ candidate, hrData, vacancy }: EmployeeCardProps) => {
 
       {/* Info */}
       <div className="flex-1 min-w-0 space-y-1">
-        {/* Name */}
         <p className="font-medium text-sm text-foreground truncate">
           {candidate.fullName}
         </p>
 
-        {/* Vacancy */}
-        <p className="text-xs text-muted-foreground truncate">
-          {vacancyName}
-        </p>
+        <div className="flex items-center gap-1 text-xs text-muted-foreground truncate">
+          <Briefcase className="h-3 w-3 flex-shrink-0" />
+          <span className="truncate">{vacancyName}</span>
+        </div>
 
-        {/* Work Hours */}
+        <div className="flex items-center gap-1 text-xs text-muted-foreground truncate">
+          <Store className="h-3 w-3 flex-shrink-0" />
+          <span className="truncate">{unit}</span>
+        </div>
+
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <Sun className="h-3 w-3 flex-shrink-0" />
+          <span>{shift}</span>
+        </div>
+
         <div className="flex items-center gap-1 text-xs text-muted-foreground">
           <Clock className="h-3 w-3 flex-shrink-0" />
           <span>{workHours}</span>
