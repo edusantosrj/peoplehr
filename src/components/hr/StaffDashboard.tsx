@@ -3,7 +3,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Users, Building2, Clock, Briefcase, Store, Sun } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Users,
+  Building2,
+  Eye,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
+} from "lucide-react";
 import type { Candidate } from "@/types/candidate";
 import type { CandidateHRData } from "@/types/hr";
 import type { Vacancy } from "@/types/vacancy";
@@ -13,25 +29,30 @@ import { formatWorkHours } from "@/types/vacancy";
 interface StaffDashboardProps {
   candidates: Candidate[];
   hrDataMap: Record<string, CandidateHRData>;
+  onSelectCandidate?: (candidate: Candidate) => void;
 }
 
 interface Employee {
   candidate: Candidate;
   hrData: CandidateHRData;
   vacancy: Vacancy | null;
+  vacancyName: string;
+  unit: string;
+  workHours: string;
+  isPcd: boolean;
 }
 
-interface SectorGroup {
-  sector: string;
-  employees: Employee[];
-}
+type SortKey = "name" | "vacancy" | "workHours" | "pcd";
+type SortDir = "asc" | "desc";
 
-export const StaffDashboard = ({ candidates, hrDataMap }: StaffDashboardProps) => {
+export const StaffDashboard = ({ candidates, hrDataMap, onSelectCandidate }: StaffDashboardProps) => {
   const { vacancies, units } = useVacancies();
   const [selectedUnit, setSelectedUnit] = useState<string>("");
+  const [sortKey, setSortKey] = useState<SortKey>("name");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
 
-  // Get all hired employees (Status da Admissão = "Contratado") excluding terminated
-  const hiredEmployees = useMemo(() => {
+  // All hired employees (excluding terminated) with resolved vacancy + unit info
+  const hiredEmployees = useMemo<Employee[]>(() => {
     return candidates
       .filter((candidate) => {
         const hrData = hrDataMap[candidate.id];
@@ -43,62 +64,85 @@ export const StaffDashboard = ({ candidates, hrDataMap }: StaffDashboardProps) =
       .map((candidate) => {
         const hrData = hrDataMap[candidate.id];
         const vacancy = vacancies.find((v) => v.id === hrData?.admission?.vacancyId) || null;
-        return { candidate, hrData, vacancy };
+
+        // Fallback parsing from "Nome - Turno - Unidade"
+        const parts = (hrData.admission?.vacancyDisplay || "").split(" - ").map((p) => p.trim());
+        const fallbackName = parts[0] || "";
+        const fallbackUnit = parts[2] || "";
+
+        const vacancyName = vacancy?.name || fallbackName || "—";
+        const unit = vacancy?.unit || hrData.admission?.storeUnit || fallbackUnit || "—";
+        const workHours = vacancy
+          ? formatWorkHours(vacancy.workHoursStart, vacancy.workHoursEnd)
+          : (hrData.admission?.workHours || "—");
+        const isPcd = !!hrData.evaluation?.pcd;
+
+        return { candidate, hrData, vacancy, vacancyName, unit, workHours, isPcd };
       });
   }, [candidates, hrDataMap, vacancies]);
 
-  // Filtro de Unidade: todas as unidades cadastradas (fonte oficial = módulo de vagas),
-  // unificadas com as unidades efetivamente em uso por admissões existentes.
   const availableUnits = useMemo(() => {
     const set = new Set<string>();
     units.forEach((u) => u && set.add(u));
     vacancies.forEach((v) => v.unit && set.add(v.unit));
-    hiredEmployees.forEach(({ hrData }) => {
-      if (hrData.admission?.storeUnit) set.add(hrData.admission.storeUnit);
-    });
-    return Array.from(set).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    hiredEmployees.forEach((e) => e.unit && e.unit !== "—" && set.add(e.unit));
+    return Array.from(set).sort((a, b) => a.localeCompare(b, "pt-BR"));
   }, [units, vacancies, hiredEmployees]);
 
-  // Filter employees by selected unit and group by sector
-  const sectorGroups = useMemo((): SectorGroup[] => {
+  // Filter by unit: match either the vacancy's unit OR the stored admission unit
+  const filteredEmployees = useMemo(() => {
     if (!selectedUnit) return [];
-
-    const filteredEmployees = hiredEmployees.filter(
-      ({ hrData }) => hrData.admission?.storeUnit === selectedUnit
-    );
-
-    // Group by sector
-    const groupMap = new Map<string, Employee[]>();
-    
-    filteredEmployees.forEach((employee) => {
-      const sector = employee.vacancy?.sector || "—";
-      if (!groupMap.has(sector)) {
-        groupMap.set(sector, []);
-      }
-      groupMap.get(sector)!.push(employee);
+    return hiredEmployees.filter((e) => {
+      const vacancyUnit = e.vacancy?.unit;
+      const admissionUnit = e.hrData.admission?.storeUnit;
+      return vacancyUnit === selectedUnit || admissionUnit === selectedUnit || e.unit === selectedUnit;
     });
-
-    // Sort employees within each sector by name (A-Z)
-    groupMap.forEach((employees) => {
-      employees.sort((a, b) => 
-        a.candidate.fullName.localeCompare(b.candidate.fullName, 'pt-BR')
-      );
-    });
-
-    // Convert to array and sort sectors alphabetically (A-Z)
-    return Array.from(groupMap.entries())
-      .map(([sector, employees]) => ({ sector, employees }))
-      .sort((a, b) => a.sector.localeCompare(b.sector, 'pt-BR'));
   }, [hiredEmployees, selectedUnit]);
 
-  const totalEmployees = sectorGroups.reduce(
-    (sum, group) => sum + group.employees.length,
-    0
-  );
+  const sortedEmployees = useMemo(() => {
+    const arr = [...filteredEmployees];
+    arr.sort((a, b) => {
+      let cmp = 0;
+      switch (sortKey) {
+        case "name":
+          cmp = a.candidate.fullName.localeCompare(b.candidate.fullName, "pt-BR");
+          break;
+        case "vacancy":
+          cmp = a.vacancyName.localeCompare(b.vacancyName, "pt-BR");
+          break;
+        case "workHours":
+          cmp = a.workHours.localeCompare(b.workHours, "pt-BR");
+          break;
+        case "pcd":
+          cmp = Number(a.isPcd) - Number(b.isPcd);
+          break;
+      }
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+    return arr;
+  }, [filteredEmployees, sortKey, sortDir]);
+
+  const totalEmployees = sortedEmployees.length;
+
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  };
+
+  const SortIcon = ({ col }: { col: SortKey }) => {
+    if (sortKey !== col) return <ArrowUpDown className="h-3 w-3 opacity-50" />;
+    return sortDir === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />;
+  };
+
+  const getInitials = (name: string) =>
+    name.split(" ").slice(0, 2).map((n) => n[0]).join("").toUpperCase();
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Quadro de Efetivo</h2>
@@ -106,16 +150,15 @@ export const StaffDashboard = ({ candidates, hrDataMap }: StaffDashboardProps) =
             Visualização de funcionários contratados por unidade
           </p>
         </div>
-        
+
         {selectedUnit && (
           <Badge variant="secondary" className="text-sm">
             <Users className="h-4 w-4 mr-1" />
-            {totalEmployees} funcionário{totalEmployees !== 1 ? 's' : ''} na unidade
+            {totalEmployees} funcionário{totalEmployees !== 1 ? "s" : ""} na unidade
           </Badge>
         )}
       </div>
 
-      {/* Unit Filter - Required */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
@@ -131,7 +174,7 @@ export const StaffDashboard = ({ candidates, hrDataMap }: StaffDashboardProps) =
             <SelectContent>
               {availableUnits.length === 0 ? (
                 <SelectItem value="_empty" disabled>
-                  Nenhuma unidade com funcionários contratados
+                  Nenhuma unidade disponível
                 </SelectItem>
               ) : (
                 availableUnits.map((unit) => (
@@ -145,7 +188,6 @@ export const StaffDashboard = ({ candidates, hrDataMap }: StaffDashboardProps) =
         </CardContent>
       </Card>
 
-      {/* No Unit Selected Message */}
       {!selectedUnit && (
         <Card className="border-dashed">
           <CardContent className="py-12 text-center">
@@ -157,8 +199,7 @@ export const StaffDashboard = ({ candidates, hrDataMap }: StaffDashboardProps) =
         </Card>
       )}
 
-      {/* Empty State - No Employees */}
-      {selectedUnit && sectorGroups.length === 0 && (
+      {selectedUnit && sortedEmployees.length === 0 && (
         <Card className="border-dashed">
           <CardContent className="py-12 text-center">
             <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -169,106 +210,89 @@ export const StaffDashboard = ({ candidates, hrDataMap }: StaffDashboardProps) =
         </Card>
       )}
 
-      {/* Sector Cards */}
-      {selectedUnit && sectorGroups.length > 0 && (
-        <div className="grid gap-6">
-          {sectorGroups.map((group) => (
-            <Card key={group.sector} className="overflow-hidden">
-              <CardHeader className="bg-muted/50">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg font-semibold">
-                    {group.sector}
-                  </CardTitle>
-                  <Badge variant="outline" className="font-normal">
-                    {group.employees.length} funcionário{group.employees.length !== 1 ? 's' : ''}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="p-4">
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {group.employees.map(({ candidate, hrData, vacancy }) => (
-                    <EmployeeCard
-                      key={candidate.id}
-                      candidate={candidate}
-                      hrData={hrData}
-                      vacancy={vacancy}
-                    />
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+      {selectedUnit && sortedEmployees.length > 0 && (
+        <Card className="overflow-hidden">
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-16">Foto</TableHead>
+                  <TableHead>
+                    <button
+                      type="button"
+                      onClick={() => handleSort("name")}
+                      className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+                    >
+                      Nome <SortIcon col="name" />
+                    </button>
+                  </TableHead>
+                  <TableHead>
+                    <button
+                      type="button"
+                      onClick={() => handleSort("vacancy")}
+                      className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+                    >
+                      Vaga Contratada <SortIcon col="vacancy" />
+                    </button>
+                  </TableHead>
+                  <TableHead>
+                    <button
+                      type="button"
+                      onClick={() => handleSort("workHours")}
+                      className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+                    >
+                      Horário <SortIcon col="workHours" />
+                    </button>
+                  </TableHead>
+                  <TableHead className="w-24">
+                    <button
+                      type="button"
+                      onClick={() => handleSort("pcd")}
+                      className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+                    >
+                      PCD <SortIcon col="pcd" />
+                    </button>
+                  </TableHead>
+                  <TableHead className="w-24 text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sortedEmployees.map((emp) => (
+                  <TableRow key={emp.candidate.id}>
+                    <TableCell>
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={emp.candidate.selfieUrl} alt={emp.candidate.fullName} />
+                        <AvatarFallback className="bg-primary/10 text-primary font-medium text-xs">
+                          {getInitials(emp.candidate.fullName)}
+                        </AvatarFallback>
+                      </Avatar>
+                    </TableCell>
+                    <TableCell className="font-medium">{emp.candidate.fullName}</TableCell>
+                    <TableCell>{emp.vacancyName}</TableCell>
+                    <TableCell>{emp.workHours}</TableCell>
+                    <TableCell>
+                      <Badge variant={emp.isPcd ? "default" : "secondary"} className="font-normal">
+                        {emp.isPcd ? "Sim" : "Não"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onSelectCandidate?.(emp.candidate)}
+                        title="Visualizar ficha"
+                        disabled={!onSelectCandidate}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       )}
-    </div>
-  );
-};
-
-interface EmployeeCardProps {
-  candidate: Candidate;
-  hrData: CandidateHRData;
-  vacancy: Vacancy | null;
-}
-
-const EmployeeCard = ({ candidate, hrData, vacancy }: EmployeeCardProps) => {
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .slice(0, 2)
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase();
-  };
-
-  // Parse fallback from "Nome - Turno - Unidade" stored display
-  const displayParts = (hrData.admission?.vacancyDisplay || "").split(" - ").map((p) => p.trim());
-  const fallbackName = displayParts[0] || "";
-  const fallbackShift = displayParts[1] || "";
-  const fallbackUnit = displayParts[2] || "";
-
-  const vacancyName = vacancy?.name || fallbackName || "—";
-  const unit = hrData.admission?.storeUnit || vacancy?.unit || fallbackUnit || "—";
-  const shift = vacancy?.shift || fallbackShift || "—";
-  const workHours = vacancy
-    ? formatWorkHours(vacancy.workHoursStart, vacancy.workHoursEnd)
-    : (hrData.admission?.workHours || "—");
-
-  return (
-    <div className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-muted/30 transition-colors">
-      {/* Photo */}
-      <Avatar className="h-12 w-12 flex-shrink-0">
-        <AvatarImage src={candidate.selfieUrl} alt={candidate.fullName} />
-        <AvatarFallback className="bg-primary/10 text-primary font-medium">
-          {getInitials(candidate.fullName)}
-        </AvatarFallback>
-      </Avatar>
-
-      {/* Info */}
-      <div className="flex-1 min-w-0 space-y-1">
-        <p className="font-medium text-sm text-foreground truncate">
-          {candidate.fullName}
-        </p>
-
-        <div className="flex items-center gap-1 text-xs text-muted-foreground truncate">
-          <Briefcase className="h-3 w-3 flex-shrink-0" />
-          <span className="truncate">{vacancyName}</span>
-        </div>
-
-        <div className="flex items-center gap-1 text-xs text-muted-foreground truncate">
-          <Store className="h-3 w-3 flex-shrink-0" />
-          <span className="truncate">{unit}</span>
-        </div>
-
-        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-          <Sun className="h-3 w-3 flex-shrink-0" />
-          <span>{shift}</span>
-        </div>
-
-        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-          <Clock className="h-3 w-3 flex-shrink-0" />
-          <span>{workHours}</span>
-        </div>
-      </div>
     </div>
   );
 };
