@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Users, Building2, Clock } from "lucide-react";
+import { Users, Building2, Clock, Briefcase, Store, Sun } from "lucide-react";
 import type { Candidate } from "@/types/candidate";
 import type { CandidateHRData } from "@/types/hr";
 import type { Vacancy } from "@/types/vacancy";
