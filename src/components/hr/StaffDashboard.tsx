@@ -27,7 +27,7 @@ interface SectorGroup {
 }
 
 export const StaffDashboard = ({ candidates, hrDataMap }: StaffDashboardProps) => {
-  const { vacancies } = useVacancies();
+  const { vacancies, units } = useVacancies();
   const [selectedUnit, setSelectedUnit] = useState<string>("");
 
   // Get all hired employees (Status da Admissão = "Contratado") excluding terminated
@@ -36,13 +36,8 @@ export const StaffDashboard = ({ candidates, hrDataMap }: StaffDashboardProps) =
       .filter((candidate) => {
         const hrData = hrDataMap[candidate.id];
         if (!hrData) return false;
-        
-        // Check if hired
         const isHired = hrData.admission?.admissionStatus === "Contratado";
-        
-        // Check if terminated (confirmed termination)
         const isTerminated = hrData.termination?.confirmed === true;
-        
         return isHired && !isTerminated;
       })
       .map((candidate) => {
@@ -52,16 +47,17 @@ export const StaffDashboard = ({ candidates, hrDataMap }: StaffDashboardProps) =
       });
   }, [candidates, hrDataMap, vacancies]);
 
-  // Get unique units from hired employees' admissions
+  // Filtro de Unidade: todas as unidades cadastradas (fonte oficial = módulo de vagas),
+  // unificadas com as unidades efetivamente em uso por admissões existentes.
   const availableUnits = useMemo(() => {
-    const units = new Set<string>();
+    const set = new Set<string>();
+    units.forEach((u) => u && set.add(u));
+    vacancies.forEach((v) => v.unit && set.add(v.unit));
     hiredEmployees.forEach(({ hrData }) => {
-      if (hrData.admission?.storeUnit) {
-        units.add(hrData.admission.storeUnit);
-      }
+      if (hrData.admission?.storeUnit) set.add(hrData.admission.storeUnit);
     });
-    return Array.from(units).sort();
-  }, [hiredEmployees]);
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }, [units, vacancies, hiredEmployees]);
 
   // Filter employees by selected unit and group by sector
   const sectorGroups = useMemo((): SectorGroup[] => {
