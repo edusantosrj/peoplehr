@@ -200,6 +200,7 @@ const HRDashboardContent = () => {
         <StaffDashboard
           candidates={candidates}
           hrDataMap={hrDataMap}
+          onSelectCandidate={handleSelectCandidate}
         />
       </TabsContent>
 
