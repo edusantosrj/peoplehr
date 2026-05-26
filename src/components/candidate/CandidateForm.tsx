@@ -72,6 +72,8 @@ const STEP_LABELS = [
 const initialFormData: CandidateFormData = {
   cpf: "",
   fullName: "",
+  nickname: "",
+  gender: "",
   birthDate: "",
   maritalStatus: "",
   motherName: "",
