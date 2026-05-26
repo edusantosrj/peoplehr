@@ -8,6 +8,8 @@ import { capitalizeProperName } from "@/utils/textFormatting";
 interface Step1Props {
   data: {
     fullName: string;
+    nickname: string;
+    gender: string;
     birthDate: string;
     maritalStatus: string;
     motherName: string;
