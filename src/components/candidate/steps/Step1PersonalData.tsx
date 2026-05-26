@@ -2,7 +2,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatPhone, formatDate, calculateAge } from "@/utils/cpfValidation";
-import { MARITAL_STATUS_OPTIONS, BRAZIL_STATES } from "@/types/candidate";
+import { MARITAL_STATUS_OPTIONS, BRAZIL_STATES, GENDER_OPTIONS } from "@/types/candidate";
 import { capitalizeProperName } from "@/utils/textFormatting";
 
 interface Step1Props {
