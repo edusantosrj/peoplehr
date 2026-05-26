@@ -168,6 +168,13 @@ export const CandidateEditDialog = ({ open, onOpenChange, candidate, onSaved }: 
             <h3 className="font-semibold mb-3">Dados Pessoais</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <Field label="Nome Completo"><Input value={form.fullName} onChange={(e) => set('fullName', e.target.value)} /></Field>
+              <Field label="Como gostaria de ser chamado?"><Input value={form.nickname || ''} onChange={(e) => set('nickname', e.target.value)} /></Field>
+              <Field label="Sexo">
+                <Select value={form.gender || ''} onValueChange={(v) => set('gender', v)}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>{GENDER_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                </Select>
+              </Field>
               <Field label="Data de Nascimento (DD/MM/AAAA)"><Input value={form.birthDate} onChange={(e) => set('birthDate', e.target.value)} /></Field>
               <Field label="Estado Civil">
                 <Select value={form.maritalStatus} onValueChange={(v) => set('maritalStatus', v)}>
