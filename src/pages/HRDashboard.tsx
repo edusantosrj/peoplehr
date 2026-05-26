@@ -21,6 +21,8 @@ const mapDbRowToCandidate = (row: any): Candidate => ({
   id: row.id,
   cpf: row.cpf,
   fullName: row.full_name,
+  nickname: row.nickname || undefined,
+  gender: row.gender || undefined,
   registrationDate: row.created_at,
   birthDate: row.birth_date,
   maritalStatus: row.marital_status,

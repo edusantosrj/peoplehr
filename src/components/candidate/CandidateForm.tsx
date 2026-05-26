@@ -23,6 +23,8 @@ interface CandidateFormProps {
 export interface CandidateFormData {
   cpf: string;
   fullName: string;
+  nickname: string;
+  gender: string;
   birthDate: string;
   maritalStatus: string;
   motherName: string;
@@ -70,6 +72,8 @@ const STEP_LABELS = [
 const initialFormData: CandidateFormData = {
   cpf: "",
   fullName: "",
+  nickname: "",
+  gender: "",
   birthDate: "",
   maritalStatus: "",
   motherName: "",

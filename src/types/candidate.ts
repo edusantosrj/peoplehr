@@ -14,6 +14,8 @@ export interface Candidate {
   id: string;
   cpf: string;
   fullName: string;
+  nickname?: string;
+  gender?: string;
   registrationDate: string;
   
   // Personal Data
@@ -75,6 +77,12 @@ export const MARITAL_STATUS_OPTIONS = [
   'Solteiro(a)',
   'União Estável',
   'Viúvo(a)',
+];
+
+export const GENDER_OPTIONS = [
+  'Masculino',
+  'Feminino',
+  'Não Informar',
 ];
 
 export const BRAZIL_STATES = [

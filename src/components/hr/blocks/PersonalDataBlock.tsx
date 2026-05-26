@@ -36,6 +36,14 @@ export const PersonalDataBlock = ({ candidate }: PersonalDataBlockProps) => {
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
+            <p className="text-sm text-muted-foreground">Apelido</p>
+            <p className="font-medium">{candidate.nickname || "—"}</p>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">Sexo</p>
+            <p className="font-medium">{candidate.gender || "—"}</p>
+          </div>
+          <div>
             <p className="text-sm text-muted-foreground">Data de Nascimento</p>
             <p className="font-medium">
               {formatDateDisplay(candidate.birthDate)} ({calculateAge(candidate.birthDate)} anos)

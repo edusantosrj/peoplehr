@@ -82,6 +82,8 @@ const Index = () => {
     const candidatePayload: CandidateInsert = {
       cpf: data.cpf,
       full_name: data.fullName,
+      nickname: data.nickname || null,
+      gender: data.gender || null,
       birth_date: data.birthDate,
       marital_status: data.maritalStatus,
       mother_name: data.motherName,

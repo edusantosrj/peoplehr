@@ -2,12 +2,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatPhone, formatDate, calculateAge } from "@/utils/cpfValidation";
-import { MARITAL_STATUS_OPTIONS, BRAZIL_STATES } from "@/types/candidate";
+import { MARITAL_STATUS_OPTIONS, BRAZIL_STATES, GENDER_OPTIONS } from "@/types/candidate";
 import { capitalizeProperName } from "@/utils/textFormatting";
 
 interface Step1Props {
   data: {
     fullName: string;
+    nickname: string;
+    gender: string;
     birthDate: string;
     maritalStatus: string;
     motherName: string;
@@ -45,6 +47,32 @@ export function Step1PersonalData({ data, onChange, errors }: Step1Props) {
             />
             {errors.fullName && <p className="text-sm text-destructive">{errors.fullName}</p>}
           </div>
+
+          <div className="sm:col-span-2 space-y-2">
+            <Label htmlFor="nickname">Como gostaria de ser chamado?</Label>
+            <Input
+              id="nickname"
+              value={data.nickname}
+              onChange={(e) => onChange("nickname", e.target.value)}
+              onBlur={(e) => onChange("nickname", capitalizeProperName(e.target.value))}
+              placeholder="Apelido / Nome social"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="gender">Sexo</Label>
+            <Select value={data.gender} onValueChange={(v) => onChange("gender", v)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
+              <SelectContent>
+                {GENDER_OPTIONS.map((g) => (
+                  <SelectItem key={g} value={g}>{g}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
 
           <div className="space-y-2">
             <Label htmlFor="birthDate">Data de Nascimento *</Label>

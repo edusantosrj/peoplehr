@@ -34,6 +34,7 @@ export type Database = {
           father_name: string | null
           first_job: boolean
           full_name: string
+          gender: string | null
           has_criminal_record: boolean
           has_technical_course: boolean
           hr_data: Json | null
@@ -45,6 +46,7 @@ export type Database = {
           marital_status: string
           mother_name: string
           neighborhood: string
+          nickname: string | null
           other_courses: string | null
           other_files_urls: string[] | null
           period: string | null
@@ -74,6 +76,7 @@ export type Database = {
           father_name?: string | null
           first_job?: boolean
           full_name: string
+          gender?: string | null
           has_criminal_record?: boolean
           has_technical_course?: boolean
           hr_data?: Json | null
@@ -85,6 +88,7 @@ export type Database = {
           marital_status: string
           mother_name: string
           neighborhood: string
+          nickname?: string | null
           other_courses?: string | null
           other_files_urls?: string[] | null
           period?: string | null
@@ -114,6 +118,7 @@ export type Database = {
           father_name?: string | null
           first_job?: boolean
           full_name?: string
+          gender?: string | null
           has_criminal_record?: boolean
           has_technical_course?: boolean
           hr_data?: Json | null
@@ -125,6 +130,7 @@ export type Database = {
           marital_status?: string
           mother_name?: string
           neighborhood?: string
+          nickname?: string | null
           other_courses?: string | null
           other_files_urls?: string[] | null
           period?: string | null
