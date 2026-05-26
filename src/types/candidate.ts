@@ -79,6 +79,12 @@ export const MARITAL_STATUS_OPTIONS = [
   'Viúvo(a)',
 ];
 
+export const GENDER_OPTIONS = [
+  'Masculino',
+  'Feminino',
+  'Não Informar',
+];
+
 export const BRAZIL_STATES = [
   'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
   'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN',
