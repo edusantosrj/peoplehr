@@ -90,6 +90,8 @@ export const CandidateEditDialog = ({ open, onOpenChange, candidate, onSaved }: 
       .from('candidates')
       .update({
         full_name: toProperCase(form.fullName),
+        nickname: form.nickname ? toProperCase(form.nickname) : null,
+        gender: form.gender || null,
         birth_date: form.birthDate,
         marital_status: form.maritalStatus,
         mother_name: toProperCase(form.motherName),
