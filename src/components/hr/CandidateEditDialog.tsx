@@ -23,6 +23,7 @@ import {
   BRAZIL_STATES,
   EDUCATION_LEVELS,
   AVAILABLE_POSITIONS,
+  GENDER_OPTIONS,
 } from "@/types/candidate";
 import { capitalizeProperName as toProperCase } from "@/utils/textFormatting";
 
