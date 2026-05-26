@@ -14,6 +14,8 @@ export interface Candidate {
   id: string;
   cpf: string;
   fullName: string;
+  nickname?: string;
+  gender?: string;
   registrationDate: string;
   
   // Personal Data
