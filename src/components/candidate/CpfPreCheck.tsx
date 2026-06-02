@@ -47,15 +47,12 @@ export function CpfPreCheck({ onCpfValidated }: CpfPreCheckProps) {
     setLoading(true);
     try {
       const { data, error: queryError } = await supabase
-        .from("candidates")
-        .select("id")
-        .eq("cpf", cleanCpf)
-        .maybeSingle();
+        .rpc("candidate_cpf_exists", { p_cpf: cleanCpf });
       if (queryError) {
         onCpfValidated(cleanCpf);
         return;
       }
-      if (data) {
+      if (data === true) {
         setCpfExists(true);
         return;
       }
