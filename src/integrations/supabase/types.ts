@@ -508,7 +508,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      candidate_cpf_exists: { Args: { p_cpf: string }; Returns: boolean }
+      submit_candidate_application: {
+        Args: { p_payload: Json }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
