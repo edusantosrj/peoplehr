@@ -4,10 +4,7 @@ import { CandidateForm } from "@/components/candidate/CandidateForm";
 import type { CandidateFormData } from "@/components/candidate/CandidateForm";
 import { VacancyProvider } from "@/contexts/VacancyContext";
 import { supabase } from "@/integrations/supabase/client";
-import type { Database, Json } from "@/integrations/supabase/types";
 import { toast } from "sonner";
-
-type CandidateInsert = Database["public"]["Tables"]["candidates"]["Insert"];
 
 const Index = () => {
   const [validatedCpf, setValidatedCpf] = useState<string | null>(null);
