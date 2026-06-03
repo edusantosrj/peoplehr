@@ -11,7 +11,13 @@ export interface Vacancy {
   grossSalary: number;
   status: 'Ativa' | 'Inativa';
   createdAt: string;
+  observation?: string;
+  mission?: string;
+  responsibilities?: string;
+  expectations?: string;
+  offerings?: string;
 }
+
 
 export const UNITS = [
   'Loja Centro',

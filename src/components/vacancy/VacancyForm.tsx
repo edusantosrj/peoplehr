@@ -22,6 +22,7 @@ import { Plus, Save, X, Trash2 } from 'lucide-react';
 import type { Vacancy } from '@/types/vacancy';
 import { VACANCY_TYPES, VACANCY_STATUS } from '@/types/vacancy';
 import { useVacancies } from '@/contexts/VacancyContext';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 
 interface VacancyFormProps {
   vacancy?: Vacancy;
@@ -64,11 +65,17 @@ export const VacancyForm = ({ vacancy, onSave, onCancel }: VacancyFormProps) => 
     workHoursEnd: vacancy?.workHoursEnd || '',
     grossSalary: vacancy?.grossSalary || 0,
     status: vacancy?.status || 'Ativa',
+    observation: vacancy?.observation || '',
+    mission: vacancy?.mission || '',
+    responsibilities: vacancy?.responsibilities || '',
+    expectations: vacancy?.expectations || '',
+    offerings: vacancy?.offerings || '',
   });
 
   const handleChange = (field: keyof Vacancy, value: string | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
+
 
   const handleSalaryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, '');
@@ -155,6 +162,11 @@ export const VacancyForm = ({ vacancy, onSave, onCancel }: VacancyFormProps) => 
         grossSalary: formData.grossSalary || 0,
         status: formData.status || 'Ativa',
         createdAt: new Date().toISOString(),
+        observation: formData.observation || '',
+        mission: formData.mission || '',
+        responsibilities: formData.responsibilities || '',
+        expectations: formData.expectations || '',
+        offerings: formData.offerings || '',
       };
       await addVacancy(newVacancy);
     }
@@ -439,6 +451,58 @@ export const VacancyForm = ({ vacancy, onSave, onCancel }: VacancyFormProps) => 
                     required
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Detailed Description (Rich Text) */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-primary">Descrição Detalhada da Vaga</h3>
+
+              <div className="space-y-2">
+                <Label>Observação</Label>
+                <RichTextEditor
+                  value={formData.observation || ''}
+                  onChange={(html) => handleChange('observation', html)}
+                  placeholder="Informações gerais ou observações sobre a vaga"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>
+                  Sua Missão como {formData.name?.trim() ? formData.name : '[Nome da Função]'}
+                </Label>
+                <RichTextEditor
+                  value={formData.mission || ''}
+                  onChange={(html) => handleChange('mission', html)}
+                  placeholder="Descreva a missão principal desta função"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Principais Responsabilidades</Label>
+                <RichTextEditor
+                  value={formData.responsibilities || ''}
+                  onChange={(html) => handleChange('responsibilities', html)}
+                  placeholder="Liste as principais responsabilidades"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>O que Esperamos de Você</Label>
+                <RichTextEditor
+                  value={formData.expectations || ''}
+                  onChange={(html) => handleChange('expectations', html)}
+                  placeholder="Requisitos, competências e perfil desejado"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>O que Oferecemos</Label>
+                <RichTextEditor
+                  value={formData.offerings || ''}
+                  onChange={(html) => handleChange('offerings', html)}
+                  placeholder="Benefícios, oportunidades e diferenciais"
+                />
               </div>
             </div>
 
