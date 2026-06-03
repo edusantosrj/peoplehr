@@ -65,11 +65,17 @@ export const VacancyForm = ({ vacancy, onSave, onCancel }: VacancyFormProps) => 
     workHoursEnd: vacancy?.workHoursEnd || '',
     grossSalary: vacancy?.grossSalary || 0,
     status: vacancy?.status || 'Ativa',
+    observation: vacancy?.observation || '',
+    mission: vacancy?.mission || '',
+    responsibilities: vacancy?.responsibilities || '',
+    expectations: vacancy?.expectations || '',
+    offerings: vacancy?.offerings || '',
   });
 
   const handleChange = (field: keyof Vacancy, value: string | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
+
 
   const handleSalaryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, '');
