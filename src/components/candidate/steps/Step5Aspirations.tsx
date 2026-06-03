@@ -32,8 +32,8 @@ export function Step5Aspirations({ data, onChange, errors }: Step5Props) {
     onChange("salaryExpectation", formatted);
   };
 
-  // Use vacancy names from the context
-  const vacancyNames = [...new Set(vacancies.map((v) => v.name))].sort();
+  // Use vacancy names from the context — active only, deduplicated, sorted
+  const vacancyNames = [...new Set(vacancies.filter((v) => v.status === 'Ativa').map((v) => v.name))].sort();
 
   const availableForPosition1 = vacancyNames.filter(
     (name) => name !== data.desiredPosition2 && name !== data.desiredPosition3
