@@ -108,9 +108,15 @@ export const VacancyProvider = ({ children }: { children: ReactNode }) => {
         work_hours_end: vacancy.workHoursEnd,
         gross_salary: vacancy.grossSalary,
         status: vacancy.status,
+        observation: vacancy.observation ?? null,
+        mission: vacancy.mission ?? null,
+        responsibilities: vacancy.responsibilities ?? null,
+        expectations: vacancy.expectations ?? null,
+        offerings: vacancy.offerings ?? null,
       })
       .select()
       .single();
+
 
     if (error) {
       console.error('Erro ao criar vaga:', error);
