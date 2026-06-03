@@ -458,10 +458,15 @@ export type Database = {
       vacancies: {
         Row: {
           created_at: string
+          expectations: string | null
           gross_salary: number
           id: string
+          mission: string | null
           name: string
+          observation: string | null
+          offerings: string | null
           quantity: number
+          responsibilities: string | null
           sector: string
           shift: string
           status: string
@@ -473,10 +478,15 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          expectations?: string | null
           gross_salary?: number
           id?: string
+          mission?: string | null
           name: string
+          observation?: string | null
+          offerings?: string | null
           quantity?: number
+          responsibilities?: string | null
           sector: string
           shift: string
           status?: string
@@ -488,10 +498,15 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          expectations?: string | null
           gross_salary?: number
           id?: string
+          mission?: string | null
           name?: string
+          observation?: string | null
+          offerings?: string | null
           quantity?: number
+          responsibilities?: string | null
           sector?: string
           shift?: string
           status?: string
