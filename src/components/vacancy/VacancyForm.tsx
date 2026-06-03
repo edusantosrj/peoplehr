@@ -22,6 +22,7 @@ import { Plus, Save, X, Trash2 } from 'lucide-react';
 import type { Vacancy } from '@/types/vacancy';
 import { VACANCY_TYPES, VACANCY_STATUS } from '@/types/vacancy';
 import { useVacancies } from '@/contexts/VacancyContext';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 
 interface VacancyFormProps {
   vacancy?: Vacancy;
