@@ -162,6 +162,11 @@ export const VacancyForm = ({ vacancy, onSave, onCancel }: VacancyFormProps) => 
         grossSalary: formData.grossSalary || 0,
         status: formData.status || 'Ativa',
         createdAt: new Date().toISOString(),
+        observation: formData.observation || '',
+        mission: formData.mission || '',
+        responsibilities: formData.responsibilities || '',
+        expectations: formData.expectations || '',
+        offerings: formData.offerings || '',
       };
       await addVacancy(newVacancy);
     }
