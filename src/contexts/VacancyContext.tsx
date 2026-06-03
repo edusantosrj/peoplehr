@@ -143,6 +143,11 @@ export const VacancyProvider = ({ children }: { children: ReactNode }) => {
     if (updates.workHoursEnd !== undefined) dbUpdates.work_hours_end = updates.workHoursEnd;
     if (updates.grossSalary !== undefined) dbUpdates.gross_salary = updates.grossSalary;
     if (updates.status !== undefined) dbUpdates.status = updates.status;
+    if (updates.observation !== undefined) dbUpdates.observation = updates.observation;
+    if (updates.mission !== undefined) dbUpdates.mission = updates.mission;
+    if (updates.responsibilities !== undefined) dbUpdates.responsibilities = updates.responsibilities;
+    if (updates.expectations !== undefined) dbUpdates.expectations = updates.expectations;
+    if (updates.offerings !== undefined) dbUpdates.offerings = updates.offerings;
 
     const { error } = await supabase
       .from('vacancies')
