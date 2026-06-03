@@ -38,7 +38,13 @@ const mapRowToVacancy = (row: any): Vacancy => ({
   grossSalary: Number(row.gross_salary),
   status: row.status,
   createdAt: row.created_at,
+  observation: row.observation ?? '',
+  mission: row.mission ?? '',
+  responsibilities: row.responsibilities ?? '',
+  expectations: row.expectations ?? '',
+  offerings: row.offerings ?? '',
 });
+
 
 export const VacancyProvider = ({ children }: { children: ReactNode }) => {
   const [vacancies, setVacancies] = useState<Vacancy[]>([]);
