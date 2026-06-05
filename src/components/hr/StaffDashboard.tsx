@@ -38,6 +38,7 @@ interface Employee {
   vacancy: Vacancy | null;
   vacancyName: string;
   unit: string;
+  sector: string;
   workHours: string;
   isPcd: boolean;
 }
@@ -76,8 +77,9 @@ export const StaffDashboard = ({ candidates, hrDataMap, onSelectCandidate }: Sta
           ? formatWorkHours(vacancy.workHoursStart, vacancy.workHoursEnd)
           : (hrData.admission?.workHours || "—");
         const isPcd = !!hrData.evaluation?.pcd;
+        const sector = vacancy?.sector || "—";
 
-        return { candidate, hrData, vacancy, vacancyName, unit, workHours, isPcd };
+        return { candidate, hrData, vacancy, vacancyName, unit, sector, workHours, isPcd };
       });
   }, [candidates, hrDataMap, vacancies]);
 
@@ -210,89 +212,120 @@ export const StaffDashboard = ({ candidates, hrDataMap, onSelectCandidate }: Sta
         </Card>
       )}
 
-      {selectedUnit && sortedEmployees.length > 0 && (
-        <Card className="overflow-hidden">
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-16">Foto</TableHead>
-                  <TableHead>
-                    <button
-                      type="button"
-                      onClick={() => handleSort("name")}
-                      className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
-                    >
-                      Nome <SortIcon col="name" />
-                    </button>
-                  </TableHead>
-                  <TableHead>
-                    <button
-                      type="button"
-                      onClick={() => handleSort("vacancy")}
-                      className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
-                    >
-                      Vaga Contratada <SortIcon col="vacancy" />
-                    </button>
-                  </TableHead>
-                  <TableHead>
-                    <button
-                      type="button"
-                      onClick={() => handleSort("workHours")}
-                      className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
-                    >
-                      Horário <SortIcon col="workHours" />
-                    </button>
-                  </TableHead>
-                  <TableHead className="w-24">
-                    <button
-                      type="button"
-                      onClick={() => handleSort("pcd")}
-                      className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
-                    >
-                      PCD <SortIcon col="pcd" />
-                    </button>
-                  </TableHead>
-                  <TableHead className="w-24 text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sortedEmployees.map((emp) => (
-                  <TableRow key={emp.candidate.id}>
-                    <TableCell>
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={emp.candidate.selfieUrl} alt={emp.candidate.fullName} />
-                        <AvatarFallback className="bg-primary/10 text-primary font-medium text-xs">
-                          {getInitials(emp.candidate.fullName)}
-                        </AvatarFallback>
-                      </Avatar>
-                    </TableCell>
-                    <TableCell className="font-medium">{emp.candidate.fullName}</TableCell>
-                    <TableCell>{emp.vacancyName}</TableCell>
-                    <TableCell>{emp.workHours}</TableCell>
-                    <TableCell>
-                      <Badge variant={emp.isPcd ? "default" : "secondary"} className="font-normal">
-                        {emp.isPcd ? "Sim" : "Não"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onSelectCandidate?.(emp.candidate)}
-                        title="Visualizar ficha"
-                        disabled={!onSelectCandidate}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
+      {selectedUnit && sortedEmployees.length > 0 && (() => {
+        const groups = new Map<string, Employee[]>();
+        sortedEmployees.forEach((e) => {
+          const key = e.sector || "—";
+          if (!groups.has(key)) groups.set(key, []);
+          groups.get(key)!.push(e);
+        });
+        const sectorEntries = Array.from(groups.entries()).sort(([a], [b]) =>
+          a.localeCompare(b, "pt-BR")
+        );
+
+        const renderHeader = () => (
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-16">Foto</TableHead>
+              <TableHead>
+                <button
+                  type="button"
+                  onClick={() => handleSort("name")}
+                  className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+                >
+                  Nome <SortIcon col="name" />
+                </button>
+              </TableHead>
+              <TableHead>
+                <button
+                  type="button"
+                  onClick={() => handleSort("vacancy")}
+                  className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+                >
+                  Vaga Contratada <SortIcon col="vacancy" />
+                </button>
+              </TableHead>
+              <TableHead>
+                <button
+                  type="button"
+                  onClick={() => handleSort("workHours")}
+                  className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+                >
+                  Horário <SortIcon col="workHours" />
+                </button>
+              </TableHead>
+              <TableHead className="w-24">
+                <button
+                  type="button"
+                  onClick={() => handleSort("pcd")}
+                  className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+                >
+                  PCD <SortIcon col="pcd" />
+                </button>
+              </TableHead>
+              <TableHead className="w-24 text-right">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+        );
+
+        return (
+          <div className="space-y-6">
+            {sectorEntries.map(([sector, emps]) => (
+              <Card key={sector} className="overflow-hidden">
+                <CardHeader className="pb-3 bg-muted/40 border-b">
+                  <CardTitle className="text-lg flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <Building2 className="h-5 w-5 text-primary" />
+                      {sector}
+                    </span>
+                    <Badge variant="secondary" className="font-normal">
+                      {emps.length} funcionário{emps.length !== 1 ? "s" : ""}
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <Table>
+                    {renderHeader()}
+                    <TableBody>
+                      {emps.map((emp) => (
+                        <TableRow key={emp.candidate.id}>
+                          <TableCell>
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={emp.candidate.selfieUrl} alt={emp.candidate.fullName} />
+                              <AvatarFallback className="bg-primary/10 text-primary font-medium text-xs">
+                                {getInitials(emp.candidate.fullName)}
+                              </AvatarFallback>
+                            </Avatar>
+                          </TableCell>
+                          <TableCell className="font-medium">{emp.candidate.fullName}</TableCell>
+                          <TableCell>{emp.vacancyName}</TableCell>
+                          <TableCell>{emp.workHours}</TableCell>
+                          <TableCell>
+                            <Badge variant={emp.isPcd ? "default" : "secondary"} className="font-normal">
+                              {emp.isPcd ? "Sim" : "Não"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => onSelectCandidate?.(emp.candidate)}
+                              title="Visualizar ficha"
+                              disabled={!onSelectCandidate}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        );
+      })()}
     </div>
   );
 };
