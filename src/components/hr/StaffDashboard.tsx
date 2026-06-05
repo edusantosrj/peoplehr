@@ -38,6 +38,7 @@ interface Employee {
   vacancy: Vacancy | null;
   vacancyName: string;
   unit: string;
+  sector: string;
   workHours: string;
   isPcd: boolean;
 }
