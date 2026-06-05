@@ -77,8 +77,9 @@ export const StaffDashboard = ({ candidates, hrDataMap, onSelectCandidate }: Sta
           ? formatWorkHours(vacancy.workHoursStart, vacancy.workHoursEnd)
           : (hrData.admission?.workHours || "—");
         const isPcd = !!hrData.evaluation?.pcd;
+        const sector = vacancy?.sector || "—";
 
-        return { candidate, hrData, vacancy, vacancyName, unit, workHours, isPcd };
+        return { candidate, hrData, vacancy, vacancyName, unit, sector, workHours, isPcd };
       });
   }, [candidates, hrDataMap, vacancies]);
 
