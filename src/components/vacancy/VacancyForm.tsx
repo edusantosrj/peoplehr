@@ -182,7 +182,7 @@ export const VacancyForm = ({ vacancy, onSave, onCancel }: VacancyFormProps) => 
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form id="vacancy-form" onSubmit={handleSubmit} className="space-y-6 pb-24 md:pb-20">
             {/* Identification */}
             <div className="space-y-4">
               <h3 className="font-semibold text-primary">Identificação da Vaga</h3>
@@ -538,6 +538,20 @@ export const VacancyForm = ({ vacancy, onSave, onCancel }: VacancyFormProps) => 
           </form>
         </CardContent>
       </Card>
+
+      {/* Floating Action Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-lg">
+        <div className="container mx-auto flex items-center justify-end gap-3 px-4 py-3">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            <X className="h-4 w-4 mr-2" />
+            Cancelar
+          </Button>
+          <Button type="submit" form="vacancy-form">
+            <Save className="h-4 w-4 mr-2" />
+            {vacancy ? 'Salvar Alterações' : 'Cadastrar Vaga'}
+          </Button>
+        </div>
+      </div>
 
       {/* Delete Dialog */}
       <Dialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog((prev) => ({ ...prev, open }))}>

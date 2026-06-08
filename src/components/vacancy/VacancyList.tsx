@@ -2,6 +2,15 @@ import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -10,9 +19,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ArrowUpDown, Edit, List, Plus } from 'lucide-react';
+import { ArrowUpDown, Edit, List, Plus, X } from 'lucide-react';
 import type { Vacancy } from '@/types/vacancy';
-import { formatSalary } from '@/types/vacancy';
+import { formatSalary, VACANCY_TYPES } from '@/types/vacancy';
 import { useVacancies } from '@/contexts/VacancyContext';
 
 type SortField = keyof Vacancy;
@@ -23,10 +32,26 @@ interface VacancyListProps {
   onNew: () => void;
 }
 
+const ALL = '__all__';
+
 export const VacancyList = ({ onEdit, onNew }: VacancyListProps) => {
-  const { vacancies } = useVacancies();
+  const { vacancies, units, sectors, shifts } = useVacancies();
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+
+  const [filterName, setFilterName] = useState('');
+  const [filterUnit, setFilterUnit] = useState<string>(ALL);
+  const [filterSector, setFilterSector] = useState<string>(ALL);
+  const [filterShift, setFilterShift] = useState<string>(ALL);
+  const [filterType, setFilterType] = useState<string>(ALL);
+
+  const clearFilters = () => {
+    setFilterName('');
+    setFilterUnit(ALL);
+    setFilterSector(ALL);
+    setFilterShift(ALL);
+    setFilterType(ALL);
+  };
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -37,8 +62,20 @@ export const VacancyList = ({ onEdit, onNew }: VacancyListProps) => {
     }
   };
 
+  const filteredVacancies = useMemo(() => {
+    const nameQuery = filterName.trim().toLowerCase();
+    return vacancies.filter((v) => {
+      if (nameQuery && !v.name.toLowerCase().includes(nameQuery)) return false;
+      if (filterUnit !== ALL && v.unit !== filterUnit) return false;
+      if (filterSector !== ALL && v.sector !== filterSector) return false;
+      if (filterShift !== ALL && v.shift !== filterShift) return false;
+      if (filterType !== ALL && v.type !== filterType) return false;
+      return true;
+    });
+  }, [vacancies, filterName, filterUnit, filterSector, filterShift, filterType]);
+
   const sortedVacancies = useMemo(() => {
-    return [...vacancies].sort((a, b) => {
+    return [...filteredVacancies].sort((a, b) => {
       let aVal = a[sortField];
       let bVal = b[sortField];
 
@@ -49,7 +86,7 @@ export const VacancyList = ({ onEdit, onNew }: VacancyListProps) => {
       if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
       return 0;
     });
-  }, [vacancies, sortField, sortDirection]);
+  }, [filteredVacancies, sortField, sortDirection]);
 
   const SortableHeader = ({
     field,
@@ -69,6 +106,13 @@ export const VacancyList = ({ onEdit, onNew }: VacancyListProps) => {
     </TableHead>
   );
 
+  const hasActiveFilters =
+    filterName !== '' ||
+    filterUnit !== ALL ||
+    filterSector !== ALL ||
+    filterShift !== ALL ||
+    filterType !== ALL;
+
   return (
     <Card>
       <CardHeader className="pb-4">
@@ -83,7 +127,73 @@ export const VacancyList = ({ onEdit, onNew }: VacancyListProps) => {
           </Button>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        {/* Filters */}
+        <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            <div className="space-y-1">
+              <Label className="text-xs">Nome da Vaga</Label>
+              <Input
+                value={filterName}
+                onChange={(e) => setFilterName(e.target.value)}
+                placeholder="Buscar..."
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Unidade</Label>
+              <Select value={filterUnit} onValueChange={setFilterUnit}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL}>Todas</SelectItem>
+                  {units.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Setor</Label>
+              <Select value={filterSector} onValueChange={setFilterSector}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL}>Todos</SelectItem>
+                  {sectors.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Turno</Label>
+              <Select value={filterShift} onValueChange={setFilterShift}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL}>Todos</SelectItem>
+                  {shifts.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Tipo de Vaga</Label>
+              <Select value={filterType} onValueChange={setFilterType}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL}>Todos</SelectItem>
+                  {VACANCY_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={clearFilters}
+              disabled={!hasActiveFilters}
+            >
+              <X className="h-4 w-4 mr-2" />
+              Limpar Filtros
+            </Button>
+          </div>
+        </div>
+
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -135,7 +245,9 @@ export const VacancyList = ({ onEdit, onNew }: VacancyListProps) => {
               {sortedVacancies.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
-                    Nenhuma vaga cadastrada.
+                    {vacancies.length === 0
+                      ? 'Nenhuma vaga cadastrada.'
+                      : 'Nenhuma vaga encontrada com os filtros aplicados.'}
                   </TableCell>
                 </TableRow>
               )}
