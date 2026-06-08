@@ -182,7 +182,7 @@ export const VacancyForm = ({ vacancy, onSave, onCancel }: VacancyFormProps) => 
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form id="vacancy-form" onSubmit={handleSubmit} className="space-y-6 pb-24 md:pb-20">
             {/* Identification */}
             <div className="space-y-4">
               <h3 className="font-semibold text-primary">Identificação da Vaga</h3>
