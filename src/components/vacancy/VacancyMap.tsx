@@ -10,6 +10,11 @@ interface VacancyCardProps {
   vacancy: Vacancy;
 }
 
+const isHtmlEmpty = (html?: string) => {
+  if (!html) return true;
+  return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '').trim().length === 0;
+};
+
 const VacancyCard = ({ vacancy }: VacancyCardProps) => (
   <div className="bg-card border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
     <div className="flex items-start justify-between mb-2">
@@ -31,6 +36,15 @@ const VacancyCard = ({ vacancy }: VacancyCardProps) => (
         <Clock className="h-3.5 w-3.5" />
         <span>{formatWorkHours(vacancy.workHoursStart, vacancy.workHoursEnd)}</span>
       </div>
+      {!isHtmlEmpty(vacancy.observation) && (
+        <div className="pt-2 mt-2 border-t">
+          <p className="text-xs font-semibold text-foreground mb-1">Observação</p>
+          <div
+            className="text-xs text-muted-foreground whitespace-pre-wrap [&_p]:m-0 [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4"
+            dangerouslySetInnerHTML={{ __html: vacancy.observation! }}
+          />
+        </div>
+      )}
     </div>
   </div>
 );
