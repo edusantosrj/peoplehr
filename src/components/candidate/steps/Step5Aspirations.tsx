@@ -3,6 +3,66 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useVacancies } from "@/contexts/VacancyContext";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
+
+interface VacancySelectProps {
+  value: string;
+  onChange: (v: string) => void;
+  options: string[];
+  placeholder: string;
+  includeNone?: boolean;
+  id?: string;
+}
+
+function VacancySelect({ value, onChange, options, placeholder, includeNone, id }: VacancySelectProps) {
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    return (
+      <select
+        id={id}
+        value={value || ""}
+        onChange={(e) => {
+          const v = e.target.value;
+          onChange(includeNone && v === "__none__" ? "" : v);
+        }}
+        className={cn(
+          "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+        )}
+      >
+        <option value="" disabled>
+          {placeholder}
+        </option>
+        {includeNone && <option value="__none__">Nenhuma</option>}
+        {options.map((name) => (
+          <option key={name} value={name}>
+            {name}
+          </option>
+        ))}
+      </select>
+    );
+  }
+
+  return (
+    <Select
+      value={value}
+      onValueChange={(v) => onChange(includeNone && v === "__none__" ? "" : v)}
+    >
+      <SelectTrigger id={id}>
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent>
+        {includeNone && <SelectItem value="__none__">Nenhuma</SelectItem>}
+        {options.map((name) => (
+          <SelectItem key={name} value={name}>
+            {name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
 
 interface Step5Props {
   data: {
@@ -124,47 +184,35 @@ export function Step5Aspirations({ data, onChange, errors }: Step5Props) {
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-2">
             <Label>Vaga Desejada 1 *</Label>
-            <Select value={data.desiredPosition1} onValueChange={(v) => onChange("desiredPosition1", v)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableForPosition1.map((name) => (
-                  <SelectItem key={name} value={name}>{name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <VacancySelect
+              value={data.desiredPosition1}
+              onChange={(v) => onChange("desiredPosition1", v)}
+              options={availableForPosition1}
+              placeholder="Selecione"
+            />
             {errors.desiredPosition1 && <p className="text-sm text-destructive">{errors.desiredPosition1}</p>}
           </div>
 
           <div className="space-y-2">
             <Label>Vaga Desejada 2</Label>
-            <Select value={data.desiredPosition2} onValueChange={(v) => onChange("desiredPosition2", v === "__none__" ? "" : v)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Opcional" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">Nenhuma</SelectItem>
-                {availableForPosition2.map((name) => (
-                  <SelectItem key={name} value={name}>{name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <VacancySelect
+              value={data.desiredPosition2}
+              onChange={(v) => onChange("desiredPosition2", v)}
+              options={availableForPosition2}
+              placeholder="Opcional"
+              includeNone
+            />
           </div>
 
           <div className="space-y-2">
             <Label>Vaga Desejada 3</Label>
-            <Select value={data.desiredPosition3} onValueChange={(v) => onChange("desiredPosition3", v === "__none__" ? "" : v)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Opcional" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">Nenhuma</SelectItem>
-                {availableForPosition3.map((name) => (
-                  <SelectItem key={name} value={name}>{name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <VacancySelect
+              value={data.desiredPosition3}
+              onChange={(v) => onChange("desiredPosition3", v)}
+              options={availableForPosition3}
+              placeholder="Opcional"
+              includeNone
+            />
           </div>
         </div>
       </div>
