@@ -3,6 +3,66 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useVacancies } from "@/contexts/VacancyContext";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
+
+interface VacancySelectProps {
+  value: string;
+  onChange: (v: string) => void;
+  options: string[];
+  placeholder: string;
+  includeNone?: boolean;
+  id?: string;
+}
+
+function VacancySelect({ value, onChange, options, placeholder, includeNone, id }: VacancySelectProps) {
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    return (
+      <select
+        id={id}
+        value={value || ""}
+        onChange={(e) => {
+          const v = e.target.value;
+          onChange(includeNone && v === "__none__" ? "" : v);
+        }}
+        className={cn(
+          "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+        )}
+      >
+        <option value="" disabled>
+          {placeholder}
+        </option>
+        {includeNone && <option value="__none__">Nenhuma</option>}
+        {options.map((name) => (
+          <option key={name} value={name}>
+            {name}
+          </option>
+        ))}
+      </select>
+    );
+  }
+
+  return (
+    <Select
+      value={value}
+      onValueChange={(v) => onChange(includeNone && v === "__none__" ? "" : v)}
+    >
+      <SelectTrigger id={id}>
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent>
+        {includeNone && <SelectItem value="__none__">Nenhuma</SelectItem>}
+        {options.map((name) => (
+          <SelectItem key={name} value={name}>
+            {name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
 
 interface Step5Props {
   data: {
