@@ -1,68 +1,13 @@
+import { useState, useMemo } from "react";
+import { Search, X, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useVacancies } from "@/contexts/VacancyContext";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
-interface VacancySelectProps {
-  value: string;
-  onChange: (v: string) => void;
-  options: string[];
-  placeholder: string;
-  includeNone?: boolean;
-  id?: string;
-}
-
-function VacancySelect({ value, onChange, options, placeholder, includeNone, id }: VacancySelectProps) {
-  const isMobile = useIsMobile();
-
-  if (isMobile) {
-    return (
-      <select
-        id={id}
-        value={value || ""}
-        onChange={(e) => {
-          const v = e.target.value;
-          onChange(includeNone && v === "__none__" ? "" : v);
-        }}
-        className={cn(
-          "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-        )}
-      >
-        <option value="" disabled>
-          {placeholder}
-        </option>
-        {includeNone && <option value="__none__">Nenhuma</option>}
-        {options.map((name) => (
-          <option key={name} value={name}>
-            {name}
-          </option>
-        ))}
-      </select>
-    );
-  }
-
-  return (
-    <Select
-      value={value}
-      onValueChange={(v) => onChange(includeNone && v === "__none__" ? "" : v)}
-    >
-      <SelectTrigger id={id}>
-        <SelectValue placeholder={placeholder} />
-      </SelectTrigger>
-      <SelectContent>
-        {includeNone && <SelectItem value="__none__">Nenhuma</SelectItem>}
-        {options.map((name) => (
-          <SelectItem key={name} value={name}>
-            {name}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  );
-}
+const MAX_SELECTIONS = 3;
 
 interface Step5Props {
   data: {
@@ -80,6 +25,7 @@ interface Step5Props {
 
 export function Step5Aspirations({ data, onChange, errors }: Step5Props) {
   const { vacancies } = useVacancies();
+  const [search, setSearch] = useState("");
 
   const formatCurrency = (value: string) => {
     const numbers = value.replace(/\D/g, '');
@@ -92,18 +38,41 @@ export function Step5Aspirations({ data, onChange, errors }: Step5Props) {
     onChange("salaryExpectation", formatted);
   };
 
-  // Use vacancy names from the context — active only, deduplicated, sorted
-  const vacancyNames = [...new Set(vacancies.filter((v) => v.status === 'Ativa').map((v) => v.name))].sort();
+  // Same data source as before: active only, deduplicated by name, sorted
+  const vacancyNames = useMemo(
+    () => [...new Set(vacancies.filter((v) => v.status === 'Ativa').map((v) => v.name))].sort(),
+    [vacancies],
+  );
 
-  const availableForPosition1 = vacancyNames.filter(
-    (name) => name !== data.desiredPosition2 && name !== data.desiredPosition3
+  // Selected list, preserving slot order (1,2,3) — drives persistence
+  const selected = useMemo(
+    () => [data.desiredPosition1, data.desiredPosition2, data.desiredPosition3].filter(Boolean),
+    [data.desiredPosition1, data.desiredPosition2, data.desiredPosition3],
   );
-  const availableForPosition2 = vacancyNames.filter(
-    (name) => name !== data.desiredPosition1 && name !== data.desiredPosition3
-  );
-  const availableForPosition3 = vacancyNames.filter(
-    (name) => name !== data.desiredPosition1 && name !== data.desiredPosition2
-  );
+
+  const writeSlots = (list: string[]) => {
+    const slots = [list[0] || "", list[1] || "", list[2] || ""];
+    if (slots[0] !== data.desiredPosition1) onChange("desiredPosition1", slots[0]);
+    if (slots[1] !== data.desiredPosition2) onChange("desiredPosition2", slots[1]);
+    if (slots[2] !== data.desiredPosition3) onChange("desiredPosition3", slots[2]);
+  };
+
+  const toggleVacancy = (name: string) => {
+    if (selected.includes(name)) {
+      writeSlots(selected.filter((n) => n !== name));
+    } else {
+      if (selected.length >= MAX_SELECTIONS) return;
+      writeSlots([...selected, name]);
+    }
+  };
+
+  const removeVacancy = (name: string) => writeSlots(selected.filter((n) => n !== name));
+
+  const filteredNames = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return vacancyNames;
+    return vacancyNames.filter((n) => n.toLowerCase().includes(q));
+  }, [vacancyNames, search]);
 
   return (
     <div className="space-y-6">
@@ -180,42 +149,89 @@ export function Step5Aspirations({ data, onChange, errors }: Step5Props) {
 
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-primary border-b pb-2">Vagas Desejadas</h3>
-        
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div className="space-y-2">
-            <Label>Vaga Desejada 1 *</Label>
-            <VacancySelect
-              value={data.desiredPosition1}
-              onChange={(v) => onChange("desiredPosition1", v)}
-              options={availableForPosition1}
-              placeholder="Selecione"
-            />
-            {errors.desiredPosition1 && <p className="text-sm text-destructive">{errors.desiredPosition1}</p>}
-          </div>
+        <p className="text-sm text-muted-foreground">
+          Selecione até {MAX_SELECTIONS} vagas de interesse. Toque para selecionar ou remover.
+        </p>
 
-          <div className="space-y-2">
-            <Label>Vaga Desejada 2</Label>
-            <VacancySelect
-              value={data.desiredPosition2}
-              onChange={(v) => onChange("desiredPosition2", v)}
-              options={availableForPosition2}
-              placeholder="Opcional"
-              includeNone
-            />
-          </div>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            inputMode="search"
+            placeholder="Pesquisar vaga"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
 
-          <div className="space-y-2">
-            <Label>Vaga Desejada 3</Label>
-            <VacancySelect
-              value={data.desiredPosition3}
-              onChange={(v) => onChange("desiredPosition3", v)}
-              options={availableForPosition3}
-              placeholder="Opcional"
-              includeNone
-            />
-          </div>
+        <div className="rounded-md border divide-y max-h-80 overflow-y-auto">
+          {filteredNames.length === 0 ? (
+            <p className="p-4 text-sm text-muted-foreground text-center">Nenhuma vaga encontrada.</p>
+          ) : (
+            filteredNames.map((name) => {
+              const isSelected = selected.includes(name);
+              const disabled = !isSelected && selected.length >= MAX_SELECTIONS;
+              return (
+                <button
+                  key={name}
+                  type="button"
+                  onClick={() => toggleVacancy(name)}
+                  disabled={disabled}
+                  className={cn(
+                    "flex w-full items-center gap-3 px-4 py-3 text-left text-base transition-colors min-h-[44px]",
+                    "active:bg-accent/70 hover:bg-accent/40",
+                    isSelected && "bg-primary/5",
+                    disabled && "opacity-50 cursor-not-allowed",
+                  )}
+                  aria-pressed={isSelected}
+                >
+                  <span
+                    className={cn(
+                      "flex h-5 w-5 shrink-0 items-center justify-center rounded border",
+                      isSelected ? "bg-primary border-primary text-primary-foreground" : "border-input bg-background",
+                    )}
+                  >
+                    {isSelected && <Check className="h-4 w-4" />}
+                  </span>
+                  <span className="flex-1">{name}</span>
+                </button>
+              );
+            })
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label>Vagas Selecionadas ({selected.length}/{MAX_SELECTIONS})</Label>
+          {selected.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhuma vaga selecionada ainda.</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {selected.map((name) => (
+                <Badge
+                  key={name}
+                  variant="secondary"
+                  className="pl-3 pr-1 py-1.5 text-sm gap-1"
+                >
+                  {name}
+                  <button
+                    type="button"
+                    onClick={() => removeVacancy(name)}
+                    className="ml-1 inline-flex h-6 w-6 items-center justify-center rounded-full hover:bg-background/60"
+                    aria-label={`Remover ${name}`}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
+          )}
+          {errors.desiredPosition1 && (
+            <p className="text-sm text-destructive">{errors.desiredPosition1}</p>
+          )}
         </div>
       </div>
     </div>
   );
+
 }
