@@ -184,47 +184,35 @@ export function Step5Aspirations({ data, onChange, errors }: Step5Props) {
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-2">
             <Label>Vaga Desejada 1 *</Label>
-            <Select value={data.desiredPosition1} onValueChange={(v) => onChange("desiredPosition1", v)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableForPosition1.map((name) => (
-                  <SelectItem key={name} value={name}>{name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <VacancySelect
+              value={data.desiredPosition1}
+              onChange={(v) => onChange("desiredPosition1", v)}
+              options={availableForPosition1}
+              placeholder="Selecione"
+            />
             {errors.desiredPosition1 && <p className="text-sm text-destructive">{errors.desiredPosition1}</p>}
           </div>
 
           <div className="space-y-2">
             <Label>Vaga Desejada 2</Label>
-            <Select value={data.desiredPosition2} onValueChange={(v) => onChange("desiredPosition2", v === "__none__" ? "" : v)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Opcional" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">Nenhuma</SelectItem>
-                {availableForPosition2.map((name) => (
-                  <SelectItem key={name} value={name}>{name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <VacancySelect
+              value={data.desiredPosition2}
+              onChange={(v) => onChange("desiredPosition2", v)}
+              options={availableForPosition2}
+              placeholder="Opcional"
+              includeNone
+            />
           </div>
 
           <div className="space-y-2">
             <Label>Vaga Desejada 3</Label>
-            <Select value={data.desiredPosition3} onValueChange={(v) => onChange("desiredPosition3", v === "__none__" ? "" : v)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Opcional" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">Nenhuma</SelectItem>
-                {availableForPosition3.map((name) => (
-                  <SelectItem key={name} value={name}>{name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <VacancySelect
+              value={data.desiredPosition3}
+              onChange={(v) => onChange("desiredPosition3", v)}
+              options={availableForPosition3}
+              placeholder="Opcional"
+              includeNone
+            />
           </div>
         </div>
       </div>
