@@ -25,6 +25,7 @@ interface Step5Props {
 
 export function Step5Aspirations({ data, onChange, errors }: Step5Props) {
   const { vacancies } = useVacancies();
+  const [search, setSearch] = useState("");
 
   const formatCurrency = (value: string) => {
     const numbers = value.replace(/\D/g, '');
@@ -37,18 +38,41 @@ export function Step5Aspirations({ data, onChange, errors }: Step5Props) {
     onChange("salaryExpectation", formatted);
   };
 
-  // Use vacancy names from the context — active only, deduplicated, sorted
-  const vacancyNames = [...new Set(vacancies.filter((v) => v.status === 'Ativa').map((v) => v.name))].sort();
+  // Same data source as before: active only, deduplicated by name, sorted
+  const vacancyNames = useMemo(
+    () => [...new Set(vacancies.filter((v) => v.status === 'Ativa').map((v) => v.name))].sort(),
+    [vacancies],
+  );
 
-  const availableForPosition1 = vacancyNames.filter(
-    (name) => name !== data.desiredPosition2 && name !== data.desiredPosition3
+  // Selected list, preserving slot order (1,2,3) — drives persistence
+  const selected = useMemo(
+    () => [data.desiredPosition1, data.desiredPosition2, data.desiredPosition3].filter(Boolean),
+    [data.desiredPosition1, data.desiredPosition2, data.desiredPosition3],
   );
-  const availableForPosition2 = vacancyNames.filter(
-    (name) => name !== data.desiredPosition1 && name !== data.desiredPosition3
-  );
-  const availableForPosition3 = vacancyNames.filter(
-    (name) => name !== data.desiredPosition1 && name !== data.desiredPosition2
-  );
+
+  const writeSlots = (list: string[]) => {
+    const slots = [list[0] || "", list[1] || "", list[2] || ""];
+    if (slots[0] !== data.desiredPosition1) onChange("desiredPosition1", slots[0]);
+    if (slots[1] !== data.desiredPosition2) onChange("desiredPosition2", slots[1]);
+    if (slots[2] !== data.desiredPosition3) onChange("desiredPosition3", slots[2]);
+  };
+
+  const toggleVacancy = (name: string) => {
+    if (selected.includes(name)) {
+      writeSlots(selected.filter((n) => n !== name));
+    } else {
+      if (selected.length >= MAX_SELECTIONS) return;
+      writeSlots([...selected, name]);
+    }
+  };
+
+  const removeVacancy = (name: string) => writeSlots(selected.filter((n) => n !== name));
+
+  const filteredNames = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return vacancyNames;
+    return vacancyNames.filter((n) => n.toLowerCase().includes(q));
+  }, [vacancyNames, search]);
 
   return (
     <div className="space-y-6">
