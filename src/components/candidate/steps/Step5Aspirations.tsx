@@ -155,19 +155,22 @@ export function Step5Aspirations({ data, onChange, errors }: Step5Props) {
           Selecione até {MAX_SELECTIONS} vagas de interesse. Toque para selecionar ou remover.
         </p>
 
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            inputMode="search"
-            placeholder="Pesquisar vaga"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
-        </div>
+        {!isMobile && (
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              inputMode="search"
+              placeholder="Pesquisar vaga"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+        )}
 
-        <div className="rounded-md border divide-y max-h-80 overflow-y-auto">
+        <div className={cn("rounded-md border divide-y", !isMobile && "max-h-80 overflow-y-auto")}>
+
           {filteredNames.length === 0 ? (
             <p className="p-4 text-sm text-muted-foreground text-center">Nenhuma vaga encontrada.</p>
           ) : (
