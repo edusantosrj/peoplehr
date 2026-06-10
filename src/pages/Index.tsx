@@ -94,7 +94,7 @@ const Index = () => {
       immediate_start: data.immediateStart,
       available_weekends: data.availableWeekends,
       available_holidays: data.availableHolidays,
-      desired_position_1: data.desiredPosition1,
+      desired_position_1: data.desiredPosition1 || null,
       desired_position_2: data.desiredPosition2 || null,
       desired_position_3: data.desiredPosition3 || null,
       lgpd_consent: data.lgpdConsent,
