@@ -175,7 +175,6 @@ export function CandidateForm({ cpf, onSubmit }: CandidateFormProps) {
 
       case 5:
         if (!formData.salaryExpectation) newErrors.salaryExpectation = "Pretensão salarial é obrigatória";
-        if (!formData.desiredPosition1) newErrors.desiredPosition1 = "Selecione ao menos uma vaga";
         break;
 
       case 6:
