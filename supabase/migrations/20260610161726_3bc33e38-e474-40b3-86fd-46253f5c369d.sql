@@ -1,0 +1,1 @@
+ALTER TABLE public.candidates ALTER COLUMN desired_position_1 DROP NOT NULL;

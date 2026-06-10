@@ -26,7 +26,7 @@ export type Database = {
           course: string | null
           cpf: string
           created_at: string
-          desired_position_1: string
+          desired_position_1: string | null
           desired_position_2: string | null
           desired_position_3: string | null
           education: string
@@ -68,7 +68,7 @@ export type Database = {
           course?: string | null
           cpf: string
           created_at?: string
-          desired_position_1: string
+          desired_position_1?: string | null
           desired_position_2?: string | null
           desired_position_3?: string | null
           education: string
@@ -110,7 +110,7 @@ export type Database = {
           course?: string | null
           cpf?: string
           created_at?: string
-          desired_position_1?: string
+          desired_position_1?: string | null
           desired_position_2?: string | null
           desired_position_3?: string | null
           education?: string
