@@ -26,6 +26,7 @@ interface Step5Props {
 
 export function Step5Aspirations({ data, onChange, errors }: Step5Props) {
   const { vacancies } = useVacancies();
+  const isMobile = useIsMobile();
   const [search, setSearch] = useState("");
 
   const formatCurrency = (value: string) => {
