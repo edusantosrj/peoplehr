@@ -271,6 +271,13 @@ export const CandidateProfile = ({
         candidate={localCandidate}
         onSaved={(updated) => setLocalCandidate(updated)}
       />
+
+      <CandidateCardDialog
+        open={cardOpen}
+        onOpenChange={setCardOpen}
+        candidate={localCandidate}
+        hrData={localHRData}
+      />
     </div>
   );
 };
