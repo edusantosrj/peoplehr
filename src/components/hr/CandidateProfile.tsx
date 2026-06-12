@@ -49,6 +49,7 @@ export const CandidateProfile = ({
   const [localCandidate, setLocalCandidate] = useState<Candidate>(candidate);
   const [isPreparingPrint, setIsPreparingPrint] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [cardOpen, setCardOpen] = useState(false);
 
   const updateLocal = (updated: CandidateHRData) => {
     setLocalHRData(updated);
