@@ -55,9 +55,14 @@ export const VacancyProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchVacancies = useCallback(async () => {
     setLoading(true);
+    const { data: { session } } = await supabase.auth.getSession();
+    // Anonymous users (public candidate form) cannot read the 'observation'
+    // column which contains internal HR PII. Authenticated HR users get all columns.
+    const publicColumns =
+      'id,name,unit,shift,sector,type,quantity,work_hours_start,work_hours_end,gross_salary,status,created_at,updated_at,mission,responsibilities,expectations,offerings';
     const { data, error } = await supabase
       .from('vacancies')
-      .select('*')
+      .select(session ? '*' : publicColumns)
       .order('created_at', { ascending: false });
 
     if (error) {
