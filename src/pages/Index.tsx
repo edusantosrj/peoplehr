@@ -100,7 +100,7 @@ const Index = () => {
       lgpd_consent: data.lgpdConsent,
       selfie_url: selfieUrl,
       resume_url: resumeUrl,
-      other_files_urls: otherFilesUrls.length ? otherFilesUrls : null,
+      other_files_urls: otherFilesUrls || [],
     };
 
     const { error } = await supabase.rpc("submit_candidate_application", {
