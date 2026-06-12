@@ -39,11 +39,24 @@ export const CandidateCardDialog = ({ open, onOpenChange, candidate, hrData }: P
     if (!cardRef.current) return;
     setDownloading(true);
     try {
-      const dataUrl = await toJpeg(cardRef.current, {
+      const node = cardRef.current;
+      const width = Math.max(node.scrollWidth, node.offsetWidth, node.clientWidth);
+      const height = Math.max(node.scrollHeight, node.offsetHeight, node.clientHeight);
+      const dataUrl = await toJpeg(node, {
         quality: 0.95,
         pixelRatio: 2,
         cacheBust: true,
         backgroundColor: "#ffffff",
+        width,
+        height,
+        canvasWidth: width,
+        canvasHeight: height,
+        style: {
+          transform: "none",
+          margin: "0",
+          width: `${width}px`,
+          height: `${height}px`,
+        },
       });
       const link = document.createElement("a");
       const safeName = (candidate.fullName || "candidato").replace(/[^a-z0-9]+/gi, "_");
