@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Printer, Pencil } from "lucide-react";
+import { ArrowLeft, Printer, Pencil, Share2 } from "lucide-react";
 import { CandidateEditDialog } from "./CandidateEditDialog";
+import { CandidateCardDialog } from "./CandidateCardDialog";
 import { CandidateProfileHeader } from "./CandidateProfileHeader";
 import { PersonalDataBlock } from "./blocks/PersonalDataBlock";
 import { AddressBlock } from "./blocks/AddressBlock";
@@ -48,6 +49,7 @@ export const CandidateProfile = ({
   const [localCandidate, setLocalCandidate] = useState<Candidate>(candidate);
   const [isPreparingPrint, setIsPreparingPrint] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [cardOpen, setCardOpen] = useState(false);
 
   const updateLocal = (updated: CandidateHRData) => {
     setLocalHRData(updated);
@@ -204,6 +206,10 @@ export const CandidateProfile = ({
             <Pencil className="h-4 w-4 mr-2" />
             Editar Ficha do Candidato
           </Button>
+          <Button variant="secondary" onClick={() => setCardOpen(true)}>
+            <Share2 className="h-4 w-4 mr-2" />
+            Gerar Card
+          </Button>
           <Button variant="outline" onClick={handlePrint} disabled={isPreparingPrint}>
             <Printer className="h-4 w-4 mr-2" />
             {isPreparingPrint ? "Preparando impressão..." : "Impressão Ficha Candidato"}
@@ -264,6 +270,13 @@ export const CandidateProfile = ({
         onOpenChange={setEditOpen}
         candidate={localCandidate}
         onSaved={(updated) => setLocalCandidate(updated)}
+      />
+
+      <CandidateCardDialog
+        open={cardOpen}
+        onOpenChange={setCardOpen}
+        candidate={localCandidate}
+        hrData={localHRData}
       />
     </div>
   );
