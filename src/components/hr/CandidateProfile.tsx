@@ -206,6 +206,10 @@ export const CandidateProfile = ({
             <Pencil className="h-4 w-4 mr-2" />
             Editar Ficha do Candidato
           </Button>
+          <Button variant="secondary" onClick={() => setCardOpen(true)}>
+            <Share2 className="h-4 w-4 mr-2" />
+            Gerar Card
+          </Button>
           <Button variant="outline" onClick={handlePrint} disabled={isPreparingPrint}>
             <Printer className="h-4 w-4 mr-2" />
             {isPreparingPrint ? "Preparando impressão..." : "Impressão Ficha Candidato"}
