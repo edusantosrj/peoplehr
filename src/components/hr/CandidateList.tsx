@@ -5,6 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -12,7 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search, Eye, Users, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Eye, Users, ArrowUpDown, ArrowUp, ArrowDown, X, Filter } from "lucide-react";
 import type { Candidate } from "@/types/candidate";
 import type { CandidateHRData } from "@/types/hr";
 import { formatDateDisplay } from "@/utils/textFormatting";
@@ -26,14 +33,50 @@ interface CandidateListProps {
 type SortField = 'fullName' | 'cpf' | 'interviewStatus' | 'desiredPosition1' | 'hired' | 'terminated' | 'hiredVacancy' | 'storeUnit' | 'pcd' | 'ns' | 'registrationDate';
 type SortDirection = 'asc' | 'desc' | null;
 
+type TriState = 'all' | 'yes' | 'no';
+type DatePreset = 'custom' | 'today' | 'yesterday' | 'last7' | 'last30' | 'thisMonth' | 'lastMonth';
+
+const ALL = '__all__';
+
+const toDateInput = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
+const parseRegDate = (s: string): Date | null => {
+  if (!s) return null;
+  const d = new Date(s);
+  if (!isNaN(d.getTime())) return d;
+  const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if (m) return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+  return null;
+};
+
 export const CandidateList = ({
   candidates,
   onSelectCandidate,
   hrDataMap = {},
 }: CandidateListProps) => {
-  const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+
+  // Filters
+  const [fName, setFName] = useState("");
+  const [fCpf, setFCpf] = useState("");
+  const [fWhats, setFWhats] = useState("");
+  const [fInterview, setFInterview] = useState<string>(ALL);
+  const [fDesired, setFDesired] = useState<string>(ALL);
+  const [fHired, setFHired] = useState<TriState>('all');
+  const [fTerminated, setFTerminated] = useState<TriState>('all');
+  const [fHiredVacancy, setFHiredVacancy] = useState<string>(ALL);
+  const [fStore, setFStore] = useState<string>(ALL);
+  const [fPcd, setFPcd] = useState<TriState>('all');
+  const [fNs, setFNs] = useState<TriState>('all');
+  const [fPreset, setFPreset] = useState<DatePreset>('custom');
+  const [fDateStart, setFDateStart] = useState<string>("");
+  const [fDateEnd, setFDateEnd] = useState<string>("");
 
   const formatCpf = (cpf: string) => {
     const numbers = cpf.replace(/\D/g, '');
@@ -59,27 +102,121 @@ export const CandidateList = ({
     return <ArrowDown className="h-3 w-3 ml-1" />;
   };
 
-  const isHired = (candidateId: string) => hrDataMap[candidateId]?.admission?.admissionStatus === 'Contratado';
-  const isTerminated = (candidateId: string) => hrDataMap[candidateId]?.termination?.confirmed === true;
-  const getHiredVacancy = (candidateId: string) => hrDataMap[candidateId]?.admission?.vacancyDisplay || '';
-  const getStoreUnit = (candidateId: string) => hrDataMap[candidateId]?.admission?.storeUnit || '';
-  const isPCD = (candidateId: string) => hrDataMap[candidateId]?.evaluation?.pcd || false;
-  const isNS = (candidateId: string) => hrDataMap[candidateId]?.evaluation?.ns || false;
-  const getInterviewStatus = (candidateId: string) => hrDataMap[candidateId]?.evaluation?.interviewStatus || 'Não';
+  const isHired = (id: string) => hrDataMap[id]?.admission?.admissionStatus === 'Contratado';
+  const isTerminated = (id: string) => hrDataMap[id]?.termination?.confirmed === true;
+  const getHiredVacancy = (id: string) => hrDataMap[id]?.admission?.vacancyDisplay || '';
+  const getStoreUnit = (id: string) => hrDataMap[id]?.admission?.storeUnit || '';
+  const isPCD = (id: string) => hrDataMap[id]?.evaluation?.pcd || false;
+  const isNS = (id: string) => hrDataMap[id]?.evaluation?.ns || false;
+  const getInterviewStatus = (id: string) => hrDataMap[id]?.evaluation?.interviewStatus || 'Não';
+
+  // Build option lists from current data
+  const desiredOptions = useMemo(() => {
+    const set = new Set<string>();
+    candidates.forEach((c) => {
+      [c.desiredPosition1, c.desiredPosition2, c.desiredPosition3].forEach((p) => {
+        if (p && p.trim()) set.add(p.trim());
+      });
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }, [candidates]);
+
+  const hiredVacancyOptions = useMemo(() => {
+    const set = new Set<string>();
+    candidates.forEach((c) => {
+      const v = getHiredVacancy(c.id);
+      if (v) set.add(v);
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }, [candidates, hrDataMap]);
+
+  const storeOptions = useMemo(() => {
+    const set = new Set<string>();
+    candidates.forEach((c) => {
+      const v = getStoreUnit(c.id);
+      if (v) set.add(v);
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }, [candidates, hrDataMap]);
+
+  const applyPreset = (preset: DatePreset) => {
+    setFPreset(preset);
+    if (preset === 'custom') return;
+    const now = new Date();
+    let start: Date | null = null;
+    let end: Date | null = null;
+    if (preset === 'today') { start = now; end = now; }
+    else if (preset === 'yesterday') {
+      const y = new Date(now); y.setDate(now.getDate() - 1);
+      start = y; end = y;
+    }
+    else if (preset === 'last7') {
+      const s = new Date(now); s.setDate(now.getDate() - 6);
+      start = s; end = now;
+    }
+    else if (preset === 'last30') {
+      const s = new Date(now); s.setDate(now.getDate() - 29);
+      start = s; end = now;
+    }
+    else if (preset === 'thisMonth') {
+      start = new Date(now.getFullYear(), now.getMonth(), 1);
+      end = now;
+    }
+    else if (preset === 'lastMonth') {
+      start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      end = new Date(now.getFullYear(), now.getMonth(), 0);
+    }
+    if (start && end) {
+      setFDateStart(toDateInput(start));
+      setFDateEnd(toDateInput(end));
+    }
+  };
+
+  const clearFilters = () => {
+    setFName(""); setFCpf(""); setFWhats("");
+    setFInterview(ALL); setFDesired(ALL);
+    setFHired('all'); setFTerminated('all');
+    setFHiredVacancy(ALL); setFStore(ALL);
+    setFPcd('all'); setFNs('all');
+    setFPreset('custom'); setFDateStart(""); setFDateEnd("");
+  };
 
   const filteredAndSortedCandidates = useMemo(() => {
-    const search = searchTerm.toLowerCase();
-    let filtered = candidates.filter((candidate) =>
-      candidate.fullName.toLowerCase().includes(search) ||
-      candidate.cpf.includes(search.replace(/\D/g, '')) ||
-      candidate.desiredPosition1.toLowerCase().includes(search)
-    );
+    const triMatch = (state: TriState, v: boolean) => state === 'all' || (state === 'yes' ? v : !v);
+    const nameQ = fName.trim().toLowerCase();
+    const cpfQ = fCpf.replace(/\D/g, '');
+    const whatsQ = fWhats.replace(/\D/g, '');
+    const startD = fDateStart ? new Date(fDateStart + 'T00:00:00') : null;
+    const endD = fDateEnd ? new Date(fDateEnd + 'T23:59:59') : null;
+
+    let filtered = candidates.filter((c) => {
+      if (nameQ && !c.fullName.toLowerCase().includes(nameQ)) return false;
+      if (cpfQ && !c.cpf.replace(/\D/g, '').includes(cpfQ)) return false;
+      if (whatsQ && !(c.whatsapp || '').replace(/\D/g, '').includes(whatsQ)) return false;
+      if (fInterview !== ALL && getInterviewStatus(c.id) !== fInterview) return false;
+      if (fDesired !== ALL) {
+        const positions = [c.desiredPosition1, c.desiredPosition2, c.desiredPosition3].filter(Boolean);
+        if (!positions.includes(fDesired)) return false;
+      }
+      if (!triMatch(fHired, isHired(c.id))) return false;
+      if (!triMatch(fTerminated, isTerminated(c.id))) return false;
+      if (fHiredVacancy !== ALL && getHiredVacancy(c.id) !== fHiredVacancy) return false;
+      if (fStore !== ALL && getStoreUnit(c.id) !== fStore) return false;
+      if (!triMatch(fPcd, isPCD(c.id))) return false;
+      if (!triMatch(fNs, isNS(c.id))) return false;
+      if (startD || endD) {
+        const d = parseRegDate(c.registrationDate);
+        if (!d) return false;
+        if (startD && d < startD) return false;
+        if (endD && d > endD) return false;
+      }
+      return true;
+    });
 
     if (sortField && sortDirection) {
       filtered = [...filtered].sort((a, b) => {
-        let valA: string | boolean | number = '';
-        let valB: string | boolean | number = '';
-
+        let valA: string | number = '';
+        let valB: string | number = '';
         switch (sortField) {
           case 'fullName': valA = a.fullName; valB = b.fullName; break;
           case 'cpf': valA = a.cpf; valB = b.cpf; break;
@@ -93,7 +230,6 @@ export const CandidateList = ({
           case 'pcd': valA = isPCD(a.id) ? 1 : 0; valB = isPCD(b.id) ? 1 : 0; break;
           case 'ns': valA = isNS(a.id) ? 1 : 0; valB = isNS(b.id) ? 1 : 0; break;
         }
-
         if (typeof valA === 'string' && typeof valB === 'string') {
           const cmp = valA.localeCompare(valB, 'pt-BR');
           return sortDirection === 'asc' ? cmp : -cmp;
@@ -104,7 +240,9 @@ export const CandidateList = ({
     }
 
     return filtered;
-  }, [candidates, searchTerm, sortField, sortDirection, hrDataMap]);
+  }, [candidates, hrDataMap, sortField, sortDirection,
+    fName, fCpf, fWhats, fInterview, fDesired, fHired, fTerminated,
+    fHiredVacancy, fStore, fPcd, fNs, fDateStart, fDateEnd]);
 
   const BoolBadge = ({ value, yesLabel = "Sim", noLabel = "Não" }: { value: boolean; yesLabel?: string; noLabel?: string }) => (
     <Badge variant={value ? "default" : "outline"} className={value ? "bg-green-100 text-green-800 hover:bg-green-100" : ""}>
@@ -127,6 +265,17 @@ export const CandidateList = ({
     );
   };
 
+  const TriSelect = ({ value, onChange, label }: { value: TriState; onChange: (v: TriState) => void; label: string }) => (
+    <Select value={value} onValueChange={(v) => onChange(v as TriState)}>
+      <SelectTrigger className="h-9"><SelectValue placeholder={label} /></SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all">{label}: Todos</SelectItem>
+        <SelectItem value="yes">Sim</SelectItem>
+        <SelectItem value="no">Não</SelectItem>
+      </SelectContent>
+    </Select>
+  );
+
   return (
     <Card>
       <CardHeader>
@@ -136,15 +285,90 @@ export const CandidateList = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="mb-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por nome, CPF ou vaga..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+        <div className="mb-4 space-y-3 rounded-lg border bg-muted/30 p-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <Filter className="h-4 w-4" /> Filtros
+            </div>
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8">
+              <X className="h-4 w-4 mr-1" /> Limpar Filtros
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+            <Input placeholder="Nome" value={fName} onChange={(e) => setFName(e.target.value)} className="h-9" />
+            <Input placeholder="CPF" value={fCpf} onChange={(e) => setFCpf(e.target.value)} className="h-9" />
+            <Input placeholder="WhatsApp" value={fWhats} onChange={(e) => setFWhats(e.target.value)} className="h-9" />
+
+            <Select value={fInterview} onValueChange={setFInterview}>
+              <SelectTrigger className="h-9"><SelectValue placeholder="Entrevista" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>Entrevista: Todas</SelectItem>
+                <SelectItem value="Não">Não Agendada</SelectItem>
+                <SelectItem value="Sim">Agendada</SelectItem>
+                <SelectItem value="Compareceu">Compareceu</SelectItem>
+                <SelectItem value="Não Compareceu">Não Compareceu</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={fDesired} onValueChange={setFDesired}>
+              <SelectTrigger className="h-9"><SelectValue placeholder="Vaga Desejada" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>Vaga Desejada: Todas</SelectItem>
+                {desiredOptions.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+              </SelectContent>
+            </Select>
+
+            <TriSelect value={fHired} onChange={setFHired} label="Contratado" />
+            <TriSelect value={fTerminated} onChange={setFTerminated} label="Demitido" />
+
+            <Select value={fHiredVacancy} onValueChange={setFHiredVacancy}>
+              <SelectTrigger className="h-9"><SelectValue placeholder="Vaga Contratada" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>Vaga Contratada: Todas</SelectItem>
+                {hiredVacancyOptions.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+              </SelectContent>
+            </Select>
+
+            <Select value={fStore} onValueChange={setFStore}>
+              <SelectTrigger className="h-9"><SelectValue placeholder="Loja / Unidade" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>Loja / Unidade: Todas</SelectItem>
+                {storeOptions.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+              </SelectContent>
+            </Select>
+
+            <TriSelect value={fPcd} onChange={setFPcd} label="PCD" />
+            <TriSelect value={fNs} onChange={setFNs} label="N/S" />
+          </div>
+
+          <div className="flex flex-wrap items-end gap-2">
+            <div className="flex flex-col">
+              <label className="text-xs text-muted-foreground mb-1">Período rápido</label>
+              <Select value={fPreset} onValueChange={(v) => applyPreset(v as DatePreset)}>
+                <SelectTrigger className="h-9 w-[180px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="custom">Personalizado</SelectItem>
+                  <SelectItem value="today">Hoje</SelectItem>
+                  <SelectItem value="yesterday">Ontem</SelectItem>
+                  <SelectItem value="last7">Últimos 7 dias</SelectItem>
+                  <SelectItem value="last30">Últimos 30 dias</SelectItem>
+                  <SelectItem value="thisMonth">Este mês</SelectItem>
+                  <SelectItem value="lastMonth">Mês anterior</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs text-muted-foreground mb-1">Data inicial</label>
+              <Input type="date" value={fDateStart} onChange={(e) => { setFDateStart(e.target.value); setFPreset('custom'); }} className="h-9 w-[160px]" />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs text-muted-foreground mb-1">Data final</label>
+              <Input type="date" value={fDateEnd} onChange={(e) => { setFDateEnd(e.target.value); setFPreset('custom'); }} className="h-9 w-[160px]" />
+            </div>
+            <div className="ml-auto text-xs text-muted-foreground self-center">
+              {filteredAndSortedCandidates.length} de {candidates.length} candidato(s)
+            </div>
           </div>
         </div>
 
@@ -152,7 +376,7 @@ export const CandidateList = ({
           <div className="text-center py-8 text-muted-foreground">
             {candidates.length === 0
               ? "Nenhum candidato cadastrado ainda."
-              : "Nenhum candidato encontrado com os termos de busca."}
+              : "Nenhum candidato encontrado com os filtros aplicados."}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -192,7 +416,7 @@ export const CandidateList = ({
                   <TableHead className="cursor-pointer select-none" onClick={() => handleSort('registrationDate')}>
                     <span className="flex items-center">Data Cadastro <SortIcon field="registrationDate" /></span>
                   </TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
+                  <TableHead className="w-12 text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -221,14 +445,15 @@ export const CandidateList = ({
                     <TableCell><BoolBadge value={isPCD(candidate.id)} /></TableCell>
                     <TableCell><BoolBadge value={isNS(candidate.id)} /></TableCell>
                     <TableCell>{formatDate(candidate.registrationDate)}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right w-12">
                       <Button
                         variant="ghost"
-                        size="sm"
+                        size="icon"
                         onClick={() => onSelectCandidate(candidate)}
+                        title="Ver Ficha"
+                        aria-label="Ver Ficha"
                       >
-                        <Eye className="h-4 w-4 mr-1" />
-                        Ver Ficha
+                        <Eye className="h-4 w-4" />
                       </Button>
                     </TableCell>
                   </TableRow>
