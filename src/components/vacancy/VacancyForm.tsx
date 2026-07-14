@@ -23,6 +23,7 @@ import type { Vacancy } from '@/types/vacancy';
 import { VACANCY_TYPES, VACANCY_STATUS } from '@/types/vacancy';
 import { useVacancies } from '@/contexts/VacancyContext';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
+import { useToast } from '@/hooks/use-toast';
 
 interface VacancyFormProps {
   vacancy?: Vacancy;
@@ -38,6 +39,7 @@ export const VacancyForm = ({ vacancy, onSave, onCancel }: VacancyFormProps) => 
     addUnit, removeUnit,
     addShift, removeShift,
   } = useVacancies();
+  const { toast } = useToast();
 
   const [newSector, setNewSector] = useState('');
   const [showNewSector, setShowNewSector] = useState(false);
@@ -117,17 +119,26 @@ export const VacancyForm = ({ vacancy, onSave, onCancel }: VacancyFormProps) => 
     }
   };
 
-  const handleDeleteItem = (type: 'unit' | 'shift' | 'sector', item: string) => {
+  const handleDeleteItem = (type: 'unit' | 'shift' | 'sector', item: string): boolean => {
+    let result: { ok: boolean; reason?: string };
     if (type === 'unit') {
-      removeUnit(item);
-      if (formData.unit === item) handleChange('unit', '');
+      result = removeUnit(item);
+      if (result.ok && formData.unit === item) handleChange('unit', '');
     } else if (type === 'shift') {
-      removeShift(item);
-      if (formData.shift === item) handleChange('shift', '');
+      result = removeShift(item);
+      if (result.ok && formData.shift === item) handleChange('shift', '');
     } else {
-      removeSector(item);
-      if (formData.sector === item) handleChange('sector', '');
+      result = removeSector(item);
+      if (result.ok && formData.sector === item) handleChange('sector', '');
     }
+    if (!result.ok) {
+      toast({
+        title: 'Não é possível excluir',
+        description: result.reason || 'Este cadastro está sendo utilizado por vagas existentes.',
+        variant: 'destructive',
+      });
+    }
+    return result.ok;
   };
 
   const openDeleteDialog = (type: 'unit' | 'shift' | 'sector') => {
@@ -411,9 +422,13 @@ export const VacancyForm = ({ vacancy, onSave, onCancel }: VacancyFormProps) => 
                   <Input
                     id="quantity"
                     type="number"
-                    min="1"
+                    min="0"
                     value={formData.quantity}
-                    onChange={(e) => handleChange('quantity', parseInt(e.target.value, 10) || 1)}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      const parsed = parseInt(raw, 10);
+                      handleChange('quantity', isNaN(parsed) ? 0 : Math.max(0, parsed));
+                    }}
                     required
                   />
                 </div>
