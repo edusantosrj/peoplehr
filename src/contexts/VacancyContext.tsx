@@ -3,6 +3,8 @@ import type { Vacancy } from '@/types/vacancy';
 import { INITIAL_SECTORS, UNITS, SHIFTS } from '@/types/vacancy';
 import { supabase } from '@/integrations/supabase/client';
 
+type RemoveResult = { ok: boolean; reason?: string };
+
 interface VacancyContextType {
   vacancies: Vacancy[];
   sectors: string[];
@@ -15,13 +17,38 @@ interface VacancyContextType {
   debitVacancy: (id: string) => Promise<boolean>;
   creditVacancy: (id: string) => Promise<boolean>;
   addSector: (sector: string) => void;
-  removeSector: (sector: string) => void;
+  removeSector: (sector: string) => RemoveResult;
   addUnit: (unit: string) => void;
-  removeUnit: (unit: string) => void;
+  removeUnit: (unit: string) => RemoveResult;
   addShift: (shift: string) => void;
-  removeShift: (shift: string) => void;
+  removeShift: (shift: string) => RemoveResult;
   refreshVacancies: () => Promise<void>;
 }
+
+const HIDDEN_KEYS = {
+  units: 'vacancy_hidden_units',
+  shifts: 'vacancy_hidden_shifts',
+  sectors: 'vacancy_hidden_sectors',
+} as const;
+
+const readHidden = (key: string): string[] => {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr.filter((x) => typeof x === 'string') : [];
+  } catch {
+    return [];
+  }
+};
+
+const writeHidden = (key: string, values: string[]) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(Array.from(new Set(values))));
+  } catch {
+    /* ignore */
+  }
+};
 
 const VacancyContext = createContext<VacancyContextType | undefined>(undefined);
 
@@ -48,9 +75,15 @@ const mapRowToVacancy = (row: any): Vacancy => ({
 
 export const VacancyProvider = ({ children }: { children: ReactNode }) => {
   const [vacancies, setVacancies] = useState<Vacancy[]>([]);
-  const [sectors, setSectors] = useState<string[]>(INITIAL_SECTORS);
-  const [units, setUnits] = useState<string[]>([...UNITS]);
-  const [shifts, setShifts] = useState<string[]>([...SHIFTS]);
+  const [sectors, setSectors] = useState<string[]>(() =>
+    INITIAL_SECTORS.filter((s) => !readHidden(HIDDEN_KEYS.sectors).includes(s))
+  );
+  const [units, setUnits] = useState<string[]>(() =>
+    [...UNITS].filter((u) => !readHidden(HIDDEN_KEYS.units).includes(u))
+  );
+  const [shifts, setShifts] = useState<string[]>(() =>
+    [...SHIFTS].filter((s) => !readHidden(HIDDEN_KEYS.shifts).includes(s))
+  );
   const [loading, setLoading] = useState(true);
 
   const fetchVacancies = useCallback(async () => {
@@ -79,17 +112,28 @@ export const VacancyProvider = ({ children }: { children: ReactNode }) => {
     const dbUnits = new Set(mapped.map((v) => v.unit).filter(Boolean));
     const dbShifts = new Set(mapped.map((v) => v.shift).filter(Boolean));
 
+    const hiddenSectors = readHidden(HIDDEN_KEYS.sectors);
+    const hiddenUnits = readHidden(HIDDEN_KEYS.units);
+    const hiddenShifts = readHidden(HIDDEN_KEYS.shifts);
+
     setSectors((prev) => {
       const merged = new Set([...INITIAL_SECTORS, ...prev, ...dbSectors]);
-      return Array.from(merged).sort();
+      // Never hide a value that is still in use by an existing vacancy.
+      return Array.from(merged)
+        .filter((s) => dbSectors.has(s) || !hiddenSectors.includes(s))
+        .sort();
     });
     setUnits((prev) => {
       const merged = new Set([...UNITS, ...prev, ...dbUnits]);
-      return Array.from(merged).sort();
+      return Array.from(merged)
+        .filter((u) => dbUnits.has(u) || !hiddenUnits.includes(u))
+        .sort();
     });
     setShifts((prev) => {
       const merged = new Set([...SHIFTS, ...prev, ...dbShifts]);
-      return Array.from(merged).sort();
+      return Array.from(merged)
+        .filter((s) => dbShifts.has(s) || !hiddenShifts.includes(s))
+        .sort();
     });
 
     setLoading(false);
@@ -220,33 +264,57 @@ export const VacancyProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addSector = (sector: string) => {
+    const hidden = readHidden(HIDDEN_KEYS.sectors).filter((s) => s !== sector);
+    writeHidden(HIDDEN_KEYS.sectors, hidden);
     if (!sectors.includes(sector)) {
       setSectors((prev) => [...prev, sector].sort());
     }
   };
 
-  const removeSector = (sector: string) => {
+  const removeSector = (sector: string): RemoveResult => {
+    const inUse = vacancies.some((v) => v.sector === sector);
+    if (inUse) {
+      return { ok: false, reason: 'Existem vagas cadastradas utilizando este Setor. Remova ou altere essas vagas antes de excluir.' };
+    }
+    writeHidden(HIDDEN_KEYS.sectors, [...readHidden(HIDDEN_KEYS.sectors), sector]);
     setSectors((prev) => prev.filter((s) => s !== sector));
+    return { ok: true };
   };
 
   const addUnit = (unit: string) => {
+    const hidden = readHidden(HIDDEN_KEYS.units).filter((u) => u !== unit);
+    writeHidden(HIDDEN_KEYS.units, hidden);
     if (!units.includes(unit)) {
       setUnits((prev) => [...prev, unit].sort());
     }
   };
 
-  const removeUnit = (unit: string) => {
+  const removeUnit = (unit: string): RemoveResult => {
+    const inUse = vacancies.some((v) => v.unit === unit);
+    if (inUse) {
+      return { ok: false, reason: 'Existem vagas cadastradas utilizando esta Unidade / Loja. Remova ou altere essas vagas antes de excluir.' };
+    }
+    writeHidden(HIDDEN_KEYS.units, [...readHidden(HIDDEN_KEYS.units), unit]);
     setUnits((prev) => prev.filter((u) => u !== unit));
+    return { ok: true };
   };
 
   const addShift = (shift: string) => {
+    const hidden = readHidden(HIDDEN_KEYS.shifts).filter((s) => s !== shift);
+    writeHidden(HIDDEN_KEYS.shifts, hidden);
     if (!shifts.includes(shift)) {
       setShifts((prev) => [...prev, shift].sort());
     }
   };
 
-  const removeShift = (shift: string) => {
+  const removeShift = (shift: string): RemoveResult => {
+    const inUse = vacancies.some((v) => v.shift === shift);
+    if (inUse) {
+      return { ok: false, reason: 'Existem vagas cadastradas utilizando este Turno. Remova ou altere essas vagas antes de excluir.' };
+    }
+    writeHidden(HIDDEN_KEYS.shifts, [...readHidden(HIDDEN_KEYS.shifts), shift]);
     setShifts((prev) => prev.filter((s) => s !== shift));
+    return { ok: true };
   };
 
   return (

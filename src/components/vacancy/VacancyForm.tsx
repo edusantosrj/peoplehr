@@ -23,6 +23,7 @@ import type { Vacancy } from '@/types/vacancy';
 import { VACANCY_TYPES, VACANCY_STATUS } from '@/types/vacancy';
 import { useVacancies } from '@/contexts/VacancyContext';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
+import { useToast } from '@/hooks/use-toast';
 
 interface VacancyFormProps {
   vacancy?: Vacancy;
@@ -38,6 +39,7 @@ export const VacancyForm = ({ vacancy, onSave, onCancel }: VacancyFormProps) => 
     addUnit, removeUnit,
     addShift, removeShift,
   } = useVacancies();
+  const { toast } = useToast();
 
   const [newSector, setNewSector] = useState('');
   const [showNewSector, setShowNewSector] = useState(false);
@@ -60,7 +62,7 @@ export const VacancyForm = ({ vacancy, onSave, onCancel }: VacancyFormProps) => 
     shift: vacancy?.shift || '',
     sector: vacancy?.sector || '',
     type: vacancy?.type || 'Nova Contratação',
-    quantity: vacancy?.quantity || 1,
+    quantity: vacancy?.quantity ?? 1,
     workHoursStart: vacancy?.workHoursStart || '',
     workHoursEnd: vacancy?.workHoursEnd || '',
     grossSalary: vacancy?.grossSalary || 0,
@@ -117,17 +119,26 @@ export const VacancyForm = ({ vacancy, onSave, onCancel }: VacancyFormProps) => 
     }
   };
 
-  const handleDeleteItem = (type: 'unit' | 'shift' | 'sector', item: string) => {
+  const handleDeleteItem = (type: 'unit' | 'shift' | 'sector', item: string): boolean => {
+    let result: { ok: boolean; reason?: string };
     if (type === 'unit') {
-      removeUnit(item);
-      if (formData.unit === item) handleChange('unit', '');
+      result = removeUnit(item);
+      if (result.ok && formData.unit === item) handleChange('unit', '');
     } else if (type === 'shift') {
-      removeShift(item);
-      if (formData.shift === item) handleChange('shift', '');
+      result = removeShift(item);
+      if (result.ok && formData.shift === item) handleChange('shift', '');
     } else {
-      removeSector(item);
-      if (formData.sector === item) handleChange('sector', '');
+      result = removeSector(item);
+      if (result.ok && formData.sector === item) handleChange('sector', '');
     }
+    if (!result.ok) {
+      toast({
+        title: 'Não é possível excluir',
+        description: result.reason || 'Este cadastro está sendo utilizado por vagas existentes.',
+        variant: 'destructive',
+      });
+    }
+    return result.ok;
   };
 
   const openDeleteDialog = (type: 'unit' | 'shift' | 'sector') => {
@@ -156,7 +167,7 @@ export const VacancyForm = ({ vacancy, onSave, onCancel }: VacancyFormProps) => 
         shift: formData.shift || '',
         sector: formData.sector || '',
         type: formData.type || 'Nova Contratação',
-        quantity: formData.quantity || 1,
+        quantity: formData.quantity ?? 1,
         workHoursStart: formData.workHoursStart || '',
         workHoursEnd: formData.workHoursEnd || '',
         grossSalary: formData.grossSalary || 0,
@@ -411,9 +422,13 @@ export const VacancyForm = ({ vacancy, onSave, onCancel }: VacancyFormProps) => 
                   <Input
                     id="quantity"
                     type="number"
-                    min="1"
+                    min="0"
                     value={formData.quantity}
-                    onChange={(e) => handleChange('quantity', parseInt(e.target.value, 10) || 1)}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      const parsed = parseInt(raw, 10);
+                      handleChange('quantity', isNaN(parsed) ? 0 : Math.max(0, parsed));
+                    }}
                     required
                   />
                 </div>
@@ -452,6 +467,25 @@ export const VacancyForm = ({ vacancy, onSave, onCancel }: VacancyFormProps) => 
                   />
                 </div>
               </div>
+            </div>
+
+            {/* Status */}
+            <div className="space-y-3">
+              <Label>Status da Vaga *</Label>
+              <RadioGroup
+                value={formData.status}
+                onValueChange={(value) => handleChange('status', value)}
+                className="flex flex-wrap gap-4"
+              >
+                {VACANCY_STATUS.map((status) => (
+                  <div key={status} className="flex items-center space-x-2">
+                    <RadioGroupItem value={status} id={`status-${status}`} />
+                    <Label htmlFor={`status-${status}`} className="font-normal cursor-pointer">
+                      {status}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
             </div>
 
             {/* Detailed Description (Rich Text) */}
@@ -506,24 +540,6 @@ export const VacancyForm = ({ vacancy, onSave, onCancel }: VacancyFormProps) => 
               </div>
             </div>
 
-            {/* Status */}
-            <div className="space-y-3">
-              <Label>Status da Vaga *</Label>
-              <RadioGroup
-                value={formData.status}
-                onValueChange={(value) => handleChange('status', value)}
-                className="flex flex-wrap gap-4"
-              >
-                {VACANCY_STATUS.map((status) => (
-                  <div key={status} className="flex items-center space-x-2">
-                    <RadioGroupItem value={status} id={`status-${status}`} />
-                    <Label htmlFor={`status-${status}`} className="font-normal cursor-pointer">
-                      {status}
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
-            </div>
 
             {/* Actions */}
             <div className="flex flex-wrap gap-3 pt-4">
@@ -569,7 +585,8 @@ export const VacancyForm = ({ vacancy, onSave, onCancel }: VacancyFormProps) => 
                   variant="ghost"
                   className="h-8 w-8 text-destructive hover:text-destructive"
                   onClick={() => {
-                    handleDeleteItem(deleteDialog.type, item);
+                    const ok = handleDeleteItem(deleteDialog.type, item);
+                    if (!ok) return;
                     const remaining = deleteDialog.items.filter((i) => i !== item);
                     if (remaining.length === 0) {
                       setDeleteDialog((prev) => ({ ...prev, open: false }));
