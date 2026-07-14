@@ -145,6 +145,7 @@ const UnitSection = ({ unit, vacancies }: UnitSectionProps) => {
 
 export const VacancyMap = () => {
   const { vacancies } = useVacancies();
+  const [printOpen, setPrintOpen] = useState(false);
 
   const groupedByUnit = useMemo(() => {
     const grouped: Record<string, Vacancy[]> = {};
@@ -162,8 +163,11 @@ export const VacancyMap = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between gap-2">
         <h2 className="text-xl font-bold text-foreground">Mapa Estratégico de Vagas</h2>
+        <Button variant="outline" size="sm" onClick={() => setPrintOpen(true)}>
+          <Printer className="h-4 w-4 mr-2" /> Imprimir
+        </Button>
       </div>
 
       {groupedByUnit.length === 0 ? (
@@ -179,6 +183,12 @@ export const VacancyMap = () => {
           ))}
         </div>
       )}
+
+      <VacancyMapPrintDialog
+        open={printOpen}
+        onOpenChange={setPrintOpen}
+        vacancies={vacancies}
+      />
     </div>
   );
 };
