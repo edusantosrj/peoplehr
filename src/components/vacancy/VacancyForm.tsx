@@ -167,7 +167,7 @@ export const VacancyForm = ({ vacancy, onSave, onCancel }: VacancyFormProps) => 
         shift: formData.shift || '',
         sector: formData.sector || '',
         type: formData.type || 'Nova Contratação',
-        quantity: formData.quantity || 1,
+        quantity: formData.quantity ?? 1,
         workHoursStart: formData.workHoursStart || '',
         workHoursEnd: formData.workHoursEnd || '',
         grossSalary: formData.grossSalary || 0,
