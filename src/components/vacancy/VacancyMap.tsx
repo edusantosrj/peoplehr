@@ -1,7 +1,9 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Clock, Users, Briefcase } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { MapPin, Clock, Users, Briefcase, Printer } from 'lucide-react';
+import { VacancyMapPrintDialog } from './VacancyMapPrintDialog';
 import type { Vacancy } from '@/types/vacancy';
 import { formatWorkHours } from '@/types/vacancy';
 import { useVacancies } from '@/contexts/VacancyContext';
@@ -143,6 +145,7 @@ const UnitSection = ({ unit, vacancies }: UnitSectionProps) => {
 
 export const VacancyMap = () => {
   const { vacancies } = useVacancies();
+  const [printOpen, setPrintOpen] = useState(false);
 
   const groupedByUnit = useMemo(() => {
     const grouped: Record<string, Vacancy[]> = {};
@@ -160,8 +163,11 @@ export const VacancyMap = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between gap-2">
         <h2 className="text-xl font-bold text-foreground">Mapa Estratégico de Vagas</h2>
+        <Button variant="outline" size="sm" onClick={() => setPrintOpen(true)}>
+          <Printer className="h-4 w-4 mr-2" /> Imprimir
+        </Button>
       </div>
 
       {groupedByUnit.length === 0 ? (
@@ -177,6 +183,12 @@ export const VacancyMap = () => {
           ))}
         </div>
       )}
+
+      <VacancyMapPrintDialog
+        open={printOpen}
+        onOpenChange={setPrintOpen}
+        vacancies={vacancies}
+      />
     </div>
   );
 };
