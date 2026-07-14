@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { SignedAvatarImage } from "./SignedAvatarImage";
 import { Separator } from "@/components/ui/separator";
 import {
   Select,
@@ -53,8 +54,8 @@ export const CandidateEditDialog = ({ open, onOpenChange, candidate, onSaved }: 
       const path = `${candidate.id}/selfie_${Date.now()}.${ext}`;
       const { error: upErr } = await supabase.storage.from('selfies').upload(path, file, { upsert: true });
       if (upErr) throw upErr;
-      const { data: pub } = supabase.storage.from('selfies').getPublicUrl(path);
-      set('selfieUrl', pub.publicUrl);
+      // Store the object path — bucket is private; signed URLs are minted at read time.
+      set('selfieUrl', path);
       toast({ title: 'Foto atualizada', description: 'A nova foto foi enviada. Clique em Salvar para confirmar.' });
     } catch (err: any) {
       toast({ title: 'Erro', description: 'Não foi possível enviar a foto.', variant: 'destructive' });
@@ -144,7 +145,7 @@ export const CandidateEditDialog = ({ open, onOpenChange, candidate, onSaved }: 
           {/* Photo */}
           <div className="flex items-center gap-4">
             <Avatar className="h-24 w-24">
-              <AvatarImage src={form.selfieUrl || undefined} alt={form.fullName} />
+              <SignedAvatarImage bucket="selfies" value={form.selfieUrl} alt={form.fullName} />
               <AvatarFallback>{form.fullName.charAt(0).toUpperCase() || '—'}</AvatarFallback>
             </Avatar>
             <div className="flex flex-col gap-2">

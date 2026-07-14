@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { SignedAvatarImage } from "./SignedAvatarImage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -291,7 +292,7 @@ export const StaffDashboard = ({ candidates, hrDataMap, onSelectCandidate }: Sta
                         <TableRow key={emp.candidate.id}>
                           <TableCell>
                             <Avatar className="h-10 w-10">
-                              <AvatarImage src={emp.candidate.selfieUrl} alt={emp.candidate.fullName} />
+                              <SignedAvatarImage bucket="selfies" value={emp.candidate.selfieUrl} alt={emp.candidate.fullName} />
                               <AvatarFallback className="bg-primary/10 text-primary font-medium text-xs">
                                 {getInitials(emp.candidate.fullName)}
                               </AvatarFallback>

@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, ExternalLink, File } from "lucide-react";
 import type { Candidate } from "@/types/candidate";
+import { getSignedStorageUrl } from "@/lib/storagePath";
 
 interface ResumeBlockProps {
   candidate: Candidate;
@@ -20,6 +21,11 @@ export const ResumeBlock = ({ candidate }: ResumeBlockProps) => {
     }
   };
 
+  const openSigned = async (value: string) => {
+    const url = await getSignedStorageUrl("documents", value);
+    if (url) window.open(url, '_blank');
+  };
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -34,7 +40,7 @@ export const ResumeBlock = ({ candidate }: ResumeBlockProps) => {
             <Button
               variant="outline"
               className="w-full justify-start gap-2"
-              onClick={() => window.open(candidate.resumeUrl, '_blank')}
+              onClick={() => openSigned(candidate.resumeUrl!)}
             >
               <FileText className="h-4 w-4" />
               Visualizar Currículo
@@ -54,7 +60,7 @@ export const ResumeBlock = ({ candidate }: ResumeBlockProps) => {
                   key={i}
                   variant="ghost"
                   className="w-full justify-start gap-2"
-                  onClick={() => window.open(url, '_blank')}
+                  onClick={() => openSigned(url)}
                 >
                   <File className="h-4 w-4" />
                   <span className="truncate">{fileNameFromUrl(url)}</span>
