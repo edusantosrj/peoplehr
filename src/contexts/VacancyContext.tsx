@@ -264,33 +264,57 @@ export const VacancyProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addSector = (sector: string) => {
+    const hidden = readHidden(HIDDEN_KEYS.sectors).filter((s) => s !== sector);
+    writeHidden(HIDDEN_KEYS.sectors, hidden);
     if (!sectors.includes(sector)) {
       setSectors((prev) => [...prev, sector].sort());
     }
   };
 
-  const removeSector = (sector: string) => {
+  const removeSector = (sector: string): RemoveResult => {
+    const inUse = vacancies.some((v) => v.sector === sector);
+    if (inUse) {
+      return { ok: false, reason: 'Existem vagas cadastradas utilizando este Setor. Remova ou altere essas vagas antes de excluir.' };
+    }
+    writeHidden(HIDDEN_KEYS.sectors, [...readHidden(HIDDEN_KEYS.sectors), sector]);
     setSectors((prev) => prev.filter((s) => s !== sector));
+    return { ok: true };
   };
 
   const addUnit = (unit: string) => {
+    const hidden = readHidden(HIDDEN_KEYS.units).filter((u) => u !== unit);
+    writeHidden(HIDDEN_KEYS.units, hidden);
     if (!units.includes(unit)) {
       setUnits((prev) => [...prev, unit].sort());
     }
   };
 
-  const removeUnit = (unit: string) => {
+  const removeUnit = (unit: string): RemoveResult => {
+    const inUse = vacancies.some((v) => v.unit === unit);
+    if (inUse) {
+      return { ok: false, reason: 'Existem vagas cadastradas utilizando esta Unidade / Loja. Remova ou altere essas vagas antes de excluir.' };
+    }
+    writeHidden(HIDDEN_KEYS.units, [...readHidden(HIDDEN_KEYS.units), unit]);
     setUnits((prev) => prev.filter((u) => u !== unit));
+    return { ok: true };
   };
 
   const addShift = (shift: string) => {
+    const hidden = readHidden(HIDDEN_KEYS.shifts).filter((s) => s !== shift);
+    writeHidden(HIDDEN_KEYS.shifts, hidden);
     if (!shifts.includes(shift)) {
       setShifts((prev) => [...prev, shift].sort());
     }
   };
 
-  const removeShift = (shift: string) => {
+  const removeShift = (shift: string): RemoveResult => {
+    const inUse = vacancies.some((v) => v.shift === shift);
+    if (inUse) {
+      return { ok: false, reason: 'Existem vagas cadastradas utilizando este Turno. Remova ou altere essas vagas antes de excluir.' };
+    }
+    writeHidden(HIDDEN_KEYS.shifts, [...readHidden(HIDDEN_KEYS.shifts), shift]);
     setShifts((prev) => prev.filter((s) => s !== shift));
+    return { ok: true };
   };
 
   return (
