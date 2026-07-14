@@ -20,7 +20,7 @@ const Index = () => {
 
     const cpfDigits = data.cpf.replace(/\D/g, '');
 
-    // Upload selfie to storage
+    // Upload selfie to private storage — store the object path (not a public URL).
     if (data.selfieFile) {
       const path = `${cpfDigits}_${Date.now()}.jpg`;
       const { error: uploadErr } = await supabase.storage
@@ -31,11 +31,10 @@ const Index = () => {
         toast.error("Erro ao enviar selfie. Tente novamente.");
         throw uploadErr;
       }
-      const { data: urlData } = supabase.storage.from("selfies").getPublicUrl(path);
-      selfieUrl = urlData.publicUrl;
+      selfieUrl = path;
     }
 
-    // Upload resume
+    // Upload resume — store the object path.
     if (data.resumeFile) {
       const safeName = data.resumeFile.name.replace(/[^\w.-]/g, '_');
       const path = `${cpfDigits}/${Date.now()}_${safeName}`;
@@ -46,11 +45,11 @@ const Index = () => {
         console.error("Erro ao enviar currículo:", upErr);
         toast.error("Erro ao enviar currículo.");
       } else {
-        resumeUrl = supabase.storage.from("documents").getPublicUrl(path).data.publicUrl;
+        resumeUrl = path;
       }
     }
 
-    // Upload other files
+    // Upload other files — store the object paths.
     if (Array.isArray(data.otherFiles)) {
       for (const file of data.otherFiles) {
         const safeName = file.name.replace(/[^\w.-]/g, '_');
@@ -59,7 +58,7 @@ const Index = () => {
           .from("documents")
           .upload(path, file, { contentType: file.type || undefined });
         if (!upErr) {
-          otherFilesUrls.push(supabase.storage.from("documents").getPublicUrl(path).data.publicUrl);
+          otherFilesUrls.push(path);
         }
       }
     }

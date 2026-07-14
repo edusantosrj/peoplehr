@@ -53,8 +53,8 @@ export const CandidateEditDialog = ({ open, onOpenChange, candidate, onSaved }: 
       const path = `${candidate.id}/selfie_${Date.now()}.${ext}`;
       const { error: upErr } = await supabase.storage.from('selfies').upload(path, file, { upsert: true });
       if (upErr) throw upErr;
-      const { data: pub } = supabase.storage.from('selfies').getPublicUrl(path);
-      set('selfieUrl', pub.publicUrl);
+      // Store the object path — bucket is private; signed URLs are minted at read time.
+      set('selfieUrl', path);
       toast({ title: 'Foto atualizada', description: 'A nova foto foi enviada. Clique em Salvar para confirmar.' });
     } catch (err: any) {
       toast({ title: 'Erro', description: 'Não foi possível enviar a foto.', variant: 'destructive' });
