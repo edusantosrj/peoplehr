@@ -1,7 +1,9 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Clock, Users, Briefcase } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { MapPin, Clock, Users, Briefcase, Printer } from 'lucide-react';
+import { VacancyMapPrintDialog } from './VacancyMapPrintDialog';
 import type { Vacancy } from '@/types/vacancy';
 import { formatWorkHours } from '@/types/vacancy';
 import { useVacancies } from '@/contexts/VacancyContext';
