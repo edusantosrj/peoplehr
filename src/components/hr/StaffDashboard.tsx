@@ -291,7 +291,7 @@ export const StaffDashboard = ({ candidates, hrDataMap, onSelectCandidate }: Sta
                         <TableRow key={emp.candidate.id}>
                           <TableCell>
                             <Avatar className="h-10 w-10">
-                              <AvatarImage src={emp.candidate.selfieUrl} alt={emp.candidate.fullName} />
+                              <SignedAvatarImage bucket="selfies" value={emp.candidate.selfieUrl} alt={emp.candidate.fullName} />
                               <AvatarFallback className="bg-primary/10 text-primary font-medium text-xs">
                                 {getInitials(emp.candidate.fullName)}
                               </AvatarFallback>

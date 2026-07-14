@@ -425,7 +425,7 @@ export const CandidateList = ({
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-9 w-9">
-                          <AvatarImage src={candidate.selfieUrl || undefined} alt={candidate.fullName} />
+                          <SignedAvatarImage bucket="selfies" value={candidate.selfieUrl} alt={candidate.fullName} />
                           <AvatarFallback>{candidate.fullName.trim().charAt(0).toUpperCase() || '—'}</AvatarFallback>
                         </Avatar>
                         <span>{candidate.fullName}</span>
