@@ -585,7 +585,8 @@ export const VacancyForm = ({ vacancy, onSave, onCancel }: VacancyFormProps) => 
                   variant="ghost"
                   className="h-8 w-8 text-destructive hover:text-destructive"
                   onClick={() => {
-                    handleDeleteItem(deleteDialog.type, item);
+                    const ok = handleDeleteItem(deleteDialog.type, item);
+                    if (!ok) return;
                     const remaining = deleteDialog.items.filter((i) => i !== item);
                     if (remaining.length === 0) {
                       setDeleteDialog((prev) => ({ ...prev, open: false }));
