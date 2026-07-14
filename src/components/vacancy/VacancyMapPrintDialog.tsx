@@ -49,9 +49,10 @@ const renderUnitPage = (unit: string, vacancies: Vacancy[], isLast: boolean) => 
   const section = (title: string, list: Vacancy[]) => {
     if (list.length === 0) return '';
     const t = list.reduce((s, v) => s + v.quantity, 0);
+    const badgeClass = title === 'Nova Contratação' ? 'type-badge type-nova' : 'type-badge type-sub';
     return `
       <div class="section">
-        <div class="section-head"><span class="type-badge">${title}</span> <span class="muted">(${t} vaga${t !== 1 ? 's' : ''})</span></div>
+        <div class="section-head"><span class="${badgeClass}">${title}</span> <span class="muted">(${t} vaga${t !== 1 ? 's' : ''})</span></div>
         <div class="cards">${list.map(renderVacancyCard).join('')}</div>
       </div>
     `;
