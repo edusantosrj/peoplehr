@@ -469,6 +469,25 @@ export const VacancyForm = ({ vacancy, onSave, onCancel }: VacancyFormProps) => 
               </div>
             </div>
 
+            {/* Status */}
+            <div className="space-y-3">
+              <Label>Status da Vaga *</Label>
+              <RadioGroup
+                value={formData.status}
+                onValueChange={(value) => handleChange('status', value)}
+                className="flex flex-wrap gap-4"
+              >
+                {VACANCY_STATUS.map((status) => (
+                  <div key={status} className="flex items-center space-x-2">
+                    <RadioGroupItem value={status} id={`status-${status}`} />
+                    <Label htmlFor={`status-${status}`} className="font-normal cursor-pointer">
+                      {status}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+
             {/* Detailed Description (Rich Text) */}
             <div className="space-y-4">
               <h3 className="font-semibold text-primary">Descrição Detalhada da Vaga</h3>
@@ -521,24 +540,6 @@ export const VacancyForm = ({ vacancy, onSave, onCancel }: VacancyFormProps) => 
               </div>
             </div>
 
-            {/* Status */}
-            <div className="space-y-3">
-              <Label>Status da Vaga *</Label>
-              <RadioGroup
-                value={formData.status}
-                onValueChange={(value) => handleChange('status', value)}
-                className="flex flex-wrap gap-4"
-              >
-                {VACANCY_STATUS.map((status) => (
-                  <div key={status} className="flex items-center space-x-2">
-                    <RadioGroupItem value={status} id={`status-${status}`} />
-                    <Label htmlFor={`status-${status}`} className="font-normal cursor-pointer">
-                      {status}
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
-            </div>
 
             {/* Actions */}
             <div className="flex flex-wrap gap-3 pt-4">
