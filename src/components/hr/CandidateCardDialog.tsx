@@ -6,6 +6,7 @@ import { toJpeg } from "html-to-image";
 import type { Candidate } from "@/types/candidate";
 import type { CandidateHRData } from "@/types/hr";
 import { formatDateDisplay } from "@/utils/textFormatting";
+import { useSignedStorageUrl } from "@/lib/storagePath";
 
 interface Props {
   open: boolean;
@@ -28,6 +29,7 @@ const calculateAge = (birthDate: string) => {
 export const CandidateCardDialog = ({ open, onOpenChange, candidate, hrData }: Props) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [downloading, setDownloading] = useState(false);
+  const signedSelfie = useSignedStorageUrl("selfies", candidate.selfieUrl);
 
   const positions = [candidate.desiredPosition1, candidate.desiredPosition2, candidate.desiredPosition3]
     .filter((p): p is string => Boolean(p && p.trim()));
@@ -97,10 +99,10 @@ export const CandidateCardDialog = ({ open, onOpenChange, candidate, hrData }: P
             {/* Photo + Name */}
             <div className="flex flex-col items-center px-6 pt-6 pb-4 bg-gray-50">
               <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-white shadow-md bg-gray-200 flex items-center justify-center">
-                {candidate.selfieUrl ? (
+                {signedSelfie ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={candidate.selfieUrl}
+                    src={signedSelfie}
                     alt={candidate.fullName}
                     crossOrigin="anonymous"
                     style={{ width: "100%", height: "100%", objectFit: "cover" }}

@@ -29,6 +29,7 @@ import {
   saveDocumentation,
   saveEmergencyContacts,
 } from "@/services/hrDataService";
+import { getSignedStorageUrl, useSignedStorageUrl } from "@/lib/storagePath";
 
 interface CandidateProfileProps {
   candidate: Candidate;
@@ -173,16 +174,21 @@ export const CandidateProfile = ({
     }
   };
 
+  const signedSelfieUrl = useSignedStorageUrl("selfies", localCandidate.selfieUrl);
+
   const handlePrint = async () => {
     setIsPreparingPrint(true);
     try {
       if (localCandidate.selfieUrl) {
-        await new Promise<void>((resolve, reject) => {
-          const image = new Image();
-          image.onload = () => resolve();
-          image.onerror = () => reject(new Error("selfie-load-error"));
-          image.src = localCandidate.selfieUrl;
-        });
+        const url = await getSignedStorageUrl("selfies", localCandidate.selfieUrl);
+        if (url) {
+          await new Promise<void>((resolve, reject) => {
+            const image = new Image();
+            image.onload = () => resolve();
+            image.onerror = () => reject(new Error("selfie-load-error"));
+            image.src = url;
+          });
+        }
       }
 
       await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
@@ -218,7 +224,7 @@ export const CandidateProfile = ({
       </div>
 
       <CandidateProfileHeader
-        photoUrl={localCandidate.selfieUrl}
+        photoUrl={signedSelfieUrl}
         fullName={localCandidate.fullName}
         cpf={localCandidate.cpf}
         registrationDate={localCandidate.registrationDate}
