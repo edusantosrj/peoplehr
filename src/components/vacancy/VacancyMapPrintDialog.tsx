@@ -96,19 +96,21 @@ export const VacancyMapPrintDialog = ({ open, onOpenChange, vacancies }: Props) 
 <html lang="pt-BR"><head><meta charset="utf-8" /><title>Mapa Estratégico de Vagas</title>
 <style>
   * { box-sizing: border-box; }
-  body { font-family: Arial, Helvetica, sans-serif; color: #111; margin: 0; padding: 24px; font-size: 12px; }
-  .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0a7a3b; padding-bottom: 8px; margin-bottom: 8px; }
-  .brand h1 { margin: 0; font-size: 16px; color: #0a7a3b; }
+  body { font-family: Arial, Helvetica, sans-serif; color: #111; margin: 0; padding: 80px 24px 60px 24px; font-size: 12px; }
+  .header { position: fixed; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #000080; padding: 12px 24px; background: #fff; z-index: 1000; }
+  .brand h1 { margin: 0; font-size: 16px; color: #000080; }
   .brand p { margin: 2px 0 0; font-size: 11px; color: #444; }
-  .print-date { font-size: 11px; text-align: right; }
-  .doc-title { text-align: center; font-size: 18px; font-weight: bold; letter-spacing: 1px; margin: 12px 0 20px; }
+  .print-date { font-size: 11px; text-align: right; color: #000080; }
+  .doc-title { text-align: center; font-size: 18px; font-weight: bold; letter-spacing: 1px; margin: 12px 0 20px; color: #000080; }
   .unit-page { page-break-after: always; }
   .unit-page.last { page-break-after: auto; }
-  .unit-title { font-size: 15px; color: #0a7a3b; border-left: 4px solid #0a7a3b; padding-left: 8px; margin: 0 0 12px; }
+  .unit-title { font-size: 15px; color: #000; border-left: 4px solid #000; padding-left: 8px; margin: 0 0 12px; }
   .unit-total { font-size: 12px; color: #555; font-weight: normal; }
   .section { margin-bottom: 14px; }
   .section-head { margin-bottom: 6px; }
-  .type-badge { background: #0a7a3b; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 11px; }
+  .type-badge { color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 11px; }
+  .type-nova { background: #d32f2f; }
+  .type-sub { background: #f57c00; }
   .muted { color: #666; font-size: 11px; }
   .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .card { border: 1px solid #ccc; border-radius: 6px; padding: 8px; break-inside: avoid; }
@@ -117,10 +119,13 @@ export const VacancyMapPrintDialog = ({ open, onOpenChange, vacancies }: Props) 
   .badge { border: 1px solid #999; border-radius: 10px; padding: 1px 6px; font-size: 10px; }
   .card-body div { margin: 2px 0; font-size: 11px; }
   .obs { margin-top: 4px; padding-top: 4px; border-top: 1px dashed #ccc; }
-  .footer { position: fixed; bottom: 12px; left: 24px; right: 24px; border-top: 1px solid #999; padding-top: 6px; font-size: 10px; color: #333; }
+  .footer { position: fixed; bottom: 0; left: 0; right: 0; border-top: 1px solid #999; padding: 8px 24px; font-size: 10px; color: #333; background: #fff; z-index: 1000; }
   .footer .leg { display: flex; gap: 20px; }
   .footer .leg div { flex: 1; }
-  @page { margin: 20mm 12mm 28mm 12mm; }
+  .footer-badge { color: #fff; padding: 1px 6px; border-radius: 8px; font-size: 10px; margin-right: 4px; }
+  .footer-nova { background: #d32f2f; }
+  .footer-sub { background: #f57c00; }
+  @page { margin: 0; }
 </style>
 </head><body>
   <div class="header">
@@ -134,8 +139,8 @@ export const VacancyMapPrintDialog = ({ open, onOpenChange, vacancies }: Props) 
   ${body}
   <div class="footer">
     <div class="leg">
-      <div><strong>Nova Contratação:</strong> Posição de trabalho sem funcionário.</div>
-      <div><strong>Substituição:</strong> Vaga destinada à substituição de funcionário em aviso prévio ou planejado para desligamento.</div>
+      <div><span class="footer-badge footer-nova">Nova Contratação</span> Posição de trabalho sem funcionário.</div>
+      <div><span class="footer-badge footer-sub">Substituição</span> Vaga destinada à substituição de funcionário em aviso prévio ou planejado para desligamento.</div>
     </div>
   </div>
   <script>window.onload = () => { setTimeout(() => { window.print(); }, 200); };</script>
