@@ -19,7 +19,18 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ArrowUpDown, Edit, List, Plus, X } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { ArrowUpDown, Edit, List, Plus, Trash2, X } from 'lucide-react';
+import { toast } from 'sonner';
 import type { Vacancy } from '@/types/vacancy';
 import { formatSalary, VACANCY_TYPES } from '@/types/vacancy';
 import { useVacancies } from '@/contexts/VacancyContext';
@@ -35,7 +46,23 @@ interface VacancyListProps {
 const ALL = '__all__';
 
 export const VacancyList = ({ onEdit, onNew }: VacancyListProps) => {
-  const { vacancies, units, sectors, shifts } = useVacancies();
+  const { vacancies, units, sectors, shifts, deleteVacancy } = useVacancies();
+  const [pendingDelete, setPendingDelete] = useState<Vacancy | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleConfirmDelete = async () => {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    const result = await deleteVacancy(pendingDelete.id);
+    setDeleting(false);
+    if (result.ok) {
+      toast.success('Vaga excluída com sucesso.');
+      setPendingDelete(null);
+    } else {
+      toast.error(result.reason ?? 'Não foi possível excluir a vaga.');
+      setPendingDelete(null);
+    }
+  };
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
@@ -232,13 +259,25 @@ export const VacancyList = ({ onEdit, onNew }: VacancyListProps) => {
                   </TableCell>
                   <TableCell>{formatSalary(vacancy.grossSalary)}</TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onEdit(vacancy)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
+                    <div className="flex justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onEdit(vacancy)}
+                        title="Editar vaga"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setPendingDelete(vacancy)}
+                        title="Excluir vaga"
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -255,6 +294,37 @@ export const VacancyList = ({ onEdit, onNew }: VacancyListProps) => {
           </Table>
         </div>
       </CardContent>
+
+      <AlertDialog
+        open={!!pendingDelete}
+        onOpenChange={(open) => !open && !deleting && setPendingDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir vaga?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir a vaga{' '}
+              <strong>{pendingDelete?.name}</strong> — {pendingDelete?.unit}?
+              <br />
+              Antes da exclusão, verificamos se existem funcionários contratados ou
+              candidatos vinculados. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleConfirmDelete();
+              }}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? 'Excluindo...' : 'Excluir'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };
