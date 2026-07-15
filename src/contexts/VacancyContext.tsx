@@ -224,11 +224,16 @@ export const VacancyProvider = ({ children }: { children: ReactNode }) => {
     const vacancy = vacancies.find((v) => v.id === id);
     if (!vacancy) return { hasDependencies: false };
 
-    // 1) Admissions linked to this vacancy (funcionário contratado)
-    const { count: admissionsCount, error: admErr } = await supabase
+    // Identify the vacancy by the specific combination Nome + Unidade + Turno.
+    // Only admissions vinculated to THIS specific vacancy (via vacancy_id, or the
+    // exact name+unit+shift triple) should block deletion. Vagas homônimas em
+    // outras unidades/turnos não devem impedir a exclusão.
+    const { data: admissions, error: admErr } = await supabase
       .from('hr_admissions')
-      .select('id', { count: 'exact', head: true })
-      .eq('vacancy_id', id);
+      .select('id, vacancy_id, vacancy_name, unit, shift')
+      .or(
+        `vacancy_id.eq.${id},and(vacancy_name.eq.${vacancy.name},unit.eq.${vacancy.unit},shift.eq.${vacancy.shift})`
+      );
 
     if (admErr) {
       console.error('Erro ao verificar dependências (admissões):', admErr);
@@ -238,35 +243,11 @@ export const VacancyProvider = ({ children }: { children: ReactNode }) => {
       };
     }
 
-    if ((admissionsCount ?? 0) > 0) {
+    if ((admissions?.length ?? 0) > 0) {
       return {
         hasDependencies: true,
         reason:
-          'Existe(m) funcionário(s) contratado(s) vinculado(s) a esta vaga. Exclusão não permitida.',
-      };
-    }
-
-    // 2) Candidates whose desired positions match this vacancy name
-    const { count: candCount, error: candErr } = await supabase
-      .from('candidates')
-      .select('id', { count: 'exact', head: true })
-      .or(
-        `desired_position_1.eq.${vacancy.name},desired_position_2.eq.${vacancy.name},desired_position_3.eq.${vacancy.name}`
-      );
-
-    if (candErr) {
-      console.error('Erro ao verificar dependências (candidatos):', candErr);
-      return {
-        hasDependencies: true,
-        reason: 'Não foi possível verificar dependências no momento. Tente novamente.',
-      };
-    }
-
-    if ((candCount ?? 0) > 0) {
-      return {
-        hasDependencies: true,
-        reason:
-          'Existe(m) candidato(s) vinculado(s) a esta vaga. Exclusão não permitida.',
+          'Existe(m) funcionário(s) contratado(s) vinculado(s) a esta vaga específica (Nome + Unidade + Turno). Exclusão não permitida.',
       };
     }
 
