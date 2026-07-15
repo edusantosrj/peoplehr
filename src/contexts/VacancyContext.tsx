@@ -224,16 +224,14 @@ export const VacancyProvider = ({ children }: { children: ReactNode }) => {
     const vacancy = vacancies.find((v) => v.id === id);
     if (!vacancy) return { hasDependencies: false };
 
-    // Identify the vacancy by the specific combination Nome + Unidade + Turno.
-    // Only admissions vinculated to THIS specific vacancy (via vacancy_id, or the
-    // exact name+unit+shift triple) should block deletion. Vagas homônimas em
-    // outras unidades/turnos não devem impedir a exclusão.
-    const { data: admissions, error: admErr } = await supabase
+    // Identificar a vaga pela combinação específica Nome + Unidade + Turno.
+    // O vacancy_id na tabela de admissões já aponta para a vaga específica
+    // (que carrega name + unit + shift), portanto vagas homônimas em outras
+    // unidades/turnos não bloqueiam a exclusão desta.
+    const { count: admissionsCount, error: admErr } = await supabase
       .from('hr_admissions')
-      .select('id, vacancy_id, vacancy_name, unit, shift')
-      .or(
-        `vacancy_id.eq.${id},and(vacancy_name.eq.${vacancy.name},unit.eq.${vacancy.unit},shift.eq.${vacancy.shift})`
-      );
+      .select('id', { count: 'exact', head: true })
+      .eq('vacancy_id', id);
 
     if (admErr) {
       console.error('Erro ao verificar dependências (admissões):', admErr);
@@ -243,7 +241,7 @@ export const VacancyProvider = ({ children }: { children: ReactNode }) => {
       };
     }
 
-    if ((admissions?.length ?? 0) > 0) {
+    if ((admissionsCount ?? 0) > 0) {
       return {
         hasDependencies: true,
         reason:
