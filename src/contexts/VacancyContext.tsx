@@ -218,8 +218,79 @@ export const VacancyProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const deleteVacancy = (id: string) => {
+  const checkVacancyDependencies = async (
+    id: string
+  ): Promise<{ hasDependencies: boolean; reason?: string }> => {
+    const vacancy = vacancies.find((v) => v.id === id);
+    if (!vacancy) return { hasDependencies: false };
+
+    // 1) Admissions linked to this vacancy (funcionário contratado)
+    const { count: admissionsCount, error: admErr } = await supabase
+      .from('hr_admissions')
+      .select('id', { count: 'exact', head: true })
+      .eq('vacancy_id', id);
+
+    if (admErr) {
+      console.error('Erro ao verificar dependências (admissões):', admErr);
+      return {
+        hasDependencies: true,
+        reason: 'Não foi possível verificar dependências no momento. Tente novamente.',
+      };
+    }
+
+    if ((admissionsCount ?? 0) > 0) {
+      return {
+        hasDependencies: true,
+        reason:
+          'Existe(m) funcionário(s) contratado(s) vinculado(s) a esta vaga. Exclusão não permitida.',
+      };
+    }
+
+    // 2) Candidates whose desired positions match this vacancy name
+    const { count: candCount, error: candErr } = await supabase
+      .from('candidates')
+      .select('id', { count: 'exact', head: true })
+      .or(
+        `desired_position_1.eq.${vacancy.name},desired_position_2.eq.${vacancy.name},desired_position_3.eq.${vacancy.name}`
+      );
+
+    if (candErr) {
+      console.error('Erro ao verificar dependências (candidatos):', candErr);
+      return {
+        hasDependencies: true,
+        reason: 'Não foi possível verificar dependências no momento. Tente novamente.',
+      };
+    }
+
+    if ((candCount ?? 0) > 0) {
+      return {
+        hasDependencies: true,
+        reason:
+          'Existe(m) candidato(s) vinculado(s) a esta vaga. Exclusão não permitida.',
+      };
+    }
+
+    return { hasDependencies: false };
+  };
+
+  const deleteVacancy = async (id: string): Promise<RemoveResult> => {
+    const dep = await checkVacancyDependencies(id);
+    if (dep.hasDependencies) {
+      return { ok: false, reason: dep.reason };
+    }
+
+    const { error } = await supabase.from('vacancies').delete().eq('id', id);
+    if (error) {
+      console.error('Erro ao excluir vaga:', error);
+      return {
+        ok: false,
+        reason:
+          'Não foi possível excluir a vaga. Verifique se não existem vínculos ativos.',
+      };
+    }
+
     setVacancies((prev) => prev.filter((v) => v.id !== id));
+    return { ok: true };
   };
 
   const debitVacancy = async (id: string): Promise<boolean> => {
