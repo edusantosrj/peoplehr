@@ -294,6 +294,37 @@ export const VacancyList = ({ onEdit, onNew }: VacancyListProps) => {
           </Table>
         </div>
       </CardContent>
+
+      <AlertDialog
+        open={!!pendingDelete}
+        onOpenChange={(open) => !open && !deleting && setPendingDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir vaga?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir a vaga{' '}
+              <strong>{pendingDelete?.name}</strong> — {pendingDelete?.unit}?
+              <br />
+              Antes da exclusão, verificamos se existem funcionários contratados ou
+              candidatos vinculados. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleConfirmDelete();
+              }}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? 'Excluindo...' : 'Excluir'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };
