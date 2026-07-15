@@ -19,7 +19,18 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ArrowUpDown, Edit, List, Plus, X } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { ArrowUpDown, Edit, List, Plus, Trash2, X } from 'lucide-react';
+import { toast } from 'sonner';
 import type { Vacancy } from '@/types/vacancy';
 import { formatSalary, VACANCY_TYPES } from '@/types/vacancy';
 import { useVacancies } from '@/contexts/VacancyContext';
