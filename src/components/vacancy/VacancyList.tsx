@@ -46,7 +46,23 @@ interface VacancyListProps {
 const ALL = '__all__';
 
 export const VacancyList = ({ onEdit, onNew }: VacancyListProps) => {
-  const { vacancies, units, sectors, shifts } = useVacancies();
+  const { vacancies, units, sectors, shifts, deleteVacancy } = useVacancies();
+  const [pendingDelete, setPendingDelete] = useState<Vacancy | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleConfirmDelete = async () => {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    const result = await deleteVacancy(pendingDelete.id);
+    setDeleting(false);
+    if (result.ok) {
+      toast.success('Vaga excluída com sucesso.');
+      setPendingDelete(null);
+    } else {
+      toast.error(result.reason ?? 'Não foi possível excluir a vaga.');
+      setPendingDelete(null);
+    }
+  };
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
