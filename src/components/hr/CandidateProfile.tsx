@@ -222,7 +222,15 @@ export const CandidateProfile = ({
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar para Lista
         </Button>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button variant="outline" size="sm" onClick={expandAll}>
+            <ChevronsUpDown className="h-4 w-4 mr-2" />
+            Expandir Todos
+          </Button>
+          <Button variant="outline" size="sm" onClick={collapseAll}>
+            <ChevronsDownUp className="h-4 w-4 mr-2" />
+            Recolher Todos
+          </Button>
           <Button variant="default" onClick={() => setEditOpen(true)}>
             <Pencil className="h-4 w-4 mr-2" />
             Editar Ficha do Candidato
@@ -245,46 +253,65 @@ export const CandidateProfile = ({
         registrationDate={localCandidate.registrationDate}
       />
 
-      <div className="space-y-6">
-        <PersonalDataBlock candidate={localCandidate} />
-        <AddressBlock candidate={localCandidate} />
-        <EducationBlock candidate={localCandidate} />
-        <ExperienceBlock experiences={localCandidate.workExperiences} firstJob={localCandidate.firstJob} />
-        <AspirationsBlock candidate={localCandidate} />
-        <ResumeBlock candidate={localCandidate} />
-        <AnnotationsBlock
-          annotations={localHRData.annotations}
-          onAddAnnotation={handleAddAnnotation}
-        />
-        <EvaluationBlock
-          evaluation={localHRData.evaluation}
-          onUpdate={handleUpdateEvaluation}
-        />
-        <DocumentationBlock
-          documentation={localHRData.documentation}
-          onUpdate={handleUpdateDocumentation}
-        />
-        <AdmissionBlock
-          admission={localHRData.admission}
-          onUpdate={handleUpdateAdmission}
-          onBatchUpdate={handleBatchUpdateAdmission}
-          onSave={handleSaveAdmission}
-          onDebitVacancy={handleDebitVacancy}
-        />
-        <TerminationBlock
-          termination={localHRData.termination}
-          onUpdate={handleUpdateTermination}
-          onSave={handleSaveTermination}
-        />
-        <EmergencyContactsBlock
-          contacts={localHRData.emergencyContacts || []}
-          onUpdate={handleUpdateEmergencyContacts}
-        />
-        <HistoryBlock
-          candidate={localCandidate}
-          hrData={localHRData}
-        />
-      </div>
+      <Accordion
+        type="multiple"
+        value={openSections}
+        onValueChange={setOpenSections}
+        className="space-y-3 print:space-y-3"
+      >
+        <AccordionItem value="personal" className="border rounded-lg bg-card px-4 print:border-0 print:px-0">
+          <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">Dados Pessoais</AccordionTrigger>
+          <AccordionContent className="pt-2 print:!block"><PersonalDataBlock candidate={localCandidate} /></AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="address" className="border rounded-lg bg-card px-4 print:border-0 print:px-0">
+          <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">Endereço</AccordionTrigger>
+          <AccordionContent className="pt-2 print:!block"><AddressBlock candidate={localCandidate} /></AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="education" className="border rounded-lg bg-card px-4 print:border-0 print:px-0">
+          <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">Escolaridade e Cursos</AccordionTrigger>
+          <AccordionContent className="pt-2 print:!block"><EducationBlock candidate={localCandidate} /></AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="experience" className="border rounded-lg bg-card px-4 print:border-0 print:px-0">
+          <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">Experiência Profissional</AccordionTrigger>
+          <AccordionContent className="pt-2 print:!block"><ExperienceBlock experiences={localCandidate.workExperiences} firstJob={localCandidate.firstJob} /></AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="aspirations" className="border rounded-lg bg-card px-4 print:border-0 print:px-0">
+          <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">Pretensões</AccordionTrigger>
+          <AccordionContent className="pt-2 print:!block"><AspirationsBlock candidate={localCandidate} /></AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="resume" className="border rounded-lg bg-card px-4 print:border-0 print:px-0">
+          <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">Arquivos</AccordionTrigger>
+          <AccordionContent className="pt-2 print:!block"><ResumeBlock candidate={localCandidate} /></AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="annotations" className="border rounded-lg bg-card px-4 print:border-0 print:px-0">
+          <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">Anotações do RH</AccordionTrigger>
+          <AccordionContent className="pt-2 print:!block"><AnnotationsBlock annotations={localHRData.annotations} onAddAnnotation={handleAddAnnotation} /></AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="evaluation" className="border rounded-lg bg-card px-4 print:border-0 print:px-0">
+          <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">Avaliação do Processo Seletivo</AccordionTrigger>
+          <AccordionContent className="pt-2 print:!block"><EvaluationBlock evaluation={localHRData.evaluation} onUpdate={handleUpdateEvaluation} /></AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="documentation" className="border rounded-lg bg-card px-4 print:border-0 print:px-0">
+          <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">Documentação</AccordionTrigger>
+          <AccordionContent className="pt-2 print:!block"><DocumentationBlock documentation={localHRData.documentation} onUpdate={handleUpdateDocumentation} /></AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="admission" className="border rounded-lg bg-card px-4 print:border-0 print:px-0">
+          <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">Admissão do Candidato</AccordionTrigger>
+          <AccordionContent className="pt-2 print:!block"><AdmissionBlock admission={localHRData.admission} onUpdate={handleUpdateAdmission} onBatchUpdate={handleBatchUpdateAdmission} onSave={handleSaveAdmission} onDebitVacancy={handleDebitVacancy} /></AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="termination" className="border rounded-lg bg-card px-4 print:border-0 print:px-0">
+          <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">Desligamento</AccordionTrigger>
+          <AccordionContent className="pt-2 print:!block"><TerminationBlock termination={localHRData.termination} onUpdate={handleUpdateTermination} onSave={handleSaveTermination} /></AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="emergency" className="border rounded-lg bg-card px-4 print:border-0 print:px-0">
+          <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">Contatos de Emergência</AccordionTrigger>
+          <AccordionContent className="pt-2 print:!block"><EmergencyContactsBlock contacts={localHRData.emergencyContacts || []} onUpdate={handleUpdateEmergencyContacts} /></AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="history" className="border rounded-lg bg-card px-4 print:border-0 print:px-0">
+          <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">Histórico</AccordionTrigger>
+          <AccordionContent className="pt-2 print:!block"><HistoryBlock candidate={localCandidate} hrData={localHRData} /></AccordionContent>
+        </AccordionItem>
+      </Accordion>
 
       <CandidateEditDialog
         open={editOpen}
