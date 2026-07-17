@@ -188,6 +188,8 @@ export const CandidateProfile = ({
 
   const handlePrint = async () => {
     setIsPreparingPrint(true);
+    const previousOpen = openSections;
+    setOpenSections(ALL_SECTIONS);
     try {
       if (localCandidate.selfieUrl) {
         const url = await getSignedStorageUrl("selfies", localCandidate.selfieUrl);
@@ -201,12 +203,15 @@ export const CandidateProfile = ({
         }
       }
 
+      // Aguarda dois frames para o Radix Accordion terminar de expandir.
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
       await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
       window.print();
     } catch {
       toast({ title: "Erro", description: "Não foi possível carregar a selfie para impressão.", variant: "destructive" });
     } finally {
       setIsPreparingPrint(false);
+      setOpenSections(previousOpen);
     }
   };
 
