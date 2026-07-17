@@ -332,27 +332,57 @@ export const CandidateProfile = ({
         className="space-y-3 print:space-y-3"
       >
         <AccordionItem value="personal" className="border rounded-lg bg-card px-4 print:border-0 print:px-0">
-          <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">Dados Pessoais</AccordionTrigger>
+          <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">
+            <span className="flex items-center gap-2 flex-1 min-w-0">
+              <span className="shrink-0">Dados Pessoais</span>
+              {personalSummary && <span className="text-sm text-muted-foreground truncate">{personalSummary}</span>}
+            </span>
+          </AccordionTrigger>
           <AccordionContent className="pt-2 print:!block"><PersonalDataBlock candidate={localCandidate} /></AccordionContent>
         </AccordionItem>
         <AccordionItem value="address" className="border rounded-lg bg-card px-4 print:border-0 print:px-0">
-          <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">Endereço</AccordionTrigger>
+          <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">
+            <span className="flex items-center gap-2 flex-1 min-w-0">
+              <span className="shrink-0">Endereço</span>
+              <span className="text-sm text-muted-foreground truncate">{addressSummary}</span>
+            </span>
+          </AccordionTrigger>
           <AccordionContent className="pt-2 print:!block"><AddressBlock candidate={localCandidate} /></AccordionContent>
         </AccordionItem>
         <AccordionItem value="education" className="border rounded-lg bg-card px-4 print:border-0 print:px-0">
-          <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">Escolaridade e Cursos</AccordionTrigger>
+          <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">
+            <span className="flex items-center gap-2 flex-1 min-w-0">
+              <span className="shrink-0">Escolaridade e Cursos</span>
+              <span className="text-sm text-muted-foreground truncate">{educationSummary}</span>
+            </span>
+          </AccordionTrigger>
           <AccordionContent className="pt-2 print:!block"><EducationBlock candidate={localCandidate} /></AccordionContent>
         </AccordionItem>
         <AccordionItem value="experience" className="border rounded-lg bg-card px-4 print:border-0 print:px-0">
-          <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">Experiência Profissional</AccordionTrigger>
+          <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">
+            <span className="flex items-center gap-2 flex-1 min-w-0">
+              <span className="shrink-0">Experiência Profissional</span>
+              <span className="text-sm text-muted-foreground truncate">{experienceSummary}</span>
+            </span>
+          </AccordionTrigger>
           <AccordionContent className="pt-2 print:!block"><ExperienceBlock experiences={localCandidate.workExperiences} firstJob={localCandidate.firstJob} /></AccordionContent>
         </AccordionItem>
         <AccordionItem value="aspirations" className="border rounded-lg bg-card px-4 print:border-0 print:px-0">
-          <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">Pretensões</AccordionTrigger>
+          <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">
+            <span className="flex items-center gap-2 flex-1 min-w-0">
+              <span className="shrink-0">Pretensões</span>
+              {aspirationsSummary && <span className="text-sm text-muted-foreground truncate">{aspirationsSummary}</span>}
+            </span>
+          </AccordionTrigger>
           <AccordionContent className="pt-2 print:!block"><AspirationsBlock candidate={localCandidate} /></AccordionContent>
         </AccordionItem>
         <AccordionItem value="resume" className="border rounded-lg bg-card px-4 print:border-0 print:px-0">
-          <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">Arquivos</AccordionTrigger>
+          <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">
+            <span className="flex items-center gap-2 flex-1 min-w-0">
+              <span className="shrink-0">Arquivos</span>
+              {resumeSummary && <span className="text-sm text-muted-foreground truncate">{resumeSummary}</span>}
+            </span>
+          </AccordionTrigger>
           <AccordionContent className="pt-2 print:!block"><ResumeBlock candidate={localCandidate} /></AccordionContent>
         </AccordionItem>
         <AccordionItem value="annotations" className="border rounded-lg bg-card px-4 print:border-0 print:px-0">
@@ -360,11 +390,21 @@ export const CandidateProfile = ({
           <AccordionContent className="pt-2 print:!block"><AnnotationsBlock annotations={localHRData.annotations} onAddAnnotation={handleAddAnnotation} /></AccordionContent>
         </AccordionItem>
         <AccordionItem value="evaluation" className="border rounded-lg bg-card px-4 print:border-0 print:px-0">
-          <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">Avaliação do Processo Seletivo</AccordionTrigger>
+          <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">
+            <span className="flex items-center gap-2 flex-1 min-w-0">
+              <span className="shrink-0">Avaliação do Processo Seletivo</span>
+              <span className="text-sm text-muted-foreground truncate">{evaluationSummary}</span>
+            </span>
+          </AccordionTrigger>
           <AccordionContent className="pt-2 print:!block"><EvaluationBlock evaluation={localHRData.evaluation} onUpdate={handleUpdateEvaluation} /></AccordionContent>
         </AccordionItem>
         <AccordionItem value="documentation" className="border rounded-lg bg-card px-4 print:border-0 print:px-0">
-          <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">Documentação</AccordionTrigger>
+          <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">
+            <span className="flex items-center gap-2 flex-1 min-w-0">
+              <span className="shrink-0">Documentação</span>
+              <span className="text-sm text-muted-foreground truncate">{documentationSummary}</span>
+            </span>
+          </AccordionTrigger>
           <AccordionContent className="pt-2 print:!block"><DocumentationBlock documentation={localHRData.documentation} onUpdate={handleUpdateDocumentation} /></AccordionContent>
         </AccordionItem>
         <AccordionItem value="admission" className="border rounded-lg bg-card px-4 print:border-0 print:px-0">
