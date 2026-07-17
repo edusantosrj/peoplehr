@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Printer, Pencil, Share2 } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { ArrowLeft, Printer, Pencil, Share2, ChevronsDownUp, ChevronsUpDown } from "lucide-react";
 import { CandidateEditDialog } from "./CandidateEditDialog";
 import { CandidateCardDialog } from "./CandidateCardDialog";
 import { CandidateProfileHeader } from "./CandidateProfileHeader";
