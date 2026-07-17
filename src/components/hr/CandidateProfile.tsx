@@ -186,6 +186,76 @@ export const CandidateProfile = ({
 
   const signedSelfieUrl = useSignedStorageUrl("selfies", localCandidate.selfieUrl);
 
+  const formatCurrency = (value: string) => {
+    const amount = Number(value.replace(/[^\d,-]/g, '').replace(',', '.'));
+    if (isNaN(amount)) return value;
+    return amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  };
+
+  const personalSummary = (() => {
+    const name = localCandidate.fullName || '';
+    const nickname = localCandidate.nickname;
+    const gender = localCandidate.gender;
+    if (nickname) {
+      return `${nickname} (${name})${gender ? ` • ${gender}` : ''}`;
+    }
+    return `${name}${gender ? ` • ${gender}` : ''}`;
+  })();
+
+  const addressSummary = `${localCandidate.neighborhood || ''} • ${localCandidate.city || ''}/${localCandidate.state || ''}`;
+
+  const educationSummary = (() => {
+    const education = localCandidate.education || '';
+    const courses = localCandidate.completedCourses || [];
+    if (!localCandidate.hasTechnicalCourse || courses.length === 0) return education;
+    if (courses.length === 1) return `${education} • Técnico em ${courses[0]}`;
+    return `${education} • Curso Técnico (+${courses.length})`;
+  })();
+
+  const experienceSummary = (() => {
+    if (localCandidate.firstJob) return 'Primeiro Emprego';
+    const count = localCandidate.workExperiences?.length || 0;
+    const currently = localCandidate.workExperiences?.some((exp) => exp.currentlyWorking);
+    const base = count === 1 ? '1 experiência cadastrada' : `${count} experiências cadastradas`;
+    return currently ? `${base} • Empregado atualmente` : base;
+  })();
+
+  const aspirationsSummary = (() => {
+    const positions = [localCandidate.desiredPosition1, localCandidate.desiredPosition2, localCandidate.desiredPosition3].filter(Boolean);
+    const salary = localCandidate.salaryExpectation ? formatCurrency(localCandidate.salaryExpectation) : '';
+    if (positions.length === 0) return salary || '';
+    const extra = positions.length > 1 ? ` (+${positions.length - 1})` : '';
+    return `${positions[0]}${extra}${salary ? ` • ${salary}` : ''}`;
+  })();
+
+  const resumeSummary = (() => {
+    const parts: string[] = [];
+    if (localCandidate.selfieUrl) parts.push('Selfie');
+    if (localCandidate.resumeUrl) parts.push('Currículo');
+    else if (localCandidate.selfieUrl) parts.push('Sem Currículo');
+    const extras = localCandidate.otherFilesUrls?.length || 0;
+    if (extras > 0) parts.push(`${extras} anexo${extras === 1 ? '' : 's'}`);
+    return parts.join(' • ');
+  })();
+
+  const evaluationSummary = (() => {
+    if (localHRData.admission?.admissionStatus === 'Contratado') return 'Contratado';
+    if (localHRData.termination?.confirmed) return 'Demitido';
+    if (localHRData.evaluation?.talentBank) return 'Banco de Talentos';
+    if (localHRData.evaluation?.interviewDate) {
+      return `Entrevista Agendada • ${formatDateDisplay(localHRData.evaluation.interviewDate)}`;
+    }
+    return 'Em Processo Seletivo';
+  })();
+
+  const documentationSummary = (() => {
+    const docs = localHRData.documentation || {};
+    const total = Object.values(docs).filter((d) => d?.completed).length;
+    const count = Object.values(docs).length;
+    if (total === count && count > 0) return `${total} documentos concluídos`;
+    return 'Documentação pendente';
+  })();
+
   const handlePrint = async () => {
     setIsPreparingPrint(true);
     const previousOpen = openSections;
