@@ -52,6 +52,15 @@ export const CandidateProfile = ({
   const [isPreparingPrint, setIsPreparingPrint] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [cardOpen, setCardOpen] = useState(false);
+  const [openSections, setOpenSections] = useState<string[]>([]);
+
+  const ALL_SECTIONS = [
+    "personal", "address", "education", "experience", "aspirations",
+    "resume", "annotations", "evaluation", "documentation",
+    "admission", "termination", "emergency", "history",
+  ];
+  const expandAll = () => setOpenSections(ALL_SECTIONS);
+  const collapseAll = () => setOpenSections([]);
 
   const updateLocal = (updated: CandidateHRData) => {
     setLocalHRData(updated);
