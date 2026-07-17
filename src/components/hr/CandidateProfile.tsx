@@ -251,8 +251,9 @@ export const CandidateProfile = ({
 
   const documentationSummary = (() => {
     const docs = localHRData.documentation || {};
-    const total = Object.values(docs).filter((d) => d?.completed).length;
-    const count = Object.values(docs).length;
+    const values = Object.values(docs) as DocumentItem[];
+    const total = values.filter((d) => d?.completed).length;
+    const count = values.length;
     if (total === count && count > 0) return `${total} documentos concluídos`;
     return 'Documentação pendente';
   })();
