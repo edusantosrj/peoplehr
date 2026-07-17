@@ -19,7 +19,7 @@ import { DocumentationBlock } from "./blocks/DocumentationBlock";
 import { HistoryBlock } from "./blocks/HistoryBlock";
 import { EmergencyContactsBlock } from "./blocks/EmergencyContactsBlock";
 import type { Candidate } from "@/types/candidate";
-import type { CandidateHRData, HRAnnotation, ProcessEvaluation, Admission, Termination, CandidateDocumentation, EmergencyContact } from "@/types/hr";
+import type { CandidateHRData, HRAnnotation, ProcessEvaluation, Admission, Termination, CandidateDocumentation, EmergencyContact, DocumentItem } from "@/types/hr";
 import { useToast } from "@/hooks/use-toast";
 import { useVacancies } from "@/contexts/VacancyContext";
 import { formatDateDisplay } from "@/utils/textFormatting";
