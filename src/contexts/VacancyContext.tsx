@@ -277,9 +277,18 @@ export const VacancyProvider = ({ children }: { children: ReactNode }) => {
     if (!vacancy || vacancy.quantity <= 0) return false;
 
     const newQuantity = vacancy.quantity - 1;
+    // Regra: se ao debitar a quantidade chegar a 0, a vaga deve
+    // automaticamente passar para status "Inativa".
+    const newStatus: 'Ativa' | 'Inativa' =
+      newQuantity === 0 ? 'Inativa' : vacancy.status;
+
     const { error } = await supabase
       .from('vacancies')
-      .update({ quantity: newQuantity, updated_at: new Date().toISOString() })
+      .update({
+        quantity: newQuantity,
+        status: newStatus,
+        updated_at: new Date().toISOString(),
+      })
       .eq('id', id);
 
     if (error) {
@@ -288,7 +297,9 @@ export const VacancyProvider = ({ children }: { children: ReactNode }) => {
     }
 
     setVacancies((prev) =>
-      prev.map((v) => (v.id === id ? { ...v, quantity: newQuantity } : v))
+      prev.map((v) =>
+        v.id === id ? { ...v, quantity: newQuantity, status: newStatus } : v
+      )
     );
     return true;
   };
