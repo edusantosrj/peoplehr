@@ -59,6 +59,7 @@ export async function fetchAllHRData(
     const hr = hrMap[row.candidate_id];
     if (hr) {
       hr.evaluation = {
+        currentStage: ((row as any).current_stage as any) || 'validation_form',
         fichaValidation: row.ficha_validation as any,
         managementValidation: row.management_validation as any,
         directorValidation: row.director_validation as any,
@@ -176,6 +177,7 @@ export async function saveEvaluation(candidateId: string, evaluation: ProcessEva
   const { error } = await supabase.from("hr_evaluations").upsert(
     {
       candidate_id: candidateId,
+      current_stage: evaluation.currentStage,
       ficha_validation: evaluation.fichaValidation,
       management_validation: evaluation.managementValidation,
       director_validation: evaluation.directorValidation,
