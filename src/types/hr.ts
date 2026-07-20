@@ -4,14 +4,66 @@ export interface HRAnnotation {
   createdAt: string;
 }
 
+export type ValidationStatus =
+  | 'Não Iniciada'
+  | 'Iniciada'
+  | 'Aprovada'
+  | 'Aprovada com Restrição'
+  | 'Reprovada'
+  | 'Em Análise'
+  | 'Sim'
+  | 'Não';
+
+export type ProposalStatus = '-' | 'Sim' | 'Não' | 'Em Análise';
+
+export type CurrentStage =
+  | 'validation_form'
+  | 'validation_manager'
+  | 'validation_director'
+  | 'proposal_presented'
+  | 'proposal_accepted'
+  | 'documentation'
+  | 'hired';
+
+export const CURRENT_STAGE_OPTIONS: CurrentStage[] = [
+  'validation_form',
+  'validation_manager',
+  'validation_director',
+  'proposal_presented',
+  'proposal_accepted',
+  'documentation',
+  'hired',
+];
+
+export const CURRENT_STAGE_LABELS: Record<CurrentStage, string> = {
+  validation_form: 'Validação da Ficha',
+  validation_manager: 'Validação da Gerência',
+  validation_director: 'Validação da Diretoria',
+  proposal_presented: 'Proposta Apresentada',
+  proposal_accepted: 'Proposta Aceita',
+  documentation: 'Documentação Entregue',
+  hired: 'Contratado',
+};
+
+export const VALIDATION_STATUS_OPTIONS: ValidationStatus[] = [
+  'Não Iniciada',
+  'Iniciada',
+  'Aprovada',
+  'Aprovada com Restrição',
+  'Reprovada',
+];
+
+export const PROPOSAL_STATUS_OPTIONS: ProposalStatus[] = ['-', 'Não', 'Sim'];
+
 export interface ProcessEvaluation {
-  fichaValidation: 'Em Análise' | 'Sim' | 'Não';
-  managementValidation: 'Em Análise' | 'Sim' | 'Não';
-  directorValidation: 'Em Análise' | 'Sim' | 'Não';
-  proposalPresented: 'Em Análise' | 'Sim' | 'Não';
-  proposalAccepted: 'Em Análise' | 'Sim' | 'Não';
-  documentationDelivered: 'Em Análise' | 'Sim' | 'Não';
-  candidateHired: 'Em Análise' | 'Sim' | 'Não';
+  currentStage: CurrentStage;
+  fichaValidation: ValidationStatus;
+  managementValidation: ValidationStatus;
+  directorValidation: ValidationStatus;
+  proposalPresented: ProposalStatus;
+  proposalAccepted: ProposalStatus;
+  documentationDelivered: ProposalStatus;
+  candidateHired: ProposalStatus;
   talentBank: boolean;
   pcd: boolean;
   ns: boolean;
