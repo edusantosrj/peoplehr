@@ -9,44 +9,67 @@ import {
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { ClipboardCheck } from "lucide-react";
-import type { ProcessEvaluation } from "@/types/hr";
-import { EVALUATION_STATUS_OPTIONS, INTERVIEW_STATUS_OPTIONS } from "@/types/hr";
+import type { ProcessEvaluation, ValidationStatus, ProposalStatus, CurrentStage } from "@/types/hr";
+import {
+  INTERVIEW_STATUS_OPTIONS,
+  VALIDATION_STATUS_OPTIONS,
+  PROPOSAL_STATUS_OPTIONS,
+  CURRENT_STAGE_OPTIONS,
+  CURRENT_STAGE_LABELS,
+} from "@/types/hr";
 
 interface EvaluationBlockProps {
   evaluation: ProcessEvaluation;
   onUpdate: (field: keyof ProcessEvaluation, value: string | boolean) => void;
 }
 
-const evaluationFields: { key: keyof ProcessEvaluation; label: string }[] = [
-  { key: 'fichaValidation', label: 'Validação da Ficha' },
-  { key: 'managementValidation', label: 'Validação da Gerência' },
-  { key: 'directorValidation', label: 'Validação da Diretoria' },
-  { key: 'proposalPresented', label: 'Proposta Apresentada' },
-  { key: 'proposalAccepted', label: 'Proposta Aceita' },
-  { key: 'documentationDelivered', label: 'Documentação Entregue' },
-  { key: 'candidateHired', label: 'Candidato Contratado' },
+type FieldDef = {
+  key: keyof ProcessEvaluation;
+  label: string;
+  kind: 'validation' | 'proposal';
+};
+
+const evaluationFields: FieldDef[] = [
+  { key: 'fichaValidation', label: 'Validação da Ficha', kind: 'validation' },
+  { key: 'managementValidation', label: 'Validação da Gerência', kind: 'validation' },
+  { key: 'directorValidation', label: 'Validação da Diretoria', kind: 'validation' },
+  { key: 'proposalPresented', label: 'Proposta Apresentada', kind: 'proposal' },
+  { key: 'proposalAccepted', label: 'Proposta Aceita', kind: 'proposal' },
+  { key: 'documentationDelivered', label: 'Documentação Entregue', kind: 'proposal' },
+  { key: 'candidateHired', label: 'Contratado', kind: 'proposal' },
 ];
 
-export const EvaluationBlock = ({
-  evaluation,
-  onUpdate,
-}: EvaluationBlockProps) => {
-  const getStatusColor = (status: string) => {
+export const EvaluationBlock = ({ evaluation, onUpdate }: EvaluationBlockProps) => {
+  const getValidationColor = (status: string) => {
     switch (status) {
+      case 'Aprovada':
+        return 'text-green-600';
+      case 'Aprovada com Restrição':
+        return 'text-amber-600';
+      case 'Reprovada':
+        return 'text-red-500';
+      case 'Iniciada':
+        return 'text-blue-600';
       case 'Sim':
         return 'text-green-600';
       case 'Não':
         return 'text-red-500';
       default:
-        return 'text-yellow-600';
+        return 'text-muted-foreground';
     }
+  };
+
+  const getProposalColor = (status: string) => {
+    if (status === 'Sim') return 'text-green-600';
+    if (status === 'Não') return 'text-red-500';
+    return 'text-muted-foreground';
   };
 
   const getInterviewColor = (status: string) => {
     switch (status) {
       case 'Sim':
-        return 'text-green-600';
       case 'Compareceu':
         return 'text-green-600';
       case 'Não Compareceu':
@@ -58,6 +81,16 @@ export const EvaluationBlock = ({
 
   const isInterviewScheduled = evaluation.interviewStatus === 'Sim';
 
+  // Summary badges (only rendered when applicable, using persisted data)
+  const badges: { label: string; variant?: 'default' | 'secondary' | 'destructive' | 'outline' }[] = [];
+  if (evaluation.candidateHired === 'Sim') badges.push({ label: 'Contratado', variant: 'default' });
+  if (evaluation.talentBank) badges.push({ label: 'Banco de Talentos', variant: 'secondary' });
+  if (evaluation.pcd) badges.push({ label: 'PCD', variant: 'secondary' });
+  if (evaluation.ns) badges.push({ label: 'N/S', variant: 'secondary' });
+  if (evaluation.interviewStatus === 'Sim') badges.push({ label: 'Entrevista Agendada', variant: 'outline' });
+  if (evaluation.interviewAttended === 'Sim') badges.push({ label: 'Compareceu', variant: 'outline' });
+  if (evaluation.documentationDelivered === 'Sim') badges.push({ label: 'Documentação Entregue', variant: 'outline' });
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -67,27 +100,59 @@ export const EvaluationBlock = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        {badges.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {badges.map((b) => (
+              <Badge key={b.label} variant={b.variant || 'secondary'}>{b.label}</Badge>
+            ))}
+          </div>
+        )}
+
+        {/* Fase Atual */}
+        <div className="rounded-lg border p-4 bg-muted/30 space-y-1">
+          <Label className="text-sm font-medium">Fase Atual</Label>
+          <Select
+            value={evaluation.currentStage}
+            onValueChange={(value) => onUpdate('currentStage', value as CurrentStage)}
+          >
+            <SelectTrigger className="font-medium">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {CURRENT_STAGE_OPTIONS.map((stage) => (
+                <SelectItem key={stage} value={stage}>{CURRENT_STAGE_LABELS[stage]}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">
+            Alterar a fase atual não modifica o status das etapas abaixo.
+          </p>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {evaluationFields.map(({ key, label }) => (
-            <div key={key} className="space-y-1">
-              <label className="text-sm text-muted-foreground">{label}</label>
-              <Select
-                value={evaluation[key] as string}
-                onValueChange={(value) => onUpdate(key, value)}
-              >
-                <SelectTrigger className={getStatusColor(evaluation[key] as string)}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {EVALUATION_STATUS_OPTIONS.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {option}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          ))}
+          {evaluationFields.map(({ key, label, kind }) => {
+            const value = evaluation[key] as string;
+            const options = kind === 'validation' ? VALIDATION_STATUS_OPTIONS : PROPOSAL_STATUS_OPTIONS;
+            const colorFn = kind === 'validation' ? getValidationColor : getProposalColor;
+            return (
+              <div key={key} className="space-y-1">
+                <label className="text-sm text-muted-foreground">{label}</label>
+                <Select
+                  value={value}
+                  onValueChange={(v) => onUpdate(key, v as ValidationStatus | ProposalStatus)}
+                >
+                  <SelectTrigger className={colorFn(value)}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {options.map((option) => (
+                      <SelectItem key={option} value={option}>{option}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            );
+          })}
         </div>
 
         {/* Toggle fields */}
@@ -128,9 +193,7 @@ export const EvaluationBlock = ({
                 </SelectTrigger>
                 <SelectContent>
                   {INTERVIEW_STATUS_OPTIONS.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {option}
-                    </SelectItem>
+                    <SelectItem key={option} value={option}>{option}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
