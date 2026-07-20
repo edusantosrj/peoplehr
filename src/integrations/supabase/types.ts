@@ -339,6 +339,7 @@ export type Database = {
           candidate_hired: string
           candidate_id: string
           created_at: string
+          current_stage: string
           director_validation: string
           documentation_delivered: string
           ficha_validation: string
@@ -358,6 +359,7 @@ export type Database = {
           candidate_hired?: string
           candidate_id: string
           created_at?: string
+          current_stage?: string
           director_validation?: string
           documentation_delivered?: string
           ficha_validation?: string
@@ -377,6 +379,7 @@ export type Database = {
           candidate_hired?: string
           candidate_id?: string
           created_at?: string
+          current_stage?: string
           director_validation?: string
           documentation_delivered?: string
           ficha_validation?: string
