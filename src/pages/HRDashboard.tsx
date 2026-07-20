@@ -6,10 +6,11 @@ import { CandidateProfile } from "@/components/hr/CandidateProfile";
 import { VacancyModule } from "@/components/vacancy/VacancyModule";
 import { StaffDashboard } from "@/components/hr/StaffDashboard";
 import { ReportsModule } from "@/components/hr/reports/ReportsModule";
+import { SelectionKanban } from "@/components/hr/SelectionKanban";
 import { VacancyProvider, useVacancies } from "@/contexts/VacancyContext";
 import type { Candidate } from "@/types/candidate";
 import type { CandidateHRData } from "@/types/hr";
-import { Users, Briefcase, UserCheck, BarChart3, FileText, AlertTriangle, Loader2, LogOut } from "lucide-react";
+import { Users, Briefcase, UserCheck, BarChart3, FileText, AlertTriangle, Loader2, LogOut, Kanban } from "lucide-react";
 import { DocumentsControlPanel } from "@/components/hr/reports/DocumentsControlPanel";
 import { ManagementAlerts } from "@/components/hr/alerts/ManagementAlerts";
 import { LoginForm } from "@/components/hr/LoginForm";
@@ -149,7 +150,7 @@ const HRDashboardContent = () => {
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-      <TabsList className="grid w-full max-w-4xl grid-cols-6 mb-6">
+      <TabsList className="grid w-full max-w-5xl grid-cols-7 mb-6">
         <TabsTrigger value="alertas" className="flex items-center gap-2">
           <AlertTriangle className="h-4 w-4" />
           Alertas
@@ -157,6 +158,10 @@ const HRDashboardContent = () => {
         <TabsTrigger value="candidatos" className="flex items-center gap-2">
           <Users className="h-4 w-4" />
           Candidatos
+        </TabsTrigger>
+        <TabsTrigger value="kanban" className="flex items-center gap-2">
+          <Kanban className="h-4 w-4" />
+          Kanban
         </TabsTrigger>
         <TabsTrigger value="vagas" className="flex items-center gap-2">
           <Briefcase className="h-4 w-4" />
@@ -191,6 +196,14 @@ const HRDashboardContent = () => {
           candidates={candidates}
           onSelectCandidate={handleSelectCandidate}
           hrDataMap={hrDataMap}
+        />
+      </TabsContent>
+
+      <TabsContent value="kanban">
+        <SelectionKanban
+          candidates={candidates}
+          hrDataMap={hrDataMap}
+          onSelectCandidate={handleSelectCandidate}
         />
       </TabsContent>
 
