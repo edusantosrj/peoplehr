@@ -1,8 +1,12 @@
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { SignedAvatarImage } from "@/components/hr/SignedAvatarImage";
 import { useVacancies } from "@/contexts/VacancyContext";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { toast } from "sonner";
+import { saveEvaluation } from "@/services/hrDataService";
 import type { Candidate } from "@/types/candidate";
 import {
   CandidateHRData,
@@ -15,6 +19,7 @@ interface Props {
   candidates: Candidate[];
   hrDataMap: Record<string, CandidateHRData>;
   onSelectCandidate: (candidate: Candidate) => void;
+  onUpdateHRData?: (data: CandidateHRData) => void;
 }
 
 const getStageStatus = (
@@ -45,8 +50,12 @@ export const SelectionKanban = ({
   candidates,
   hrDataMap,
   onSelectCandidate,
+  onUpdateHRData,
 }: Props) => {
   const { vacancies } = useVacancies();
+  const isMobile = useIsMobile();
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragOverStage, setDragOverStage] = useState<CurrentStage | null>(null);
 
   const grouped: Record<CurrentStage, Candidate[]> = {
     validation_form: [],
@@ -65,15 +74,64 @@ export const SelectionKanban = ({
     grouped[stage].push(c);
   });
 
+  const handleDrop = async (targetStage: CurrentStage) => {
+    const candidateId = draggingId;
+    setDraggingId(null);
+    setDragOverStage(null);
+    if (!candidateId) return;
+
+    const hr = hrDataMap[candidateId];
+    const currentStage = (hr?.evaluation?.currentStage as CurrentStage) || "validation_form";
+    if (currentStage === targetStage) return;
+
+    const prevEvaluation = hr?.evaluation;
+    const newEvaluation = { ...prevEvaluation, currentStage: targetStage };
+    const optimistic: CandidateHRData = {
+      ...(hr as CandidateHRData),
+      evaluation: newEvaluation,
+    };
+    onUpdateHRData?.(optimistic);
+
+    const ok = await saveEvaluation(candidateId, newEvaluation);
+    if (!ok) {
+      // rollback
+      onUpdateHRData?.({
+        ...(hr as CandidateHRData),
+        evaluation: prevEvaluation!,
+      });
+      toast.error("Não foi possível mover o candidato. Tente novamente.");
+      return;
+    }
+    toast.success(`Candidato movido para ${CURRENT_STAGE_LABELS[targetStage]}.`);
+  };
+
   return (
     <div className="w-full overflow-x-auto pb-4">
       <div className="flex gap-4 min-w-max lg:min-w-0 lg:grid lg:grid-cols-7">
         {CURRENT_STAGE_OPTIONS.map((stage) => {
           const list = grouped[stage];
+          const isOver = dragOverStage === stage;
           return (
             <div
               key={stage}
-              className="w-72 lg:w-auto flex-shrink-0 bg-muted/40 rounded-lg border border-border/60 flex flex-col"
+              onDragOver={(e) => {
+                if (isMobile) return;
+                e.preventDefault();
+                if (dragOverStage !== stage) setDragOverStage(stage);
+              }}
+              onDragLeave={() => {
+                if (dragOverStage === stage) setDragOverStage(null);
+              }}
+              onDrop={(e) => {
+                if (isMobile) return;
+                e.preventDefault();
+                handleDrop(stage);
+              }}
+              className={`w-72 lg:w-auto flex-shrink-0 rounded-lg border flex flex-col transition-colors ${
+                isOver
+                  ? "bg-primary/10 border-primary"
+                  : "bg-muted/40 border-border/60"
+              }`}
             >
               <div className="px-3 py-3 border-b border-border/60 bg-background/60 rounded-t-lg">
                 <div className="text-sm font-semibold text-foreground leading-tight">
@@ -84,7 +142,7 @@ export const SelectionKanban = ({
                 </div>
               </div>
 
-              <div className="p-2 space-y-2 flex-1">
+              <div className="p-2 space-y-2 flex-1 min-h-[80px]">
                 {list.length === 0 ? (
                   <div className="text-xs text-muted-foreground text-center py-6">
                     Nenhum candidato
@@ -107,12 +165,24 @@ export const SelectionKanban = ({
 
                     const ev = hr?.evaluation;
                     const hasInterview = !!ev?.interviewDate;
+                    const isDragging = draggingId === cand.id;
 
                     return (
                       <Card
                         key={cand.id}
+                        draggable={!isMobile}
+                        onDragStart={() => {
+                          if (isMobile) return;
+                          setDraggingId(cand.id);
+                        }}
+                        onDragEnd={() => {
+                          setDraggingId(null);
+                          setDragOverStage(null);
+                        }}
                         onClick={() => onSelectCandidate(cand)}
-                        className="p-3 cursor-pointer hover:shadow-md transition-shadow bg-card"
+                        className={`p-3 cursor-pointer hover:shadow-md transition-all bg-card ${
+                          isDragging ? "opacity-50" : ""
+                        } ${!isMobile ? "cursor-grab active:cursor-grabbing" : ""}`}
                       >
                         <div className="flex items-start gap-2">
                           <Avatar className="h-10 w-10 flex-shrink-0">
