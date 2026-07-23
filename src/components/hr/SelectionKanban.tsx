@@ -200,6 +200,15 @@ export const SelectionKanban = ({
   };
   const isArchived = (hr?: CandidateHRData) => isTalent(hr) || isReprovado(hr);
 
+  const getRejectionStage = (hr?: CandidateHRData): string => {
+    const ev = hr?.evaluation;
+    if (!ev) return "";
+    if (ev.fichaValidation === "Reprovada") return CURRENT_STAGE_LABELS.validation_form;
+    if (ev.managementValidation === "Reprovada") return CURRENT_STAGE_LABELS.validation_manager;
+    if (ev.directorValidation === "Reprovada") return CURRENT_STAGE_LABELS.validation_director;
+    return "";
+  };
+
   // Toast on newly-archived candidates (persistence already confirmed upstream)
   const prevArchivedRef = useRef<Set<string> | null>(null);
   useEffect(() => {
@@ -348,6 +357,80 @@ export const SelectionKanban = ({
           <span className="text-[10px] text-muted-foreground uppercase tracking-wide">{stageLabel}</span>
           <Badge variant="outline" className="text-[10px] px-1.5 py-0">{stageStatus}</Badge>
         </div>
+      </Card>
+    );
+  };
+
+  const renderClosedCard = (cand: Candidate, kind: "reprovado" | "talent") => {
+    const hr = hrDataMap[cand.id];
+    const admission = hr?.admission;
+    const vacancy = admission?.vacancyId
+      ? vacancies.find((v) => v.id === admission.vacancyId)
+      : undefined;
+    const unit = vacancy?.unit || admission?.storeUnit;
+    const shift = vacancy?.shift;
+    const initials = (cand.fullName || "?")
+      .split(" ")
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase();
+    const ev = hr?.evaluation;
+    const hasInterview = !!ev?.interviewDate;
+    const isHired = ev?.candidateHired === "Sim";
+    const docComplete = isDocumentationComplete(hr);
+    const rel = relativeDate(cand.registrationDate);
+    const rejectionStage = getRejectionStage(hr);
+
+    const isReprovado = kind === "reprovado";
+    const bannerText = isReprovado ? "🔴 REPROVADO" : "⭐ BANCO DE TALENTOS";
+    const bannerClass = isReprovado ? "bg-red-500" : "bg-blue-500";
+    const subtitle = isReprovado
+      ? rejectionStage
+        ? `Reprovado na ${rejectionStage}`
+        : "Reprovado"
+      : "Disponível para futuras oportunidades.";
+
+    return (
+      <Card
+        key={cand.id}
+        onClick={() => onSelectCandidate(cand)}
+        className="p-3 cursor-pointer hover:shadow-md transition-all bg-card"
+      >
+        <div className={`text-[10px] font-bold text-white uppercase tracking-wide px-2 py-1 -mx-3 -mt-3 mb-2 rounded-t-md ${bannerClass}`}>
+          {bannerText}
+        </div>
+        <div className="flex items-start gap-2">
+          <Avatar className="h-10 w-10 flex-shrink-0">
+            {cand.selfieUrl && (
+              <SignedAvatarImage bucket="selfies" value={cand.selfieUrl} alt={cand.fullName} />
+            )}
+            <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+          </Avatar>
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-medium truncate">{cand.fullName}</div>
+            {subtitle && (
+              <div className="text-xs text-muted-foreground truncate">{subtitle}</div>
+            )}
+            {cand.desiredPosition1 && (
+              <div className="text-xs text-muted-foreground truncate">{cand.desiredPosition1}</div>
+            )}
+            {unit && <div className="text-xs text-muted-foreground truncate">{unit}</div>}
+            {shift && <div className="text-xs text-muted-foreground truncate">{shift}</div>}
+            {rel && <div className="text-[10px] text-muted-foreground mt-0.5">{rel}</div>}
+          </div>
+        </div>
+
+        {(ev?.pcd || ev?.talentBank || ev?.ns || hasInterview || isHired || docComplete) && (
+          <div className="flex flex-wrap gap-1 mt-2">
+            {ev?.pcd && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">PCD</Badge>}
+            {ev?.talentBank && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Banco de Talentos</Badge>}
+            {ev?.ns && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">N/S</Badge>}
+            {hasInterview && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Entrevista Agendada</Badge>}
+            {isHired && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Contratado</Badge>}
+            {docComplete && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Documentação Completa</Badge>}
+          </div>
+        )}
       </Card>
     );
   };
@@ -510,8 +593,8 @@ export const SelectionKanban = ({
         <div className="w-full overflow-x-auto pb-4">
           <div className="flex gap-4 min-w-max lg:min-w-0 lg:grid lg:grid-cols-2">
             {[
-              { key: "reprovados", label: "🔴 Reprovados", list: reprovadoCandidates },
-              { key: "talent", label: "⭐ Banco de Talentos", list: talentCandidates },
+              { key: "reprovados", label: "🔴 Reprovados", list: reprovadoCandidates, kind: "reprovado" as const },
+              { key: "talent", label: "⭐ Banco de Talentos", list: talentCandidates, kind: "talent" as const },
             ].map((col) => (
               <div
                 key={col.key}
@@ -528,10 +611,10 @@ export const SelectionKanban = ({
                 <div className="p-2 space-y-2 flex-1 min-h-[80px]">
                   {col.list.length === 0 ? (
                     <div className="text-xs text-muted-foreground text-center py-6">
-                      Nenhum candidato
+                      Nenhum candidato arquivado
                     </div>
                   ) : (
-                    col.list.map((cand) => renderCard(cand, col.label, false))
+                    col.list.map((cand) => renderClosedCard(cand, col.kind))
                   )}
                 </div>
               </div>
