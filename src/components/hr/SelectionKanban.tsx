@@ -274,8 +274,108 @@ export const SelectionKanban = ({
     toast.success(`Candidato movido para ${CURRENT_STAGE_LABELS[targetStage]}.`);
   };
 
+  const renderCard = (cand: Candidate, stageLabel: string, draggable: boolean) => {
+    const hr = hrDataMap[cand.id];
+    const admission = hr?.admission;
+    const vacancy = admission?.vacancyId
+      ? vacancies.find((v) => v.id === admission.vacancyId)
+      : undefined;
+    const unit = vacancy?.unit || admission?.storeUnit;
+    const shift = vacancy?.shift;
+    const initials = (cand.fullName || "?")
+      .split(" ")
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase();
+    const ev = hr?.evaluation;
+    const hasInterview = !!ev?.interviewDate;
+    const isHired = ev?.candidateHired === "Sim";
+    const docComplete = isDocumentationComplete(hr);
+    const isDragging = draggingId === cand.id;
+    const rel = relativeDate(cand.registrationDate);
+    const stageStatus = ev?.currentStage
+      ? getStageStatus(ev.currentStage as CurrentStage, hr)
+      : "—";
+
+    return (
+      <Card
+        key={cand.id}
+        draggable={draggable && !isMobile}
+        onDragStart={() => {
+          if (!draggable || isMobile) return;
+          setDraggingId(cand.id);
+        }}
+        onDragEnd={() => {
+          setDraggingId(null);
+          setDragOverStage(null);
+        }}
+        onClick={() => onSelectCandidate(cand)}
+        className={`p-3 cursor-pointer hover:shadow-md transition-all bg-card ${
+          isDragging ? "opacity-50" : ""
+        } ${draggable && !isMobile ? "cursor-grab active:cursor-grabbing" : ""}`}
+      >
+        <div className="flex items-start gap-2">
+          <Avatar className="h-10 w-10 flex-shrink-0">
+            {cand.selfieUrl && (
+              <SignedAvatarImage bucket="selfies" value={cand.selfieUrl} alt={cand.fullName} />
+            )}
+            <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+          </Avatar>
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-medium truncate">{cand.fullName}</div>
+            {cand.desiredPosition1 && (
+              <div className="text-xs text-muted-foreground truncate">{cand.desiredPosition1}</div>
+            )}
+            {unit && <div className="text-xs text-muted-foreground truncate">{unit}</div>}
+            {shift && <div className="text-xs text-muted-foreground truncate">{shift}</div>}
+            {rel && <div className="text-[10px] text-muted-foreground mt-0.5">{rel}</div>}
+          </div>
+        </div>
+
+        {(ev?.pcd || ev?.talentBank || ev?.ns || hasInterview || isHired || docComplete) && (
+          <div className="flex flex-wrap gap-1 mt-2">
+            {ev?.pcd && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">PCD</Badge>}
+            {ev?.talentBank && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Banco de Talentos</Badge>}
+            {ev?.ns && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">N/S</Badge>}
+            {hasInterview && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Entrevista Agendada</Badge>}
+            {isHired && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Contratado</Badge>}
+            {docComplete && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Documentação Completa</Badge>}
+          </div>
+        )}
+
+        <div className="mt-2 pt-2 border-t border-border/60 flex items-center justify-between gap-2">
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wide">{stageLabel}</span>
+          <Badge variant="outline" className="text-[10px] px-1.5 py-0">{stageStatus}</Badge>
+        </div>
+      </Card>
+    );
+  };
+
   return (
     <div className="w-full space-y-4">
+      {/* Pipeline mode selector */}
+      <div className="inline-flex rounded-lg border border-border/60 bg-card p-1">
+        <button
+          type="button"
+          onClick={() => setViewMode("active")}
+          className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+            viewMode === "active" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Pipeline Ativo
+        </button>
+        <button
+          type="button"
+          onClick={() => setViewMode("closed")}
+          className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+            viewMode === "closed" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Pipeline Encerrado
+        </button>
+      </div>
+
       {/* Filter bar */}
       <div className="rounded-lg border border-border/60 bg-card p-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-2">
