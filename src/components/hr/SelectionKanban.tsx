@@ -188,6 +188,45 @@ export const SelectionKanban = ({
     setFNs("all");
   };
 
+  const isTalent = (hr?: CandidateHRData) => !!hr?.evaluation?.talentBank;
+  const isReprovado = (hr?: CandidateHRData) => {
+    const ev = hr?.evaluation;
+    if (!ev) return false;
+    return (
+      ev.fichaValidation === "Reprovada" ||
+      ev.managementValidation === "Reprovada" ||
+      ev.directorValidation === "Reprovada"
+    );
+  };
+  const isArchived = (hr?: CandidateHRData) => isTalent(hr) || isReprovado(hr);
+
+  // Toast on newly-archived candidates (persistence already confirmed upstream)
+  const prevArchivedRef = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    const currentArchived = new Map<string, "talent" | "reprovado">();
+    candidates.forEach((c) => {
+      const hr = hrDataMap[c.id];
+      if (isTalent(hr)) currentArchived.set(c.id, "talent");
+      else if (isReprovado(hr)) currentArchived.set(c.id, "reprovado");
+    });
+    const prev = prevArchivedRef.current;
+    if (prev) {
+      currentArchived.forEach((kind, id) => {
+        if (!prev.has(id)) {
+          if (kind === "talent") toast("⭐ Candidato arquivado em Banco de Talentos.");
+          else toast("🔴 Candidato arquivado em Reprovados.");
+        }
+      });
+    }
+    prevArchivedRef.current = new Set(currentArchived.keys());
+  }, [candidates, hrDataMap]);
+
+  const activeCandidates = filteredCandidates.filter((c) => !isArchived(hrDataMap[c.id]));
+  const talentCandidates = filteredCandidates.filter((c) => isTalent(hrDataMap[c.id]));
+  const reprovadoCandidates = filteredCandidates.filter(
+    (c) => !isTalent(hrDataMap[c.id]) && isReprovado(hrDataMap[c.id])
+  );
+
   const grouped: Record<CurrentStage, Candidate[]> = {
     validation_form: [],
     validation_manager: [],
@@ -198,7 +237,7 @@ export const SelectionKanban = ({
     hired: [],
   };
 
-  filteredCandidates.forEach((c) => {
+  activeCandidates.forEach((c) => {
     const stage =
       (hrDataMap[c.id]?.evaluation?.currentStage as CurrentStage) ||
       "validation_form";
