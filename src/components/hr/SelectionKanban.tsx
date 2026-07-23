@@ -111,6 +111,7 @@ export const SelectionKanban = ({
   const isMobile = useIsMobile();
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverStage, setDragOverStage] = useState<CurrentStage | null>(null);
+  const [viewMode, setViewMode] = useState<"active" | "closed">("active");
 
   // Filters
   const [fName, setFName] = useState("");
