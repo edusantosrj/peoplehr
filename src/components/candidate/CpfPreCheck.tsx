@@ -74,7 +74,7 @@ export function CpfPreCheck({ onCpfValidated }: CpfPreCheckProps) {
           <span className="text-foreground">começa aqui!</span>
         </h2>
         <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto">
-          Plataforma de Recrutamento dos{" "}
+          Plataforma de Recrutamento do&nbsp;
           <span className="font-semibold text-foreground">Supermercados Marinho</span>
         </p>
 
