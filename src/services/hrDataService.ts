@@ -210,7 +210,16 @@ export async function saveEvaluation(candidateId: string, evaluation: ProcessEva
     },
     { onConflict: "candidate_id" }
   );
-  if (error) console.error("Erro ao salvar avaliação:", error);
+  if (error) {
+    console.error("Erro ao salvar avaliação:");
+    console.error(error);
+    console.error(JSON.stringify(error, null, 2));
+    if (error.code) console.error("Code:", error.code);
+    if (error.message) console.error("Message:", error.message);
+    if (error.details) console.error("Details:", error.details);
+    if (error.hint) console.error("Hint:", error.hint);
+    if ((error as any).status) console.error("Status:", (error as any).status);
+  }
   return !error;
 }
 
