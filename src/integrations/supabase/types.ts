@@ -346,7 +346,9 @@ export type Database = {
           id: string
           interview_attended: string | null
           interview_date: string | null
+          interview_observation: string | null
           interview_status: string
+          interview_time: string | null
           management_validation: string
           ns: boolean
           pcd: boolean
@@ -366,7 +368,9 @@ export type Database = {
           id?: string
           interview_attended?: string | null
           interview_date?: string | null
+          interview_observation?: string | null
           interview_status?: string
+          interview_time?: string | null
           management_validation?: string
           ns?: boolean
           pcd?: boolean
@@ -386,7 +390,9 @@ export type Database = {
           id?: string
           interview_attended?: string | null
           interview_date?: string | null
+          interview_observation?: string | null
           interview_status?: string
+          interview_time?: string | null
           management_validation?: string
           ns?: boolean
           pcd?: boolean

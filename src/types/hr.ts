@@ -70,6 +70,8 @@ export interface ProcessEvaluation {
   interviewStatus: string;
   interviewDate?: string;
   interviewAttended?: 'Sim' | 'Não';
+  interviewTime?: string;
+  interviewObservation?: string;
 }
 
 export interface Admission {
@@ -138,7 +140,16 @@ export interface CandidateHRData {
 
 export const EVALUATION_STATUS_OPTIONS = ['Em Análise', 'Sim', 'Não'] as const;
 
-export const INTERVIEW_STATUS_OPTIONS = ['Não', 'Sim', 'Não Compareceu', 'Compareceu'] as const;
+export const INTERVIEW_STATUS_OPTIONS = [
+  'Não Agendada',
+  'Agendada',
+  'Compareceu',
+  'Não Compareceu',
+  'Reagendada',
+  'Cancelada'
+] as const;
+
+export type InterviewStatus = typeof INTERVIEW_STATUS_OPTIONS[number];
 
 export const ADMISSION_STATUS_OPTIONS = [
   'Aguardando',

@@ -10,6 +10,15 @@ import type {
 } from "@/types/hr";
 import { createDefaultDocumentation } from "@/types/hr";
 
+export function normalizeInterviewStatus(status: string | null | undefined): string {
+  if (!status || status === 'Não') return 'Não Agendada';
+  if (status === 'Sim') return 'Agendada';
+  if (['Não Agendada', 'Agendada', 'Compareceu', 'Não Compareceu', 'Reagendada', 'Cancelada'].includes(status)) {
+    return status;
+  }
+  return 'Não Agendada';
+}
+
 const createInitialHRData = (candidateId: string): CandidateHRData => ({
   candidateId,
   annotations: [],
@@ -25,7 +34,9 @@ const createInitialHRData = (candidateId: string): CandidateHRData => ({
     talentBank: false,
     pcd: false,
     ns: false,
-    interviewStatus: "Não",
+    interviewStatus: "Não Agendada",
+    interviewTime: "",
+    interviewObservation: "",
   },
   admission: {},
   termination: {},
@@ -70,9 +81,11 @@ export async function fetchAllHRData(
         talentBank: row.talent_bank,
         pcd: (row as any).pcd ?? false,
         ns: row.ns,
-        interviewStatus: row.interview_status,
+        interviewStatus: normalizeInterviewStatus(row.interview_status),
         interviewDate: row.interview_date || undefined,
         interviewAttended: row.interview_attended as any,
+        interviewTime: row.interview_time || undefined,
+        interviewObservation: row.interview_observation || undefined,
       };
     }
   }
@@ -191,6 +204,8 @@ export async function saveEvaluation(candidateId: string, evaluation: ProcessEva
       interview_status: evaluation.interviewStatus,
       interview_date: evaluation.interviewDate || null,
       interview_attended: evaluation.interviewAttended || null,
+      interview_time: evaluation.interviewTime || null,
+      interview_observation: evaluation.interviewObservation || null,
       updated_at: new Date().toISOString(),
     },
     { onConflict: "candidate_id" }

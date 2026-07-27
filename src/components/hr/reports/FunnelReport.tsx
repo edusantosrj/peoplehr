@@ -3,6 +3,8 @@ import { Users, FileSearch, Calendar, XCircle, CheckCircle, UserCheck, UserX } f
 import type { Candidate } from "@/types/candidate";
 import type { CandidateHRData } from "@/types/hr";
 
+import { normalizeInterviewStatus } from "@/services/hrDataService";
+
 interface FunnelReportProps {
   candidates: Candidate[];
   hrDataMap: Record<string, CandidateHRData>;
@@ -34,15 +36,21 @@ export const FunnelReport = ({ candidates, hrDataMap }: FunnelReportProps) => {
       }
 
       const { evaluation, admission } = hrData;
+      const status = normalizeInterviewStatus(evaluation.interviewStatus);
 
-      // Count interview scheduled from actual field
-      if (evaluation.interviewStatus && evaluation.interviewStatus !== 'Não') {
+      // Count interview scheduled (Agendada, Reagendada, Compareceu, Não Compareceu)
+      if (['Agendada', 'Reagendada', 'Compareceu', 'Não Compareceu'].includes(status) || !!evaluation.interviewDate) {
         entrevistaAgendada++;
       }
 
-      // Count attended from actual field
-      if (evaluation.interviewStatus === 'Compareceu') {
+      // Count attended
+      if (status === 'Compareceu') {
         compareceu++;
+      }
+
+      // Count non-attended
+      if (status === 'Não Compareceu') {
+        naoCompareceu++;
       }
       
       // Check if hired

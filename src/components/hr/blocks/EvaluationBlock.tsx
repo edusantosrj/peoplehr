@@ -9,8 +9,9 @@ import {
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ClipboardCheck } from "lucide-react";
+import { ClipboardCheck, Calendar } from "lucide-react";
 import type { ProcessEvaluation, ValidationStatus, ProposalStatus, CurrentStage } from "@/types/hr";
 import {
   INTERVIEW_STATUS_OPTIONS,
@@ -69,17 +70,31 @@ export const EvaluationBlock = ({ evaluation, onUpdate }: EvaluationBlockProps) 
 
   const getInterviewColor = (status: string) => {
     switch (status) {
-      case 'Sim':
+      case 'Agendada':
+        return 'text-blue-600 font-medium';
       case 'Compareceu':
-        return 'text-green-600';
+        return 'text-green-600 font-medium';
+      case 'Reagendada':
+        return 'text-amber-600 font-medium';
       case 'Não Compareceu':
-        return 'text-red-500';
+      case 'Cancelada':
+        return 'text-red-500 font-medium';
       default:
         return 'text-muted-foreground';
     }
   };
 
-  const isInterviewScheduled = evaluation.interviewStatus === 'Sim';
+  const handleInterviewStatusChange = (newStatus: string) => {
+    onUpdate('interviewStatus', newStatus);
+    if (newStatus === 'Não Agendada' || newStatus === 'Cancelada') {
+      onUpdate('interviewDate', '');
+      onUpdate('interviewTime', '');
+    }
+  };
+
+  const showDateTimeInputs = ['Agendada', 'Reagendada', 'Compareceu', 'Não Compareceu'].includes(
+    evaluation.interviewStatus || ''
+  );
 
   // Summary badges (only rendered when applicable, using persisted data)
   const badges: { label: string; variant?: 'default' | 'secondary' | 'destructive' | 'outline' }[] = [];
@@ -87,8 +102,11 @@ export const EvaluationBlock = ({ evaluation, onUpdate }: EvaluationBlockProps) 
   if (evaluation.talentBank) badges.push({ label: 'Banco de Talentos', variant: 'secondary' });
   if (evaluation.pcd) badges.push({ label: 'PCD', variant: 'secondary' });
   if (evaluation.ns) badges.push({ label: 'N/S', variant: 'secondary' });
-  if (evaluation.interviewStatus === 'Sim') badges.push({ label: 'Entrevista Agendada', variant: 'outline' });
-  if (evaluation.interviewAttended === 'Sim') badges.push({ label: 'Compareceu', variant: 'outline' });
+  if (evaluation.interviewStatus === 'Agendada') badges.push({ label: 'Entrevista Agendada', variant: 'outline' });
+  if (evaluation.interviewStatus === 'Reagendada') badges.push({ label: 'Reagendada', variant: 'outline' });
+  if (evaluation.interviewStatus === 'Compareceu') badges.push({ label: 'Compareceu', variant: 'outline' });
+  if (evaluation.interviewStatus === 'Não Compareceu') badges.push({ label: 'Não Compareceu', variant: 'destructive' });
+  if (evaluation.interviewStatus === 'Cancelada') badges.push({ label: 'Cancelada', variant: 'destructive' });
   if (evaluation.documentationDelivered === 'Sim') badges.push({ label: 'Documentação Entregue', variant: 'outline' });
 
   return (
@@ -157,7 +175,7 @@ export const EvaluationBlock = ({ evaluation, onUpdate }: EvaluationBlockProps) 
 
         {/* Toggle fields */}
         <div className="border-t pt-4 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex items-center justify-between rounded-lg border p-3">
               <Label htmlFor="pcd" className="text-sm font-medium">PCD</Label>
               <Switch
@@ -182,53 +200,68 @@ export const EvaluationBlock = ({ evaluation, onUpdate }: EvaluationBlockProps) 
                 onCheckedChange={(checked) => onUpdate('ns', checked)}
               />
             </div>
-            <div className="space-y-1">
-              <Label className="text-sm font-medium">Entrevista Agendada</Label>
-              <Select
-                value={evaluation.interviewStatus || 'Não'}
-                onValueChange={(value) => onUpdate('interviewStatus', value)}
-              >
-                <SelectTrigger className={getInterviewColor(evaluation.interviewStatus || 'Não')}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {INTERVIEW_STATUS_OPTIONS.map((option) => (
-                    <SelectItem key={option} value={option}>{option}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
           </div>
 
-          {isInterviewScheduled && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg border border-blue-200 bg-blue-50/50">
+          {/* Novo Bloco de Entrevista */}
+          <div className="rounded-lg border p-4 bg-muted/20 space-y-4">
+            <h4 className="text-sm font-semibold flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-primary" />
+              Processo de Entrevista
+            </h4>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-1">
-                <Label className="text-sm font-medium">Data da Entrevista</Label>
-                <Input
-                  type="date"
-                  value={evaluation.interviewDate || ''}
-                  onChange={(e) => onUpdate('interviewDate', e.target.value)}
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-sm font-medium">Compareceu?</Label>
+                <Label className="text-sm font-medium">Status da Entrevista</Label>
                 <Select
-                  value={evaluation.interviewAttended || ''}
-                  onValueChange={(value) => onUpdate('interviewAttended', value)}
+                  value={evaluation.interviewStatus || 'Não Agendada'}
+                  onValueChange={handleInterviewStatusChange}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
+                  <SelectTrigger className={getInterviewColor(evaluation.interviewStatus || 'Não Agendada')}>
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Sim">Sim</SelectItem>
-                    <SelectItem value="Não">Não</SelectItem>
+                    {INTERVIEW_STATUS_OPTIONS.map((option) => (
+                      <SelectItem key={option} value={option}>{option}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
+
+              {showDateTimeInputs && (
+                <>
+                  <div className="space-y-1">
+                    <Label className="text-sm font-medium">Data da Entrevista</Label>
+                    <Input
+                      type="date"
+                      value={evaluation.interviewDate || ''}
+                      onChange={(e) => onUpdate('interviewDate', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-sm font-medium">Horário da Entrevista</Label>
+                    <Input
+                      type="time"
+                      value={evaluation.interviewTime || ''}
+                      onChange={(e) => onUpdate('interviewTime', e.target.value)}
+                    />
+                  </div>
+                </>
+              )}
             </div>
-          )}
+
+            <div className="space-y-1">
+              <Label className="text-sm font-medium">Observações da Entrevista</Label>
+              <Textarea
+                placeholder="Anotações ou observações sobre a entrevista..."
+                value={evaluation.interviewObservation || ''}
+                onChange={(e) => onUpdate('interviewObservation', e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>
   );
 };
+

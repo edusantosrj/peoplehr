@@ -30,6 +30,7 @@ import {
   saveTermination,
   saveDocumentation,
   saveEmergencyContacts,
+  normalizeInterviewStatus,
 } from "@/services/hrDataService";
 import { getSignedStorageUrl, useSignedStorageUrl } from "@/lib/storagePath";
 
@@ -243,8 +244,21 @@ export const CandidateProfile = ({
     if (localHRData.admission?.admissionStatus === 'Contratado') return 'Contratado';
     if (localHRData.termination?.confirmed) return 'Demitido';
     if (localHRData.evaluation?.talentBank) return 'Banco de Talentos';
-    if (localHRData.evaluation?.interviewDate) {
-      return `Entrevista Agendada • ${formatDateDisplay(localHRData.evaluation.interviewDate)}`;
+
+    const ev = localHRData.evaluation;
+    const status = normalizeInterviewStatus(ev?.interviewStatus);
+    const dateStr = ev?.interviewDate ? formatDateDisplay(ev.interviewDate) : '';
+    const timeStr = ev?.interviewTime ? ev.interviewTime : '';
+    const dateTime = [dateStr, timeStr].filter(Boolean).join(' • ');
+
+    if (status === 'Compareceu') return '🟢 Compareceu';
+    if (status === 'Não Compareceu') return '🔴 Não Compareceu';
+    if (status === 'Reagendada') return dateTime ? `🟠 Reagendada • ${dateTime}` : '🟠 Reagendada';
+    if (status === 'Agendada') return dateTime ? `📅 Entrevista Agendada • ${dateTime}` : '📅 Entrevista Agendada';
+    if (status === 'Cancelada') return '⚪ Entrevista Cancelada';
+
+    if (ev?.interviewDate) {
+      return `Entrevista Agendada • ${formatDateDisplay(ev.interviewDate)}`;
     }
     return 'Em Processo Seletivo';
   })();

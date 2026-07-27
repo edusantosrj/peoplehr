@@ -15,7 +15,7 @@ import { SignedAvatarImage } from "@/components/hr/SignedAvatarImage";
 import { useVacancies } from "@/contexts/VacancyContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
-import { saveEvaluation } from "@/services/hrDataService";
+import { saveEvaluation, normalizeInterviewStatus } from "@/services/hrDataService";
 import { X } from "lucide-react";
 import type { Candidate } from "@/types/candidate";
 import {
@@ -298,7 +298,8 @@ export const SelectionKanban = ({
       .join("")
       .toUpperCase();
     const ev = hr?.evaluation;
-    const hasInterview = !!ev?.interviewDate;
+    const interviewStatus = normalizeInterviewStatus(ev?.interviewStatus);
+    const hasInterview = !!ev?.interviewDate || ['Agendada', 'Reagendada', 'Compareceu', 'Não Compareceu'].includes(interviewStatus);
     const isHired = ev?.candidateHired === "Sim";
     const docComplete = isDocumentationComplete(hr);
     const isDragging = draggingId === cand.id;
@@ -376,7 +377,8 @@ export const SelectionKanban = ({
       .join("")
       .toUpperCase();
     const ev = hr?.evaluation;
-    const hasInterview = !!ev?.interviewDate;
+    const interviewStatus = normalizeInterviewStatus(ev?.interviewStatus);
+    const hasInterview = !!ev?.interviewDate || ['Agendada', 'Reagendada', 'Compareceu', 'Não Compareceu'].includes(interviewStatus);
     const isHired = ev?.candidateHired === "Sim";
     const docComplete = isDocumentationComplete(hr);
     const rel = relativeDate(cand.registrationDate);

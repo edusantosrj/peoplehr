@@ -23,6 +23,8 @@ import {
 import { Eye, Users, ArrowUpDown, ArrowUp, ArrowDown, X, Filter } from "lucide-react";
 import type { Candidate } from "@/types/candidate";
 import type { CandidateHRData } from "@/types/hr";
+import { INTERVIEW_STATUS_OPTIONS } from "@/types/hr";
+import { normalizeInterviewStatus } from "@/services/hrDataService";
 import { formatDateDisplay } from "@/utils/textFormatting";
 
 interface CandidateListProps {
@@ -109,7 +111,7 @@ export const CandidateList = ({
   const getStoreUnit = (id: string) => hrDataMap[id]?.admission?.storeUnit || '';
   const isPCD = (id: string) => hrDataMap[id]?.evaluation?.pcd || false;
   const isNS = (id: string) => hrDataMap[id]?.evaluation?.ns || false;
-  const getInterviewStatus = (id: string) => hrDataMap[id]?.evaluation?.interviewStatus || 'Não';
+  const getInterviewStatus = (id: string) => normalizeInterviewStatus(hrDataMap[id]?.evaluation?.interviewStatus);
 
   // Build option lists from current data
   const desiredOptions = useMemo(() => {
@@ -252,16 +254,19 @@ export const CandidateList = ({
   );
 
   const InterviewBadge = ({ status }: { status: string }) => {
-    const config: Record<string, { className: string }> = {
-      'Não': { className: '' },
-      'Sim': { className: 'bg-blue-100 text-blue-800 hover:bg-blue-100' },
-      'Compareceu': { className: 'bg-green-100 text-green-800 hover:bg-green-100' },
-      'Não Compareceu': { className: 'bg-red-100 text-red-800 hover:bg-red-100' },
+    const normalized = normalizeInterviewStatus(status);
+    const config: Record<string, { className: string; variant?: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+      'Não Agendada': { className: '', variant: 'outline' },
+      'Agendada': { className: 'bg-blue-100 text-blue-800 hover:bg-blue-100', variant: 'default' },
+      'Compareceu': { className: 'bg-green-100 text-green-800 hover:bg-green-100', variant: 'default' },
+      'Não Compareceu': { className: 'bg-red-100 text-red-800 hover:bg-red-100', variant: 'destructive' },
+      'Reagendada': { className: 'bg-amber-100 text-amber-800 hover:bg-amber-100', variant: 'default' },
+      'Cancelada': { className: 'bg-gray-100 text-gray-800 hover:bg-gray-100', variant: 'outline' },
     };
-    const c = config[status] || config['Não'];
+    const c = config[normalized] || config['Não Agendada'];
     return (
-      <Badge variant={status === 'Não' ? 'outline' : 'default'} className={c.className}>
-        {status}
+      <Badge variant={c.variant || 'default'} className={c.className}>
+        {normalized}
       </Badge>
     );
   };
@@ -305,10 +310,9 @@ export const CandidateList = ({
               <SelectTrigger className="h-9"><SelectValue placeholder="Entrevista" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL}>Entrevista: Todas</SelectItem>
-                <SelectItem value="Não">Não Agendada</SelectItem>
-                <SelectItem value="Sim">Agendada</SelectItem>
-                <SelectItem value="Compareceu">Compareceu</SelectItem>
-                <SelectItem value="Não Compareceu">Não Compareceu</SelectItem>
+                {INTERVIEW_STATUS_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={option}>{option}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
