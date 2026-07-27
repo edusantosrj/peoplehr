@@ -209,7 +209,7 @@ export const EvaluationBlock = ({ evaluation, onUpdate }: EvaluationBlockProps) 
               Processo de Entrevista
             </h4>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
                 <Label className="text-sm font-medium">Status da Entrevista</Label>
                 <Select
@@ -228,27 +228,27 @@ export const EvaluationBlock = ({ evaluation, onUpdate }: EvaluationBlockProps) 
               </div>
 
               {showDateTimeInputs && (
-                <>
-                  <div className="space-y-1">
-                    <Label className="text-sm font-medium">Data da Entrevista</Label>
-                    <Input
-                      type="date"
-                      value={evaluation.interviewDate || ''}
-                      onChange={(e) => onUpdate('interviewDate', e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-sm font-medium">Horário da Entrevista</Label>
-                    <Input
-                      type="time"
-                      value={evaluation.interviewTime || ''}
-                      onChange={(e) => onUpdate('interviewTime', e.target.value)}
-                    />
-                  </div>
-                </>
+                <div className="space-y-1">
+                  <Label className="text-sm font-medium">Data da Entrevista</Label>
+                  <Input
+                    type="date"
+                    value={evaluation.interviewDate || ''}
+                    onChange={(e) => onUpdate('interviewDate', e.target.value)}
+                  />
+                </div>
               )}
             </div>
 
+            {/* Oculto temporariamente na Sprint 1A (Mantido no código para reativação futura) */}
+            {/*
+            <div className="space-y-1">
+              <Label className="text-sm font-medium">Horário da Entrevista</Label>
+              <Input
+                type="time"
+                value={evaluation.interviewTime || ''}
+                onChange={(e) => onUpdate('interviewTime', e.target.value)}
+              />
+            </div>
             <div className="space-y-1">
               <Label className="text-sm font-medium">Observações da Entrevista</Label>
               <Textarea
@@ -258,6 +258,7 @@ export const EvaluationBlock = ({ evaluation, onUpdate }: EvaluationBlockProps) 
                 rows={3}
               />
             </div>
+            */}
           </div>
         </div>
       </CardContent>

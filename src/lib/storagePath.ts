@@ -30,7 +30,9 @@ export async function getSignedStorageUrl(
 ): Promise<string | null> {
   const path = extractStoragePath(bucket, value);
   if (!path) return null;
+  console.log("Tentativa de createSignedUrl:", { bucket, path, expiresIn });
   const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, expiresIn);
+  console.log("Resultado createSignedUrl:", { data, error });
   if (error || !data) return null;
   return data.signedUrl;
 }

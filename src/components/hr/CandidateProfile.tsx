@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ArrowLeft, Printer, Pencil, Share2, ChevronsDownUp, ChevronsUpDown } from "lucide-react";
@@ -55,6 +55,11 @@ export const CandidateProfile = ({
   const [editOpen, setEditOpen] = useState(false);
   const [cardOpen, setCardOpen] = useState(false);
   const [openSections, setOpenSections] = useState<string[]>([]);
+
+  useEffect(() => {
+    console.log("Candidate carregado:", candidate);
+    console.log("Selfie URL encontrada:", candidate?.selfieUrl);
+  }, [candidate]);
 
   const ALL_SECTIONS = [
     "personal", "address", "education", "experience", "aspirations",
@@ -248,14 +253,12 @@ export const CandidateProfile = ({
     const ev = localHRData.evaluation;
     const status = normalizeInterviewStatus(ev?.interviewStatus);
     const dateStr = ev?.interviewDate ? formatDateDisplay(ev.interviewDate) : '';
-    const timeStr = ev?.interviewTime ? ev.interviewTime : '';
-    const dateTime = [dateStr, timeStr].filter(Boolean).join(' • ');
 
     if (status === 'Compareceu') return '🟢 Compareceu';
     if (status === 'Não Compareceu') return '🔴 Não Compareceu';
-    if (status === 'Reagendada') return dateTime ? `🟠 Reagendada • ${dateTime}` : '🟠 Reagendada';
-    if (status === 'Agendada') return dateTime ? `📅 Entrevista Agendada • ${dateTime}` : '📅 Entrevista Agendada';
-    if (status === 'Cancelada') return '⚪ Entrevista Cancelada';
+    if (status === 'Reagendada') return dateStr ? `🟠 Reagendada • ${dateStr}` : '🟠 Reagendada';
+    if (status === 'Agendada') return dateStr ? `📅 Entrevista Agendada • ${dateStr}` : '📅 Entrevista Agendada';
+    if (status === 'Cancelada') return '⚫ Cancelada';
 
     if (ev?.interviewDate) {
       return `Entrevista Agendada • ${formatDateDisplay(ev.interviewDate)}`;

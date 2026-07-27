@@ -84,8 +84,8 @@ export async function fetchAllHRData(
         interviewStatus: normalizeInterviewStatus(row.interview_status),
         interviewDate: row.interview_date || undefined,
         interviewAttended: row.interview_attended as any,
-        interviewTime: row.interview_time || undefined,
-        interviewObservation: row.interview_observation || undefined,
+        interviewTime: undefined,
+        interviewObservation: undefined,
       };
     }
   }
@@ -187,29 +187,36 @@ export async function fetchAllHRData(
 }
 
 export async function saveEvaluation(candidateId: string, evaluation: ProcessEvaluation) {
-  const { error } = await supabase.from("hr_evaluations").upsert(
-    {
-      candidate_id: candidateId,
-      current_stage: evaluation.currentStage,
-      ficha_validation: evaluation.fichaValidation,
-      management_validation: evaluation.managementValidation,
-      director_validation: evaluation.directorValidation,
-      proposal_presented: evaluation.proposalPresented,
-      proposal_accepted: evaluation.proposalAccepted,
-      documentation_delivered: evaluation.documentationDelivered,
-      candidate_hired: evaluation.candidateHired,
-      talent_bank: evaluation.talentBank,
-      pcd: evaluation.pcd,
-      ns: evaluation.ns,
-      interview_status: evaluation.interviewStatus,
-      interview_date: evaluation.interviewDate || null,
-      interview_attended: evaluation.interviewAttended || null,
-      interview_time: evaluation.interviewTime || null,
-      interview_observation: evaluation.interviewObservation || null,
-      updated_at: new Date().toISOString(),
-    },
+  const payload = {
+    candidate_id: candidateId,
+    current_stage: evaluation.currentStage,
+    ficha_validation: evaluation.fichaValidation,
+    management_validation: evaluation.managementValidation,
+    director_validation: evaluation.directorValidation,
+    proposal_presented: evaluation.proposalPresented,
+    proposal_accepted: evaluation.proposalAccepted,
+    documentation_delivered: evaluation.documentationDelivered,
+    candidate_hired: evaluation.candidateHired,
+    talent_bank: evaluation.talentBank,
+    pcd: evaluation.pcd,
+    ns: evaluation.ns,
+    interview_status: evaluation.interviewStatus,
+    interview_date: evaluation.interviewDate || null,
+    interview_attended: evaluation.interviewAttended || null,
+    updated_at: new Date().toISOString(),
+  };
+
+  console.log("Início de saveEvaluation:", candidateId);
+  console.log("Payload enviado:", payload);
+
+  const res = await supabase.from("hr_evaluations").upsert(
+    payload,
     { onConflict: "candidate_id" }
   );
+
+  console.log("Resposta completa do Supabase:", res);
+
+  const { error } = res;
   if (error) {
     console.error("Erro ao salvar avaliação:");
     console.error(error);
