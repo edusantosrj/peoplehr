@@ -1,3 +1,4 @@
+import TestStorage from "@/components/TestStorage";
 import { useState } from "react";
 import { CpfPreCheck } from "@/components/candidate/CpfPreCheck";
 import { CandidateForm } from "@/components/candidate/CandidateForm";
@@ -114,7 +115,9 @@ const Index = () => {
   };
 
   return (
+    
     <VacancyProvider>
+       <TestStorage />
       <div className="min-h-screen bg-background bg-gradient-mesh">
         {/* Header */}
         <header className="app-header text-primary-foreground py-7 shadow-elevated">
