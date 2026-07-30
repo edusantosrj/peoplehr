@@ -535,6 +535,660 @@ async function validateNewStorage() {
 }
 
 
+/* ============================================================
+   4 - ATUALIZAÇÃO DAS URLs DOS CANDIDATOS
+============================================================ */
+
+
+async function fileExistsInNewStorage(filePath) {
+
+
+  const folder =
+
+    path.dirname(
+      filePath
+    );
+
+
+  const fileName =
+
+    path.basename(
+      filePath
+    );
+
+
+
+  const {
+
+    data,
+
+    error
+
+  } = await newSupabase
+
+    .storage
+
+    .from(
+      CONFIG.bucket
+    )
+
+    .list(
+
+      folder,
+
+      {
+
+        search:
+          fileName
+
+      }
+
+    );
+
+
+
+  if (error) {
+
+    return false;
+
+  }
+
+
+
+  return (
+
+    data &&
+
+    data.some(
+
+      file =>
+
+        file.name === fileName
+
+    )
+
+  );
+
+
+}
+
+
+
+
+function buildNewStorageUrl(filePath) {
+
+
+  const {
+
+    data
+
+  } = newSupabase
+
+    .storage
+
+    .from(
+
+      CONFIG.bucket
+
+    )
+
+    .getPublicUrl(
+
+      filePath
+
+    );
+
+
+
+  return data.publicUrl;
+
+
+}
+
+
+
+
+
+async function updateCandidateUrls() {
+
+
+  separator();
+
+
+
+  log(
+
+    "Iniciando atualização das URLs dos candidatos..."
+
+  );
+
+
+
+  const {
+
+    data: candidates,
+
+    error
+
+  } = await newSupabase
+
+    .from("candidates")
+
+    .select(
+
+      `
+        cpf,
+        resume_url,
+        other_files_urls
+      `
+
+    );
+
+
+
+  if (error) {
+
+    throw error;
+
+  }
+
+
+
+  if (
+
+    !candidates ||
+
+    candidates.length === 0
+
+  ) {
+
+
+    log(
+
+      "Nenhum candidato encontrado."
+
+    );
+
+
+    return;
+
+
+  }
+
+
+
+
+  let updatedResume = 0;
+
+
+  let updatedOthers = 0;
+
+
+  let ignored = 0;
+
+
+  let errors = [];
+
+
+
+
+  for (
+
+    const candidate of candidates
+
+  ) {
+
+
+
+    try {
+
+
+
+      let resumeUrl =
+
+        candidate.resume_url;
+
+
+
+      let otherFiles =
+
+        Array.isArray(
+
+          candidate.other_files_urls
+
+        )
+
+          ?
+
+          candidate.other_files_urls
+
+          :
+
+          [];
+
+
+
+
+      let candidateChanged = false;
+
+
+
+      /*
+        ======================================================
+        CURRÍCULO
+        ======================================================
+      */
+
+
+
+      if (
+
+        candidate.resume_url
+
+      ) {
+
+
+
+        const fileName =
+
+          path.basename(
+
+            candidate.resume_url
+
+          );
+
+
+
+        const newPath =
+
+          `${candidate.cpf}/resume/${fileName}`;
+
+
+
+        const exists =
+
+          await fileExistsInNewStorage(
+
+            newPath
+
+          );
+
+
+
+        if (exists) {
+
+
+          resumeUrl =
+
+            buildNewStorageUrl(
+
+              newPath
+
+            );
+
+
+          candidateChanged = true;
+
+
+          updatedResume++;
+
+
+        }
+
+        else {
+
+
+          ignored++;
+
+
+        }
+
+
+      }
+
+
+
+
+
+      /*
+        ======================================================
+        OUTROS DOCUMENTOS
+        ======================================================
+      */
+
+
+
+      if (
+
+        otherFiles.length > 0
+
+      ) {
+
+
+
+        const migratedOthers = [];
+
+
+
+        for (
+
+          const file of otherFiles
+
+        ) {
+
+
+
+          const fileName =
+
+            path.basename(
+
+              file
+
+            );
+
+
+
+          const newPath =
+
+            `${candidate.cpf}/other/${fileName}`;
+
+
+
+          const exists =
+
+            await fileExistsInNewStorage(
+
+              newPath
+
+            );
+
+
+
+          if (exists) {
+
+
+            migratedOthers.push(
+
+              buildNewStorageUrl(
+
+                newPath
+
+              )
+
+            );
+
+
+          }
+
+          else {
+
+
+            ignored++;
+
+
+          }
+
+
+        }
+
+
+
+        if (
+
+          migratedOthers.length > 0
+
+        ) {
+
+
+          otherFiles = migratedOthers;
+
+
+          candidateChanged = true;
+
+
+          updatedOthers +=
+
+            migratedOthers.length;
+
+
+        }
+
+
+
+      }
+
+
+
+
+
+      /*
+        ======================================================
+        UPDATE BANCO
+        ======================================================
+      */
+
+
+
+      if (
+
+        candidateChanged
+
+      ) {
+
+
+
+        if (
+
+          CONFIG.dryRun
+
+        ) {
+
+
+          log(
+
+            `[DRY-RUN] Atualizaria CPF ${candidate.cpf}`
+
+          );
+
+
+        }
+
+        else {
+
+
+
+          const {
+
+            error:updateError
+
+          } = await newSupabase
+
+            .from("candidates")
+
+            .update({
+
+              resume_url:
+
+                resumeUrl,
+
+
+              other_files_urls:
+
+                otherFiles
+
+            })
+
+            .eq(
+
+              "cpf",
+
+              candidate.cpf
+
+            );
+
+
+
+          if (updateError) {
+
+
+            throw updateError;
+
+
+          }
+
+
+
+          log(
+
+            `Atualizado CPF ${candidate.cpf}`
+
+          );
+
+
+        }
+
+
+      }
+
+
+
+    }
+
+    catch(error) {
+
+
+
+      errors.push({
+
+        cpf:
+
+          candidate.cpf,
+
+        error:
+
+          error.message
+
+      });
+
+
+    }
+
+
+
+  }
+
+
+
+
+  separator();
+
+
+
+  console.log(
+
+    "RESULTADO DA ATUALIZAÇÃO DAS URLs"
+
+  );
+
+
+
+  console.log("");
+
+
+
+  console.log(
+
+    `Candidatos analisados: ${candidates.length}`
+
+  );
+
+
+
+  console.log(
+
+    `Currículos atualizados: ${updatedResume}`
+
+  );
+
+
+
+  console.log(
+
+    `Outros documentos atualizados: ${updatedOthers}`
+
+  );
+
+
+
+  console.log(
+
+    `Arquivos ignorados: ${ignored}`
+
+  );
+
+
+
+  console.log(
+
+    `Erros: ${errors.length}`
+
+  );
+
+
+
+
+  if (
+
+    errors.length > 0
+
+  ) {
+
+
+
+    console.log("");
+
+    console.log(
+
+      "ERROS:"
+
+    );
+
+
+
+    errors.forEach(item => {
+
+
+      console.log(
+
+        "❌",
+
+        item.cpf,
+
+        item.error
+
+      );
+
+
+    });
+
+
+  }
+
+
+
+
+  separator();
+
+
+  log(
+
+    "Processo de atualização de URLs finalizado."
+
+  );
+
+
+}
+
 
 /* ============================================================
    MAIN
@@ -565,7 +1219,6 @@ async function main() {
   );
 
 
-
   separator();
 
 
@@ -574,23 +1227,101 @@ async function main() {
 
 
 
+  const mode =
+
+    process.argv[2];
+
+
+
+  /*
+    ==========================================================
+    EXECUÇÃO ISOLADA - ATUALIZAÇÃO DAS URLs
+    Uso:
+
+    node migrate-documents.js --urls
+    ==========================================================
+  */
+
+
+  if (mode === "--urls") {
+
+
+    log(
+
+      "Modo atualização de URLs ativado."
+
+    );
+
+
+
+    await updateCandidateUrls();
+
+
+
+    separator();
+
+
+
+    log(
+
+      "Atualização de URLs concluída."
+
+    );
+
+
+
+    return;
+
+
+  }
+
+
+
+
+  /*
+    ==========================================================
+    FLUXO COMPLETO DE MIGRAÇÃO
+
+    1 - Preparação
+    2 - Validação
+    3 - Migração Storage
+    4 - Validação pós-upload
+    ==========================================================
+  */
+
+
+
   await restoreOldSession();
+
 
 
   await scanDocuments();
 
 
+
   await validateNewStorage();
 
 
+
   await prepareMigrationPlan();
+
 
 
   await validateMigrationPlan();
 
 
 
+  await migrateFiles();
+
+
+
+  await validateMigratedFiles();
+
+
+
+
   separator();
+
 
 
   log(
@@ -1119,6 +1850,746 @@ async function validateMigrationPlan() {
   log(
     "Validação de integridade concluída com sucesso."
   );
+
+
+}
+
+
+/* ============================================================
+   ETAPA 2 - MIGRAÇÃO DOS ARQUIVOS
+============================================================ */
+
+function extractStoragePath(url) {
+
+
+  if (!url) {
+
+    throw new Error(
+      "Caminho do arquivo não informado."
+    );
+
+  }
+
+
+
+  /*
+    Caso seja URL completa Supabase
+  */
+
+
+  if (
+    url.includes("/storage/v1/object/")
+  ) {
+
+
+    const marker =
+      "/storage/v1/object/";
+
+
+
+    const index =
+      url.indexOf(marker);
+
+
+
+    let pathPart =
+
+      url.substring(
+        index + marker.length
+      );
+
+
+
+    return pathPart
+
+      .replace(
+        /^public\//,
+        ""
+      )
+
+      .replace(
+        /^sign\//,
+        ""
+      );
+
+  }
+
+
+
+  /*
+    Caso venha como caminho relativo
+
+    Exemplos:
+
+    documents/cpf/arquivo.pdf
+
+    cpf/arquivo.pdf
+  */
+
+
+  if (
+    url.startsWith(
+      `${CONFIG.bucket}/`
+    )
+  ) {
+
+
+    return url.replace(
+
+      `${CONFIG.bucket}/`,
+
+      ""
+
+    );
+
+
+  }
+
+
+
+  return url;
+
+
+}
+
+
+
+async function downloadFileFromOldStorage(item) {
+
+
+  const source =
+    item.source;
+
+
+
+  const filePath =
+    extractStoragePath(
+      source
+    );
+
+
+
+  log(
+    `Download origem: ${filePath}`
+  );
+
+
+
+  if (CONFIG.dryRun) {
+
+
+    return {
+
+      dryRun: true
+
+    };
+
+
+  }
+
+
+
+
+  const {
+
+    data,
+
+    error
+
+  } = await oldSupabase
+
+    .storage
+
+    .from(
+      CONFIG.bucket
+    )
+
+    .download(
+      filePath
+    );
+
+
+
+  if (error) {
+
+    throw error;
+
+  }
+
+
+
+  return data;
+
+
+}
+
+
+
+
+
+async function uploadFileToNewStorage(
+
+  item,
+
+  file
+
+) {
+
+
+
+  const destination =
+
+    item.destination;
+
+
+
+  if (!destination) {
+
+
+    throw new Error(
+
+      `Destino não encontrado para CPF ${item.cpf}`
+
+    );
+
+
+  }
+
+
+
+  log(
+    `Upload destino: ${destination}`
+  );
+
+
+
+  if (CONFIG.dryRun) {
+
+
+    return;
+
+
+  }
+
+
+
+
+
+  const {
+
+    error
+
+  } = await newSupabase
+
+    .storage
+
+    .from(
+
+      CONFIG.bucket
+
+    )
+
+    .upload(
+
+      destination,
+
+      file,
+
+      {
+
+        upsert: true
+
+      }
+
+    );
+
+
+
+  if (error) {
+
+    throw error;
+
+  }
+
+
+
+}
+
+
+
+
+
+async function migrateFiles() {
+
+
+  separator();
+
+
+  log(
+    "Iniciando migração dos arquivos..."
+  );
+
+
+
+  let success = 0;
+
+
+  let failed = [];
+
+
+
+  for (
+
+    const [index, item]
+
+    of migrationPlan.entries()
+
+  ) {
+
+
+    try {
+
+
+
+      console.log("");
+
+
+
+      log(
+
+        `[${index + 1}/${migrationPlan.length}] ${item.type} - CPF ${item.cpf}`
+
+      );
+
+
+
+      const file =
+
+        await downloadFileFromOldStorage(
+
+          item
+
+        );
+
+
+
+      await uploadFileToNewStorage(
+
+        item,
+
+        file
+
+      );
+
+
+
+      success++;
+
+
+
+      log(
+
+        `Arquivo processado: ${item.destination}`
+
+      );
+
+
+
+    }
+
+    catch(error) {
+
+
+
+      failed.push({
+
+        item,
+
+        error:
+
+          error.message
+
+      });
+
+
+
+      console.error(
+
+        "❌ Falha:",
+
+        item.destination,
+
+        error.message
+
+      );
+
+
+    }
+
+
+
+  }
+
+
+
+
+  separator();
+
+
+
+  console.log(
+
+    "RESULTADO DA MIGRAÇÃO DOS ARQUIVOS"
+
+  );
+
+
+
+  console.log("");
+
+
+
+  console.log(
+
+    `Arquivos planejados: ${migrationPlan.length}`
+
+  );
+
+
+
+  console.log(
+
+    `Processados com sucesso: ${success}`
+
+  );
+
+
+
+  console.log(
+
+    `Falhas: ${failed.length}`
+
+  );
+
+
+
+
+  if (failed.length > 0) {
+
+
+
+    console.log("");
+
+    console.log(
+
+      "ARQUIVOS COM FALHA:"
+
+    );
+
+
+
+    failed.forEach(item => {
+
+
+      console.log(
+
+        "❌",
+
+        item.item.destination,
+
+        "-",
+
+        item.error
+
+      );
+
+
+    });
+
+
+
+    throw new Error(
+
+      "Migração de arquivos concluída com falhas."
+
+    );
+
+
+  }
+
+
+
+
+  separator();
+
+
+  log(
+
+    "Migração dos arquivos concluída com sucesso."
+
+  );
+
+
+}
+
+ /* ============================================================
+   ETAPA 3 - VALIDAÇÃO PÓS-UPLOAD DOS ARQUIVOS
+============================================================ */
+
+
+async function validateMigratedFiles() {
+
+
+  separator();
+
+
+  log(
+    "Iniciando validação dos arquivos migrados..."
+  );
+
+
+
+  let found = 0;
+
+  let missing = [];
+
+
+
+  for (
+
+    const [index, item]
+
+    of migrationPlan.entries()
+
+  ) {
+
+
+    try {
+
+
+
+      log(
+
+        `[${index + 1}/${migrationPlan.length}] Validando ${item.destination}`
+
+      );
+
+
+
+      const {
+
+        data,
+
+        error
+
+      } = await newSupabase
+
+        .storage
+
+        .from(
+
+          CONFIG.bucket
+
+        )
+
+        .list(
+
+          path.dirname(
+            item.destination
+          ),
+
+          {
+
+            search:
+
+              path.basename(
+                item.destination
+              )
+
+          }
+
+        );
+
+
+
+      if (error) {
+
+        throw error;
+
+      }
+
+
+
+      const exists =
+
+        data &&
+
+        data.some(
+
+          file =>
+
+            file.name ===
+
+            path.basename(
+              item.destination
+            )
+
+        );
+
+
+
+      if (exists) {
+
+
+        found++;
+
+
+      }
+
+      else {
+
+
+        missing.push(item);
+
+
+      }
+
+
+
+    }
+
+    catch(error) {
+
+
+      missing.push({
+
+        ...item,
+
+        validationError:
+
+          error.message
+
+      });
+
+
+    }
+
+
+  }
+
+
+
+
+  separator();
+
+
+
+  console.log(
+
+    "RESULTADO DA VALIDAÇÃO DOS ARQUIVOS"
+
+  );
+
+
+
+  console.log("");
+
+
+
+  console.log(
+
+    `Arquivos esperados: ${migrationPlan.length}`
+
+  );
+
+
+
+  console.log(
+
+    `Arquivos encontrados: ${found}`
+
+  );
+
+
+
+  console.log(
+
+    `Arquivos ausentes: ${missing.length}`
+
+  );
+
+
+
+
+  if (missing.length > 0) {
+
+
+
+    console.log("");
+
+    console.log(
+
+      "ARQUIVOS NÃO ENCONTRADOS:"
+
+    );
+
+
+
+    missing.forEach(item => {
+
+
+      console.log(
+
+        "⚠️",
+
+        item.destination,
+
+        item.validationError
+          ?
+          `- ${item.validationError}`
+          :
+          ""
+
+      );
+
+
+    });
+
+
+
+  }
+
+
+
+
+  separator();
+
+
+
+  if (missing.length === 0) {
+
+
+    log(
+
+      "Validação concluída: todos os arquivos encontrados."
+
+    );
+
+
+  }
+
+  else {
+
+
+    log(
+
+      "Validação concluída com arquivos pendentes."
+
+    );
+
+
+  }
+
 
 
 }
