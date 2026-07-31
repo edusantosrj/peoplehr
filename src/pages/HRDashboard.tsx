@@ -17,6 +17,7 @@ import { LoginForm } from "@/components/hr/LoginForm";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { fetchAllHRData } from "@/services/hrDataService";
+import { APP_VERSION } from "@/config/version";
 
 const mapDbRowToCandidate = (row: any): Candidate => ({
   id: row.id,
@@ -303,7 +304,8 @@ const HRDashboard = () => {
         <footer className="border-t border-border/60 bg-background/60 backdrop-blur-sm py-4 mt-auto">
           <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
             <p>© {new Date().getFullYear()} Supermercados Marinho - Todos os direitos reservados</p>
-            <p className="mt-1">Sistema de RH - Painel Administrativo</p>
+            <p className="mt-1">Sistema de RH - Painel Administrativo - PeopleRH • v{APP_VERSION}</p>             
+            
           </div>
         </footer>
       </div>
