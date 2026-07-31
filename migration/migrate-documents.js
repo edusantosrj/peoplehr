@@ -1225,6 +1225,8 @@ async function main() {
 
   validateEnvironment();
 
+  await auditNewProductionEnvironment();
+
 
 
   const mode =
@@ -1276,6 +1278,47 @@ async function main() {
   }
 
 
+    /*
+    ==========================================================
+    EXECUÇÃO ISOLADA - AUDITORIA DA MIGRAÇÃO
+
+    Uso:
+
+    node migrate-documents.js --audit
+    ==========================================================
+  */
+
+
+  if (mode === "--audit") {
+
+
+    log(
+
+      "Modo auditoria ativado."
+
+    );
+
+
+    await validateMigrationIntegrity();
+
+
+
+    separator();
+
+
+
+    log(
+
+      "Auditoria concluída."
+
+    );
+
+
+
+    return;
+
+
+  }
 
 
   /*
@@ -2590,6 +2633,913 @@ async function validateMigratedFiles() {
 
   }
 
+
+
+}
+
+
+/* ============================================================
+  ETAPA 5 - AUDITORIA DO AMBIENTE MIGRADO
+============================================================ */
+
+
+async function validateMigrationIntegrity() {
+
+
+  separator();
+
+
+  log(
+
+    "Iniciando auditoria do ambiente migrado..."
+
+  );
+
+
+
+  const {
+
+    data: candidates,
+
+    error
+
+  } = await newSupabase
+
+    .from("candidates")
+
+    .select(
+
+      `
+        cpf,
+        resume_url,
+        other_files_urls
+      `
+
+    );
+
+
+
+  if (error) {
+
+    throw error;
+
+  }
+
+
+
+  if (
+
+    !candidates ||
+
+    candidates.length === 0
+
+  ) {
+
+
+    log(
+
+      "Nenhum candidato encontrado."
+
+    );
+
+
+    return;
+
+
+  }
+
+
+
+
+
+  let totalResumes = 0;
+
+  let totalOthers = 0;
+
+  let validUrls = 0;
+
+  let oldUrls = 0;
+
+  let missingFiles = 0;
+
+  let invalidUrls = 0;
+
+
+  const problems = [];
+
+
+
+
+
+  for (
+
+    const candidate of candidates
+
+  ) {
+
+
+
+    if (
+
+      candidate.resume_url
+
+    ) {
+
+
+
+      totalResumes++;
+
+
+
+      const result =
+
+        await auditFileUrl(
+
+          candidate.cpf,
+
+          candidate.resume_url
+
+        );
+
+
+
+      if (
+
+        result === "new"
+
+      ) {
+
+
+        validUrls++;
+
+
+      }
+
+
+      if (
+
+        result === "old"
+
+      ) {
+
+
+        oldUrls++;
+
+
+        problems.push({
+
+          cpf:
+
+            candidate.cpf,
+
+          arquivo:
+
+            candidate.resume_url,
+
+          problema:
+
+            "URL antiga"
+
+        });
+
+
+      }
+
+
+      if (
+
+        result === "missing"
+
+      ) {
+
+
+        missingFiles++;
+
+
+        problems.push({
+
+          cpf:
+
+            candidate.cpf,
+
+          arquivo:
+
+            candidate.resume_url,
+
+          problema:
+
+            "Arquivo inexistente no Storage novo"
+
+        });
+
+
+      }
+
+
+      if (
+
+        result === "invalid"
+
+      ) {
+
+
+        invalidUrls++;
+
+
+        problems.push({
+
+          cpf:
+
+            candidate.cpf,
+
+          arquivo:
+
+            candidate.resume_url,
+
+          problema:
+
+            "URL inválida"
+
+        });
+
+
+      }
+
+
+    }
+
+
+
+
+
+
+    if (
+
+      Array.isArray(
+
+        candidate.other_files_urls
+
+      )
+
+    ) {
+
+
+
+      for (
+
+        const file of candidate.other_files_urls
+
+      ) {
+
+
+
+        totalOthers++;
+
+
+
+        const result =
+
+          await auditFileUrl(
+
+            candidate.cpf,
+
+            file
+
+          );
+
+
+
+        if (
+
+          result === "new"
+
+        ) {
+
+
+          validUrls++;
+
+
+        }
+
+
+
+        if (
+
+          result === "old"
+
+        ) {
+
+
+          oldUrls++;
+
+
+          problems.push({
+
+            cpf:
+
+              candidate.cpf,
+
+            arquivo:
+
+              file,
+
+            problema:
+
+              "Documento extra com URL antiga"
+
+          });
+
+
+        }
+
+
+
+        if (
+
+          result === "missing"
+
+        ) {
+
+
+          missingFiles++;
+
+
+          problems.push({
+
+            cpf:
+
+              candidate.cpf,
+
+            arquivo:
+
+              file,
+
+            problema:
+
+              "Documento extra inexistente"
+
+          });
+
+
+        }
+
+
+
+        if (
+
+          result === "invalid"
+
+        ) {
+
+
+          invalidUrls++;
+
+
+          problems.push({
+
+            cpf:
+
+              candidate.cpf,
+
+            arquivo:
+
+              file,
+
+            problema:
+
+              "URL inválida"
+
+          });
+
+
+        }
+
+
+      }
+
+
+    }
+
+
+
+  }
+
+
+
+
+
+  separator();
+
+
+
+  console.log(
+
+    "RESULTADO DA AUDITORIA"
+
+  );
+
+
+  console.log("");
+
+
+
+  console.log(
+
+    `Candidatos analisados: ${candidates.length}`
+
+  );
+
+
+  console.log(
+
+    `Currículos encontrados: ${totalResumes}`
+
+  );
+
+
+  console.log(
+
+    `Documentos extras encontrados: ${totalOthers}`
+
+  );
+
+
+  console.log(
+
+    `URLs válidas no novo Storage: ${validUrls}`
+
+  );
+
+
+  console.log(
+
+    `URLs antigas: ${oldUrls}`
+
+  );
+
+
+  console.log(
+
+    `Arquivos inexistentes: ${missingFiles}`
+
+  );
+
+
+  console.log(
+
+    `URLs inválidas: ${invalidUrls}`
+
+  );
+
+
+  console.log(
+
+    `Problemas encontrados: ${problems.length}`
+
+  );
+
+
+
+
+
+  if (
+
+    problems.length > 0
+
+  ) {
+
+
+
+    console.log("");
+
+    console.log(
+
+      "PROBLEMAS:"
+
+    );
+
+
+
+    problems.forEach(item => {
+
+
+      console.log(
+
+        "❌",
+
+        item.cpf,
+
+        "-",
+
+        item.problema
+
+      );
+
+
+      console.log(
+
+        "   ",
+
+        item.arquivo
+
+      );
+
+
+    });
+
+
+  }
+
+
+
+  separator();
+
+
+}
+
+
+
+
+
+async function auditFileUrl(
+
+  cpf,
+
+  url
+
+) {
+
+
+
+  if (!url) {
+
+
+    return "invalid";
+
+
+  }
+
+
+
+
+  if (
+
+    url.includes(
+
+      CONFIG.old.url
+
+    )
+
+  ) {
+
+
+    return "old";
+
+
+  }
+
+
+
+
+
+  if (
+
+    !url.includes(
+
+      CONFIG.new.url
+
+    )
+
+  ) {
+
+
+    return "invalid";
+
+
+  }
+
+
+
+
+
+  const filePath =
+
+    extractStoragePath(
+
+      url
+
+    );
+
+
+
+  if (!filePath) {
+
+
+    return "invalid";
+
+
+  }
+
+
+
+
+  const exists =
+
+    await fileExistsInNewStorage(
+
+      filePath
+
+    );
+
+
+
+  if (!exists) {
+
+
+    return "missing";
+
+
+  }
+
+
+
+
+  return "new";
+
+
+}
+
+
+/* ============================================================
+   ETAPA 5.1
+   AUDITORIA DO NOVO AMBIENTE DE PRODUÇÃO
+
+   Objetivo:
+   - Validar novo Supabase
+   - Validar tabela candidates
+   - Validar bucket documents
+   - Validar estrutura Storage
+
+   NÃO cria candidatos.
+   NÃO envia arquivos.
+   NÃO altera dados.
+============================================================ */
+
+
+async function auditNewProductionEnvironment() {
+
+
+  separator();
+
+
+  log(
+    "Iniciando auditoria do novo ambiente de produção..."
+  );
+
+
+  const problems = [];
+
+
+
+  /*
+  ============================================================
+  VALIDAR TABELA CANDIDATES
+  ============================================================
+  */
+
+
+  const {
+
+    data: candidates,
+
+    error: candidatesError
+
+  } = await newSupabase
+
+    .from("candidates")
+
+    .select(
+      `
+      id,
+      cpf,
+      full_name,
+      resume_url,
+      selfie_url,
+      other_files_urls
+      `
+    )
+
+    .limit(1);
+
+
+
+  if (candidatesError) {
+
+
+    problems.push(
+
+      "Tabela candidates inacessível: "
+      +
+      candidatesError.message
+
+    );
+
+
+  }
+  else {
+
+
+    log(
+      "Tabela candidates OK."
+    );
+
+
+  }
+
+
+
+  /*
+  ============================================================
+  VALIDAR BUCKET DOCUMENTS
+  ============================================================
+  */
+
+
+  const {
+
+    data: buckets,
+
+    error: bucketError
+
+  } = await newSupabase
+
+    .storage
+
+    .listBuckets();
+
+
+
+  if (bucketError) {
+
+
+    problems.push(
+
+      "Erro ao consultar buckets: "
+      +
+      bucketError.message
+
+    );
+
+
+  }
+  else {
+
+
+    const documentsBucket =
+
+      buckets.find(
+
+        bucket =>
+          bucket.name === CONFIG.bucket
+
+      );
+
+
+
+    if (!documentsBucket) {
+
+
+      problems.push(
+
+        "Bucket documents não encontrado."
+
+      );
+
+
+    }
+    else {
+
+
+      log(
+        "Bucket documents OK."
+      );
+
+
+    }
+
+
+  }
+
+
+
+  /*
+  ============================================================
+  VALIDAR CONFIGURAÇÕES
+  ============================================================
+  */
+
+
+  if (!CONFIG.new.url) {
+
+
+    problems.push(
+
+      "NEW_SUPABASE_URL não configurada."
+
+    );
+
+
+  }
+
+
+
+  if (!CONFIG.new.key) {
+
+
+    problems.push(
+
+      "NEW_SERVICE_ROLE_KEY não configurada."
+
+    );
+
+
+  }
+
+
+
+  /*
+  ============================================================
+  RESULTADO
+  ============================================================
+  */
+
+
+  separator();
+
+
+  console.log(
+
+    "RESULTADO DA AUDITORIA DO NOVO AMBIENTE"
+
+  );
+
+
+  console.log("");
+
+
+
+  console.log(
+
+    `Problemas encontrados: ${problems.length}`
+
+  );
+
+
+
+  if (problems.length > 0) {
+
+
+    console.log("");
+
+    console.log(
+      "PROBLEMAS:"
+    );
+
+
+
+    problems.forEach(
+
+      problem =>
+
+        console.log(
+          "❌",
+          problem
+        )
+
+    );
+
+
+
+    throw new Error(
+
+      "Auditoria do novo ambiente falhou."
+
+    );
+
+
+  }
+
+
+
+  separator();
+
+
+
+  log(
+
+    "Novo ambiente pronto para produção."
+
+  );
 
 
 }
