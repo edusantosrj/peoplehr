@@ -72,29 +72,33 @@ const HRDashboardContent = () => {
 
   const fetchCandidates = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("candidates")
-      .select("*")
-      .order("created_at", { ascending: false });
 
-    if (error) {
+    try {
+      const { data, error } = await supabase
+        .from("candidates")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      const mappedCandidates = (data || []).map(mapDbRowToCandidate);
+      setCandidates(mappedCandidates);
+
+      const candidateIds = mappedCandidates.map((c) => c.id);
+      const hrMap = await fetchAllHRData(candidateIds);
+      setHRDataMap(hrMap);
+    } catch (error) {
       console.error("Erro ao carregar candidatos:", error);
       toast({
         title: "Erro",
         description: "Não foi possível carregar os candidatos.",
         variant: "destructive",
       });
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const mappedCandidates = (data || []).map(mapDbRowToCandidate);
-    setCandidates(mappedCandidates);
-
-    const candidateIds = mappedCandidates.map((c) => c.id);
-    const hrMap = await fetchAllHRData(candidateIds);
-    setHRDataMap(hrMap);
-    setLoading(false);
   }, [toast]);
 
   useEffect(() => {
@@ -114,8 +118,7 @@ const HRDashboardContent = () => {
 
   const handleBack = () => {
     setSelectedCandidate(null);
-    // Refresh data when going back
-    fetchCandidates();
+    void fetchCandidates();
   };
 
   const handleNavigateToPanel = (panel: string) => {
@@ -272,7 +275,7 @@ const HRDashboard = () => {
 
   return (
     <VacancyProvider>
-      <div className="min-h-screen bg-background bg-gradient-mesh">
+      <div className="min-h-screen bg-background bg-gradient-mesh flex flex-col">
         <header className="app-header text-primary-foreground py-7 shadow-elevated">
           <div className="container mx-auto px-4 flex items-center justify-between">
             <div>
@@ -297,15 +300,19 @@ const HRDashboard = () => {
           </div>
         </header>
 
-        <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-4 py-8 flex-1">
           {session ? <HRDashboardContent /> : <LoginForm onLogin={() => {}} />}
         </main>
 
         <footer className="border-t border-border/60 bg-background/60 backdrop-blur-sm py-4 mt-auto">
-          <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-            <p>© {new Date().getFullYear()} Supermercados Marinho - Todos os direitos reservados</p>
-            <p className="mt-1">Sistema de RH - Painel Administrativo - PeopleRH • v{APP_VERSION}</p>             
-            
+          <div className="container mx-auto px-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-center text-sm text-muted-foreground sm:text-left">
+              © {new Date().getFullYear()} Supermercados Marinho - Todos os direitos reservados
+            </p>
+
+            <p className="text-right text-[11px] font-medium leading-none text-slate-400/80">
+              PeopleRH - v{APP_VERSION}
+            </p>
           </div>
         </footer>
       </div>
