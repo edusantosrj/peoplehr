@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/next"
 import TestStorage from "@/components/TestStorage";
 import { useState } from "react";
 import { CpfPreCheck } from "@/components/candidate/CpfPreCheck";
