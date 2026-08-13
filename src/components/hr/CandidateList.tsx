@@ -20,7 +20,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Eye, Users, ArrowUpDown, ArrowUp, ArrowDown, X, Filter } from "lucide-react";
+import { Eye, Users, ArrowUpDown, ArrowUp, ArrowDown, X, Filter, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import type { Candidate } from "@/types/candidate";
 import type { CandidateHRData } from "@/types/hr";
 import { INTERVIEW_STATUS_OPTIONS } from "@/types/hr";
@@ -64,12 +69,14 @@ export const CandidateList = ({
 }: CandidateListProps) => {
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+  const [filtersOpen, setFiltersOpen] = useState(true);
 
   // Filters
   const [fName, setFName] = useState("");
   const [fCpf, setFCpf] = useState("");
   const [fWhats, setFWhats] = useState("");
   const [fInterview, setFInterview] = useState<string>(ALL);
+  const [fCity, setFCity] = useState<string>(ALL);
   const [fDesired, setFDesired] = useState<string>(ALL);
   const [fHired, setFHired] = useState<TriState>('all');
   const [fTerminated, setFTerminated] = useState<TriState>('all');
@@ -114,6 +121,16 @@ export const CandidateList = ({
   const getInterviewStatus = (id: string) => normalizeInterviewStatus(hrDataMap[id]?.evaluation?.interviewStatus);
 
   // Build option lists from current data
+  const cityOptions = useMemo(() => {
+    const set = new Set<string>();
+    candidates.forEach((c) => {
+      if (c.city && c.city.trim()) {
+        set.add(c.city.trim());
+      }
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }, [candidates]);
+
   const desiredOptions = useMemo(() => {
     const set = new Set<string>();
     candidates.forEach((c) => {
@@ -177,7 +194,7 @@ export const CandidateList = ({
 
   const clearFilters = () => {
     setFName(""); setFCpf(""); setFWhats("");
-    setFInterview(ALL); setFDesired(ALL);
+    setFInterview(ALL); setFCity(ALL); setFDesired(ALL);
     setFHired('all'); setFTerminated('all');
     setFHiredVacancy(ALL); setFStore(ALL);
     setFPcd('all'); setFNs('all');
@@ -197,6 +214,7 @@ export const CandidateList = ({
       if (cpfQ && !c.cpf.replace(/\D/g, '').includes(cpfQ)) return false;
       if (whatsQ && !(c.whatsapp || '').replace(/\D/g, '').includes(whatsQ)) return false;
       if (fInterview !== ALL && getInterviewStatus(c.id) !== fInterview) return false;
+      if (fCity !== ALL && (c.city || '').trim() !== fCity) return false;
       if (fDesired !== ALL) {
         const positions = [c.desiredPosition1, c.desiredPosition2, c.desiredPosition3].filter(Boolean);
         if (!positions.includes(fDesired)) return false;
@@ -244,7 +262,7 @@ export const CandidateList = ({
 
     return filtered;
   }, [candidates, hrDataMap, sortField, sortDirection,
-    fName, fCpf, fWhats, fInterview, fDesired, fHired, fTerminated,
+    fName, fCpf, fWhats, fInterview, fCity, fDesired, fHired, fTerminated,
     fHiredVacancy, fStore, fPcd, fNs, fDateStart, fDateEnd]);
 
   const BoolBadge = ({ value, yesLabel = "Sim", noLabel = "Não" }: { value: boolean; yesLabel?: string; noLabel?: string }) => (
@@ -291,17 +309,19 @@ export const CandidateList = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="mb-4 space-y-3 rounded-lg border bg-muted/30 p-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+        <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen} className="mb-4 rounded-lg border bg-muted/30">
+          <div className="flex items-center justify-between p-3">
+            <CollapsibleTrigger className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               <Filter className="h-4 w-4" /> Filtros
-            </div>
+              {filtersOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </CollapsibleTrigger>
             <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8">
               <X className="h-4 w-4 mr-1" /> Limpar Filtros
             </Button>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+          <CollapsibleContent>
+            <div className="space-y-3 px-3 pb-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
             <Input placeholder="Nome" value={fName} onChange={(e) => setFName(e.target.value)} className="h-9" />
             <Input placeholder="CPF" value={fCpf} onChange={(e) => setFCpf(e.target.value)} className="h-9" />
             <Input placeholder="WhatsApp" value={fWhats} onChange={(e) => setFWhats(e.target.value)} className="h-9" />
@@ -312,6 +332,16 @@ export const CandidateList = ({
                 <SelectItem value={ALL}>Entrevista: Todas</SelectItem>
                 {INTERVIEW_STATUS_OPTIONS.map((option) => (
                   <SelectItem key={option} value={option}>{option}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={fCity} onValueChange={setFCity}>
+              <SelectTrigger className="h-9"><SelectValue placeholder="Cidade" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>Todas as cidades</SelectItem>
+                {cityOptions.map((city) => (
+                  <SelectItem key={city} value={city}>{city}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -371,11 +401,13 @@ export const CandidateList = ({
               <label className="text-xs text-muted-foreground mb-1">Data final</label>
               <Input type="date" value={fDateEnd} onChange={(e) => { setFDateEnd(e.target.value); setFPreset('custom'); }} className="h-9 w-[160px]" />
             </div>
-            <div className="ml-auto text-xs text-muted-foreground self-center">
-              {filteredAndSortedCandidates.length} de {candidates.length} candidato(s)
+                <div className="ml-auto text-xs text-muted-foreground self-center">
+                  {filteredAndSortedCandidates.length} de {candidates.length} candidato(s)
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          </CollapsibleContent>
+        </Collapsible>
 
         {filteredAndSortedCandidates.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">

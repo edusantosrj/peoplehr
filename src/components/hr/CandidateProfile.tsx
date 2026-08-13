@@ -309,7 +309,7 @@ export const CandidateProfile = ({
       <div className="flex items-center justify-between gap-2 mb-4 print:hidden">
         <Button variant="ghost" onClick={onBack}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Voltar para Lista
+          Voltar
         </Button>
         <div className="flex items-center gap-2 flex-wrap">
           <Button variant="outline" size="sm" onClick={expandAll}>

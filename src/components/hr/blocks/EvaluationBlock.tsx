@@ -34,8 +34,8 @@ type FieldDef = {
 
 const evaluationFields: FieldDef[] = [
   { key: 'fichaValidation', label: 'Validação da Ficha', kind: 'validation' },
-  { key: 'managementValidation', label: 'Validação da Gerência', kind: 'validation' },
-  { key: 'directorValidation', label: 'Validação da Diretoria', kind: 'validation' },
+  { key: 'managementValidation', label: 'Validação Gestores', kind: 'validation' },
+  { key: 'directorValidation', label: 'Validação da Entrevista', kind: 'validation' },
   { key: 'proposalPresented', label: 'Proposta Apresentada', kind: 'proposal' },
   { key: 'proposalAccepted', label: 'Proposta Aceita', kind: 'proposal' },
   { key: 'documentationDelivered', label: 'Documentação Entregue', kind: 'proposal' },

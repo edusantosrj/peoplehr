@@ -37,8 +37,8 @@ export const CURRENT_STAGE_OPTIONS: CurrentStage[] = [
 
 export const CURRENT_STAGE_LABELS: Record<CurrentStage, string> = {
   validation_form: 'Validação da Ficha',
-  validation_manager: 'Validação da Gerência',
-  validation_director: 'Validação da Diretoria',
+  validation_manager: 'Validação Gestores',
+  validation_director: 'Validação da Entrevista',
   proposal_presented: 'Proposta Apresentada',
   proposal_accepted: 'Proposta Aceita',
   documentation: 'Documentação Entregue',

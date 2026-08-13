@@ -156,8 +156,8 @@ export const HistoryBlock = ({ candidate, hrData }: HistoryBlockProps) => {
     // 4. Evaluation updates (based on current state - simulating events)
     const evaluationLabels: Record<string, string> = {
       fichaValidation: 'Validação da Ficha',
-      managementValidation: 'Validação da Gerência',
-      directorValidation: 'Validação da Diretoria',
+      managementValidation: 'Validação Gestores',
+      directorValidation: 'Validação da Entrevista',
       proposalPresented: 'Proposta Apresentada',
       proposalAccepted: 'Proposta Aceita',
       documentationDelivered: 'Documentação Entregue',
