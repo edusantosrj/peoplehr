@@ -69,7 +69,7 @@ export const CandidateList = ({
 }: CandidateListProps) => {
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
-  const [filtersOpen, setFiltersOpen] = useState(true);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   // Filters
   const [fName, setFName] = useState("");
