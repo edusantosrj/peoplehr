@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, Phone, User } from "lucide-react";
 import type { WorkExperience } from "@/types/candidate";
-import { formatDateDisplay } from "@/utils/textFormatting";
+import { calculateDuration, formatDateDisplay } from "@/utils/textFormatting";
 
 interface ExperienceBlockProps {
   experiences: WorkExperience[];
@@ -10,6 +10,8 @@ interface ExperienceBlockProps {
 
 export const ExperienceBlock = ({ experiences, firstJob }: ExperienceBlockProps) => {
   const formatDate = (dateString: string) => formatDateDisplay(dateString);
+  const formatDuration = (exp: WorkExperience) =>
+    calculateDuration(exp.startDate, exp.endDate, exp.currentlyWorking);
 
   // Sort experiences - just use string comparison on DD/MM/YYYY
   const sortedExperiences = [...experiences];
@@ -55,6 +57,11 @@ export const ExperienceBlock = ({ experiences, firstJob }: ExperienceBlockProps)
                       <span className="text-primary font-medium">Atual</span>
                     ) : (
                       exp.endDate && formatDate(exp.endDate)
+                    )}
+                    {formatDuration(exp) && (
+                      <span className="ml-2 text-xs text-muted-foreground/80">
+                        ({formatDuration(exp)})
+                      </span>
                     )}
                   </div>
                 </div>
