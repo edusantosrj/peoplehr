@@ -5,6 +5,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "@/components/ui/collapsible";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -16,7 +21,7 @@ import { useVacancies } from "@/contexts/VacancyContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
 import { saveEvaluation, normalizeInterviewStatus } from "@/services/hrDataService";
-import { X } from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
 import type { Candidate } from "@/types/candidate";
 import {
   CandidateHRData,
@@ -112,6 +117,28 @@ export const SelectionKanban = ({
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverStage, setDragOverStage] = useState<CurrentStage | null>(null);
   const [viewMode, setViewMode] = useState<"active" | "closed">("active");
+  const [collapsedColumns, setCollapsedColumns] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("kanban_collapsed_columns");
+      if (stored) setCollapsedColumns(JSON.parse(stored));
+    } catch {
+      // ignore invalid stored data
+    }
+  }, []);
+
+  const toggleColumn = (key: string) => {
+    setCollapsedColumns((prev) => {
+      const next = { ...prev, [key]: !prev[key] };
+      try {
+        localStorage.setItem("kanban_collapsed_columns", JSON.stringify(next));
+      } catch {
+        // localStorage unavailable
+      }
+      return next;
+    });
+  };
 
   // Filters
   const [fName, setFName] = useState("");
@@ -537,56 +564,74 @@ export const SelectionKanban = ({
               const list = grouped[stage];
               const summary = getStatusSummary(stage, list, hrDataMap);
               const isOver = dragOverStage === stage;
+              const isCollapsed = !!collapsedColumns[stage];
               return (
-                <div
+                <Collapsible
                   key={stage}
-                  onDragOver={(e) => {
-                    if (isMobile) return;
-                    e.preventDefault();
-                    if (dragOverStage !== stage) setDragOverStage(stage);
-                  }}
-                  onDragLeave={() => {
-                    if (dragOverStage === stage) setDragOverStage(null);
-                  }}
-                  onDrop={(e) => {
-                    if (isMobile) return;
-                    e.preventDefault();
-                    handleDrop(stage);
-                  }}
+                  open={!isCollapsed}
+                  onOpenChange={(open) => toggleColumn(stage)}
                   className={`w-72 lg:w-auto flex-shrink-0 rounded-lg border flex flex-col transition-colors ${
                     isOver ? "bg-primary/10 border-primary" : "bg-muted/40 border-border/60"
                   }`}
                 >
-                  <div className="px-3 py-3 border-b border-border/60 bg-background/60 rounded-t-lg">
-                    <div className="text-sm font-semibold text-foreground leading-tight">
-                      {CURRENT_STAGE_LABELS[stage]}
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-0.5">
-                      {list.length} {list.length === 1 ? "candidato" : "candidatos"}
-                    </div>
-                    {summary.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {summary.map((s) => (
-                          <span
-                            key={s.label}
-                            className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border/60"
-                          >
-                            {s.label}: {s.count}
-                          </span>
-                        ))}
+                  <div
+                    onDragOver={(e) => {
+                      if (isMobile) return;
+                      e.preventDefault();
+                      if (dragOverStage !== stage) setDragOverStage(stage);
+                    }}
+                    onDragLeave={() => {
+                      if (dragOverStage === stage) setDragOverStage(null);
+                    }}
+                    onDrop={(e) => {
+                      if (isMobile) return;
+                      e.preventDefault();
+                      handleDrop(stage);
+                    }}
+                    className="flex flex-col flex-1"
+                  >
+                    <CollapsibleTrigger asChild>
+                      <div className="px-3 py-3 border-b border-border/60 bg-background/60 rounded-t-lg cursor-pointer select-none">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="text-sm font-semibold text-foreground leading-tight">
+                            {CURRENT_STAGE_LABELS[stage]}
+                          </div>
+                          <ChevronDown
+                            className={`h-4 w-4 text-muted-foreground transition-transform ${
+                              isCollapsed ? "-rotate-90" : ""
+                            }`}
+                          />
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-0.5">
+                          {list.length} {list.length === 1 ? "candidato" : "candidatos"}
+                        </div>
+                        {summary.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {summary.map((s) => (
+                              <span
+                                key={s.label}
+                                className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border/60"
+                              >
+                                {s.label}: {s.count}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                  <div className="p-2 space-y-2 flex-1 min-h-[80px]">
-                    {list.length === 0 ? (
-                      <div className="text-xs text-muted-foreground text-center py-6">
-                        Nenhum candidato
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="p-2 space-y-2 flex-1 min-h-[80px]">
+                        {list.length === 0 ? (
+                          <div className="text-xs text-muted-foreground text-center py-6">
+                            Nenhum candidato
+                          </div>
+                        ) : (
+                          list.map((cand) => renderCard(cand, CURRENT_STAGE_LABELS[stage], true))
+                        )}
                       </div>
-                    ) : (
-                      list.map((cand) => renderCard(cand, CURRENT_STAGE_LABELS[stage], true))
-                    )}
+                    </CollapsibleContent>
                   </div>
-                </div>
+                </Collapsible>
               );
             })}
           </div>
@@ -597,30 +642,46 @@ export const SelectionKanban = ({
             {[
               { key: "reprovados", label: "🔴 Reprovados", list: reprovadoCandidates, kind: "reprovado" as const },
               { key: "talent", label: "⭐ Banco de Talentos", list: talentCandidates, kind: "talent" as const },
-            ].map((col) => (
-              <div
-                key={col.key}
-                className="w-72 lg:w-auto flex-shrink-0 rounded-lg border flex flex-col bg-muted/40 border-border/60"
-              >
-                <div className="px-3 py-3 border-b border-border/60 bg-background/60 rounded-t-lg">
-                  <div className="text-sm font-semibold text-foreground leading-tight">
-                    {col.label}
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-0.5">
-                    {col.list.length} {col.list.length === 1 ? "candidato" : "candidatos"}
-                  </div>
-                </div>
-                <div className="p-2 space-y-2 flex-1 min-h-[80px]">
-                  {col.list.length === 0 ? (
-                    <div className="text-xs text-muted-foreground text-center py-6">
-                      Nenhum candidato arquivado
+            ].map((col) => {
+              const isCollapsed = !!collapsedColumns[col.key];
+              return (
+                <Collapsible
+                  key={col.key}
+                  open={!isCollapsed}
+                  onOpenChange={(open) => toggleColumn(col.key)}
+                  className="w-72 lg:w-auto flex-shrink-0 rounded-lg border flex flex-col bg-muted/40 border-border/60"
+                >
+                  <CollapsibleTrigger asChild>
+                    <div className="px-3 py-3 border-b border-border/60 bg-background/60 rounded-t-lg cursor-pointer select-none">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="text-sm font-semibold text-foreground leading-tight">
+                          {col.label}
+                        </div>
+                        <ChevronDown
+                          className={`h-4 w-4 text-muted-foreground transition-transform ${
+                            isCollapsed ? "-rotate-90" : ""
+                          }`}
+                        />
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-0.5">
+                        {col.list.length} {col.list.length === 1 ? "candidato" : "candidatos"}
+                      </div>
                     </div>
-                  ) : (
-                    col.list.map((cand) => renderClosedCard(cand, col.kind))
-                  )}
-                </div>
-              </div>
-            ))}
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="p-2 space-y-2 flex-1 min-h-[80px]">
+                      {col.list.length === 0 ? (
+                        <div className="text-xs text-muted-foreground text-center py-6">
+                          Nenhum candidato arquivado
+                        </div>
+                      ) : (
+                        col.list.map((cand) => renderClosedCard(cand, col.kind))
+                      )}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              );
+            })}
           </div>
         </div>
       )}
