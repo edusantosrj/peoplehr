@@ -22,7 +22,6 @@ interface AdmissionBlockProps {
   onUpdate: (field: keyof Admission, value: string) => void;
   onBatchUpdate: (updates: Partial<Admission>) => void;
   onSave: () => void;
-  onDebitVacancy?: (vacancyId: string) => void;
 }
 
 export const AdmissionBlock = ({
@@ -30,7 +29,6 @@ export const AdmissionBlock = ({
   onUpdate,
   onBatchUpdate,
   onSave,
-  onDebitVacancy,
 }: AdmissionBlockProps) => {
   const { vacancies } = useVacancies();
   const { toast } = useToast();

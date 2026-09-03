@@ -25,6 +25,31 @@ export type CurrentStage =
   | 'documentation'
   | 'hired';
 
+/**
+ * Estágios do Pipeline Contratado (Etapa 4.1).
+ * Tipo separado de CurrentStage para não quebrar o Kanban atual.
+ * Será utilizado pelo Pipeline Contratado em etapas futuras.
+ */
+export type HiredPipelineStage =
+  | 'hired'
+  | 'onboarding'
+  | 'integrated'
+  | 'active';
+
+export const HIRED_PIPELINE_STAGE_OPTIONS: HiredPipelineStage[] = [
+  'hired',
+  'onboarding',
+  'integrated',
+  'active',
+];
+
+export const HIRED_PIPELINE_STAGE_LABELS: Record<HiredPipelineStage, string> = {
+  hired: 'Contratado',
+  onboarding: 'Onboarding',
+  integrated: 'Integrado',
+  active: 'Ativo',
+};
+
 export const CURRENT_STAGE_OPTIONS: CurrentStage[] = [
   'validation_form',
   'validation_manager',
@@ -83,6 +108,8 @@ export interface Admission {
   workHours?: string;
   expectedStartDate?: string;
   observations?: string;
+  /** Data em que o candidato foi contratado (preenchida por transitionToHired). */
+  hiredAt?: string;
 }
 
 export interface Termination {
@@ -126,6 +153,27 @@ export interface EmergencyContact {
   relationship: string;
   phone: string;
 }
+
+/**
+ * Evento de auditoria do pipeline de contratação.
+ * Persistido em hr_pipeline_events.
+ */
+export interface PipelineEvent {
+  id: string;
+  candidateId: string;
+  fromStage?: string | null;
+  toStage: string;
+  eventType: string;
+  createdBy?: string | null;
+  createdAt: string;
+}
+
+export type PipelineEventType =
+  | 'stage_changed'
+  | 'hired'
+  | 'onboarding_started'
+  | 'integrated'
+  | 'active';
 
 export interface CandidateHRData {
   candidateId: string;

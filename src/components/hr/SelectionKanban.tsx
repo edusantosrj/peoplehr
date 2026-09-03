@@ -20,7 +20,7 @@ import { SignedAvatarImage } from "@/components/hr/SignedAvatarImage";
 import { useVacancies } from "@/contexts/VacancyContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
-import { saveEvaluation, normalizeInterviewStatus } from "@/services/hrDataService";
+import { saveEvaluation, normalizeInterviewStatus, transitionToHired } from "@/services/hrDataService";
 import { ChevronDown, X } from "lucide-react";
 import type { Candidate } from "@/types/candidate";
 import {
@@ -28,6 +28,7 @@ import {
   CURRENT_STAGE_OPTIONS,
   CURRENT_STAGE_LABELS,
   CurrentStage,
+  ProcessEvaluation,
 } from "@/types/hr";
 
 interface Props {
@@ -291,6 +292,32 @@ export const SelectionKanban = ({
     if (currentStage === targetStage) return;
 
     const prevEvaluation = hr?.evaluation;
+
+    // Etapa 4.3 — Centralização da contratação.
+    // Ao mover para 'hired', a transição é feita pela RPC transition_to_hired,
+    // que é a única autoridade transacional da contratação (atualiza admissão,
+    // avaliação, registra evento e debita a vaga atomicamente).
+    if (targetStage === 'hired') {
+      const result = await transitionToHired({ candidateId });
+      if (result.status === 'hired' || result.status === 'already_hired') {
+        const newEvaluation: ProcessEvaluation = { ...prevEvaluation!, currentStage: 'hired', candidateHired: 'Sim' as any };
+        const optimistic: CandidateHRData = {
+          ...(hr as CandidateHRData),
+          evaluation: newEvaluation,
+          admission: {
+            ...(hr?.admission || {}),
+            admissionStatus: 'Contratado',
+            hiredAt: result.hiredAt,
+          },
+        };
+        onUpdateHRData?.(optimistic);
+        toast.success(`Candidato movido para ${CURRENT_STAGE_LABELS[targetStage]}.`);
+      } else {
+        toast.error(result.error || "Não foi possível contratar o candidato.");
+      }
+      return;
+    }
+
     const newEvaluation = { ...prevEvaluation, currentStage: targetStage };
     const optimistic: CandidateHRData = {
       ...(hr as CandidateHRData),

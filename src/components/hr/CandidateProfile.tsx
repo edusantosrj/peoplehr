@@ -31,6 +31,7 @@ import {
   saveDocumentation,
   saveEmergencyContacts,
   normalizeInterviewStatus,
+  transitionToHired,
 } from "@/services/hrDataService";
 import { getSignedStorageUrl, useSignedStorageUrl } from "@/lib/storagePath";
 
@@ -48,7 +49,7 @@ export const CandidateProfile = ({
   onUpdateHRData,
 }: CandidateProfileProps) => {
   const { toast } = useToast();
-  const { debitVacancy, creditVacancy } = useVacancies();
+  const { creditVacancy } = useVacancies();
   const [localHRData, setLocalHRData] = useState<CandidateHRData>(hrData);
   const [localCandidate, setLocalCandidate] = useState<Candidate>(candidate);
   const [isPreparingPrint, setIsPreparingPrint] = useState(false);
@@ -112,23 +113,23 @@ export const CandidateProfile = ({
     }));
   };
 
-  const handleDebitVacancy = async (vacancyId: string) => {
-    const success = await debitVacancy(vacancyId);
-    if (!success) {
-      toast({ title: "Erro", description: "Não foi possível debitar a vaga. Quantidade insuficiente.", variant: "destructive" });
-    }
-  };
-
   const handleSaveAdmission = async () => {
     // Debit vacancy when status changes to "Contratado" and vacancy is selected
     const previousStatus = hrData.admission?.admissionStatus;
     const newStatus = localHRData.admission?.admissionStatus;
-    if (newStatus === 'Contratado' && previousStatus !== 'Contratado' && localHRData.admission?.vacancyId) {
-      const success = await debitVacancy(localHRData.admission.vacancyId);
-      if (!success) {
-        toast({ title: "Vaga indisponível", description: "Não foi possível contratar. A vaga não possui mais vagas disponíveis.", variant: "destructive" });
-        return;
+    if (newStatus === 'Contratado' && previousStatus !== 'Contratado') {
+      // Centraliza a contratação na RPC transition_to_hired (Etapa 4.3)
+      const result = await transitionToHired({ candidateId: candidate.id });
+      if (result.status === 'hired') {
+        updateLocal({ ...localHRData, admission: { ...localHRData.admission, admissionStatus: 'Contratado', hiredAt: result.hiredAt } });
+        toast({ title: "Admissão salva", description: "Os dados de admissão foram salvos com sucesso." });
+      } else if (result.status === 'already_hired') {
+        updateLocal({ ...localHRData, admission: { ...localHRData.admission, admissionStatus: 'Contratado', hiredAt: result.hiredAt } });
+        toast({ title: "Admissão salva", description: "Os dados de admissão foram salvos com sucesso." });
+      } else {
+        toast({ title: "Erro ao salvar", description: result.error || "Não foi possível salvar a admissão.", variant: "destructive" });
       }
+      return;
     }
     updateLocal(localHRData);
     const ok = await saveAdmission(candidate.id, localHRData.admission);
@@ -426,7 +427,7 @@ export const CandidateProfile = ({
         </AccordionItem>
         <AccordionItem value="admission" className="border rounded-lg bg-card px-4 print:border-0 print:px-0">
           <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">Admissão do Candidato</AccordionTrigger>
-          <AccordionContent className="pt-2 print:!block"><AdmissionBlock admission={localHRData.admission} onUpdate={handleUpdateAdmission} onBatchUpdate={handleBatchUpdateAdmission} onSave={handleSaveAdmission} onDebitVacancy={handleDebitVacancy} /></AccordionContent>
+          <AccordionContent className="pt-2 print:!block"><AdmissionBlock admission={localHRData.admission} onUpdate={handleUpdateAdmission} onBatchUpdate={handleBatchUpdateAdmission} onSave={handleSaveAdmission} /></AccordionContent>
         </AccordionItem>
         <AccordionItem value="termination" className="border rounded-lg bg-card px-4 print:border-0 print:px-0">
           <AccordionTrigger className="text-base font-semibold hover:no-underline print:hidden">Desligamento</AccordionTrigger>

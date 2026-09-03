@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import type {
   CandidateHRData,
   ProcessEvaluation,
@@ -7,6 +8,8 @@ import type {
   CandidateDocumentation,
   HRAnnotation,
   EmergencyContact,
+  PipelineEvent,
+  PipelineEventType,
 } from "@/types/hr";
 import { createDefaultDocumentation } from "@/types/hr";
 
@@ -115,6 +118,7 @@ export async function fetchAllHRData(
         workHours: row.work_hours || undefined,
         expectedStartDate: row.expected_start_date || undefined,
         observations: row.observations || undefined,
+        hiredAt: row.hired_at || undefined,
       };
     }
   }
@@ -244,21 +248,29 @@ export async function addAnnotation(candidateId: string, text: string): Promise<
 }
 
 export async function saveAdmission(candidateId: string, admission: Admission) {
-  const { error } = await supabase.from("hr_admissions").upsert(
-    {
-      candidate_id: candidateId,
-      vacancy_id: admission.vacancyId || null,
-      vacancy_display: admission.vacancyDisplay || null,
-      admission_status: admission.admissionStatus || null,
-      defined_salary: admission.definedSalary || null,
-      store_unit: admission.storeUnit || null,
-      work_hours: admission.workHours || null,
-      expected_start_date: admission.expectedStartDate || null,
-      observations: admission.observations || null,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "candidate_id" }
-  );
+  type AdmissionInsert = Database["public"]["Tables"]["hr_admissions"]["Insert"];
+  const payload: AdmissionInsert = {
+    candidate_id: candidateId,
+    vacancy_id: admission.vacancyId || null,
+    vacancy_display: admission.vacancyDisplay || null,
+    admission_status: admission.admissionStatus || null,
+    defined_salary: admission.definedSalary || null,
+    store_unit: admission.storeUnit || null,
+    work_hours: admission.workHours || null,
+    expected_start_date: admission.expectedStartDate || null,
+    observations: admission.observations || null,
+    updated_at: new Date().toISOString(),
+  };
+
+  // hired_at é gerenciado exclusivamente por transitionToHired.
+  // Preserva o valor existente no banco quando salvar admissão pela interface.
+  if (admission.hiredAt) {
+    payload.hired_at = admission.hiredAt;
+  }
+
+  const { error } = await supabase.from("hr_admissions").upsert(payload, {
+    onConflict: "candidate_id",
+  });
   if (error) console.error("Erro ao salvar admissão:", error);
   return !error;
 }
@@ -336,4 +348,197 @@ export async function saveEmergencyContacts(candidateId: string, contacts: Emerg
     return false;
   }
   return true;
+}
+
+// ============================================================
+// PIPELINE CONTRATADO — ETAPA 4.1
+// ============================================================
+// Centralização futura da transição de candidato para "Contratado".
+// Esta camada prepara a arquitetura; a interface atual continuará
+// funcionando normalmente até a Etapa 4.3.
+
+/**
+ * Parâmetros da operação transitionToHired.
+ */
+export interface TransitionToHiredParams {
+  candidateId: string;
+  /** Data da contratação. Default: agora. */
+  hiredAt?: string;
+  /** Tipo do evento registrado na auditoria. Default: 'hired'. */
+  eventType?: PipelineEventType;
+  /**
+   * PONTO DE INTEGRAÇÃO COM debitVacancy — Etapa 4.3.
+   *
+   * HOJE: o débito de vaga é feito diretamente pela interface em
+   * CandidateProfile.handleSaveAdmission (fluxo antigo). Este callback
+   * não é chamado por esse fluxo.
+   *
+   * FUTURO: quando este serviço for a única porta de entrada para
+   * contratação, deverá ser passado aqui o `debitVacancy` do
+   * VacancyContext. Ele só será executado APÓS a contratação realmente
+   * acontecer (status 'hired'), garantindo idempotência — nunca será
+   * chamado para candidatos já contratados.
+   */
+  debitVacancy?: (vacancyId: string) => Promise<boolean>;
+}
+
+export type TransitionToHiredResult =
+  | {
+      status: 'already_hired';
+      hiredAt?: string;
+    }
+  | {
+      status: 'hired';
+      hiredAt: string;
+      event: PipelineEvent;
+      vacancyDebited: boolean;
+    }
+  | {
+      status: 'error';
+      error: string;
+    };
+
+/**
+ * Registra um evento de auditoria em hr_pipeline_events.
+ * created_by é preenchido a partir da sessão autenticada.
+ */
+export async function registerPipelineEvent(params: {
+  candidateId: string;
+  fromStage?: string | null;
+  toStage: string;
+  eventType: PipelineEventType | string;
+}): Promise<PipelineEvent | null> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  type PipelineEventInsert =
+    Database["public"]["Tables"]["hr_pipeline_events"]["Insert"];
+
+  const payload: PipelineEventInsert = {
+    candidate_id: params.candidateId,
+    from_stage: params.fromStage ?? null,
+    to_stage: params.toStage,
+    event_type: params.eventType,
+    created_by: session?.user?.id ?? null,
+  };
+
+  const { data, error } = await supabase
+    .from("hr_pipeline_events")
+    .insert(payload)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Erro ao registrar evento do pipeline:", error);
+    return null;
+  }
+
+  return {
+    id: data.id,
+    candidateId: data.candidate_id,
+    fromStage: data.from_stage,
+    toStage: data.to_stage,
+    eventType: data.event_type,
+    createdBy: data.created_by,
+    createdAt: data.created_at,
+  };
+}
+
+/**
+ * Busca o histórico real de eventos do pipeline de um candidato.
+ * Fonte de verdade para auditoria (hr_pipeline_events).
+ */
+export async function fetchPipelineEvents(
+  candidateId: string
+): Promise<PipelineEvent[]> {
+  const { data, error } = await supabase
+    .from("hr_pipeline_events")
+    .select("*")
+    .eq("candidate_id", candidateId)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    console.error("Erro ao buscar eventos do pipeline:", error);
+    return [];
+  }
+
+  return (data || []).map((row) => ({
+    id: row.id,
+    candidateId: row.candidate_id,
+    fromStage: row.from_stage,
+    toStage: row.to_stage,
+    eventType: row.event_type,
+    createdBy: row.created_by,
+    createdAt: row.created_at,
+  }));
+}
+
+/**
+ * transitionToHired — ÚNICA PUERTA DE ENTRADA PARA CONTRATACIÓN (Etapa 4.3).
+ *
+ * Delega toda la lógica transaccional a la RPC public.transition_to_hired,
+ * que es la autoridad atómica de la contratación:
+ *  - valida el candidato;
+ *  - verifica si ya está contratado (idempotencia);
+ *  - actualiza hr_admissions y hr_evaluations;
+ *  - registra hr_pipeline_events;
+ *  - debita la vaga en la misma transacción.
+ *
+ * El frontend NO debe ejecutar debitVacancy() en el camino de contratación.
+ */
+export async function transitionToHired(
+  params: TransitionToHiredParams
+): Promise<TransitionToHiredResult> {
+  const { candidateId } = params;
+
+  const { data, error } = await supabase.rpc("transition_to_hired", {
+    p_candidate_id: candidateId,
+  });
+
+  if (error) {
+    console.error("Error en transition_to_hired RPC:", error);
+    return { status: "error", error: error.message || "Fallo al contratar candidato." };
+  }
+
+  const result = data as {
+    status?: string;
+    hiredAt?: string;
+    eventId?: string;
+    vacancyDebited?: boolean;
+    error?: string;
+  } | null;
+
+  if (!result) {
+    return { status: "error", error: "Respuesta vacía de la RPC." };
+  }
+
+  if (result.status === "already_hired") {
+    return {
+      status: "already_hired",
+      hiredAt: result.hiredAt,
+    };
+  }
+
+  if (result.status === "error") {
+    return { status: "error", error: result.error || "Error desconocido." };
+  }
+
+  if (result.status === "hired") {
+    return {
+      status: "hired",
+      hiredAt: result.hiredAt || new Date().toISOString(),
+      event: {
+        id: result.eventId || "",
+        candidateId,
+        fromStage: undefined,
+        toStage: "hired",
+        eventType: "hired",
+        createdAt: result.hiredAt || new Date().toISOString(),
+      },
+      vacancyDebited: !!result.vacancyDebited,
+    };
+  }
+
+  return { status: "error", error: "Estado inesperado de la RPC." };
 }

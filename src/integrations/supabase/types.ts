@@ -150,6 +150,7 @@ export type Database = {
           created_at: string
           defined_salary: string | null
           expected_start_date: string | null
+          hired_at: string | null
           id: string
           observations: string | null
           store_unit: string | null
@@ -164,6 +165,7 @@ export type Database = {
           created_at?: string
           defined_salary?: string | null
           expected_start_date?: string | null
+          hired_at?: string | null
           id?: string
           observations?: string | null
           store_unit?: string | null
@@ -178,6 +180,7 @@ export type Database = {
           created_at?: string
           defined_salary?: string | null
           expected_start_date?: string | null
+          hired_at?: string | null
           id?: string
           observations?: string | null
           store_unit?: string | null
@@ -411,6 +414,51 @@ export type Database = {
           },
         ]
       }
+      hr_pipeline_events: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          created_by: string | null
+          event_type: string
+          from_stage: string | null
+          id: string
+          to_stage: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          created_by?: string | null
+          event_type: string
+          from_stage?: string | null
+          id?: string
+          to_stage: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          created_by?: string | null
+          event_type?: string
+          from_stage?: string | null
+          id?: string
+          to_stage?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_pipeline_events_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_pipeline_events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hr_terminations: {
         Row: {
           can_be_rehired: boolean | null
@@ -536,6 +584,10 @@ export type Database = {
       submit_candidate_application: {
         Args: { p_payload: Json }
         Returns: undefined
+      }
+      transition_to_hired: {
+        Args: { p_candidate_id: string }
+        Returns: Json
       }
     }
     Enums: {
